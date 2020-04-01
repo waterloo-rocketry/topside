@@ -1,7 +1,14 @@
 # IDE files and directories
 
 .idea/
+.vscode/
 
 # Python
 
 venv/
+
+__pycache__/
+*.py[cod]
+
+dist/
+*.egg-info/
