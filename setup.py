@@ -15,9 +15,9 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/waterloo-rocketry/operations-simulator',
     author='Waterloo Rocketry',
+    license='MIT',
     classifiers=[
         'License :: OSI Approved :: MIT License',
     ],
-    package_dir={'': 'operations_simulator'},
-    packages=find_packages(where='operations_simulator'),
+    packages=find_packages(),
 )
