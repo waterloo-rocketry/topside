@@ -1,0 +1,3 @@
+networkx
+PySide2
+pytest
