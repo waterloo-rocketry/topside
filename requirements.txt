@@ -2,3 +2,4 @@ cx-freeze
 networkx
 PySide2
 pytest
+shiboken2
