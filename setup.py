@@ -1,11 +1,33 @@
+import platform
 from os import path
 
 from setuptools import setup, find_packages
+from cx_Freeze import setup, Executable
 
 here = path.abspath(path.dirname(__file__))
 
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
+
+# cx_Freeze configuration
+
+base = None
+icon = 'resources/icon.png'
+
+if platform.system() == 'Windows':
+    base = 'Win32GUI'
+    icon = 'resources/icon.ico'
+
+target = Executable(
+    script='operations_simulator/core/main.py',
+    targetName='OperationsSimulator',
+    base=base,
+    icon=icon
+)
+
+build_exe_opts = {
+    'include_files': [icon]
+}
 
 setup(
     name='operations_simulator',
@@ -20,4 +42,8 @@ setup(
         'License :: OSI Approved :: MIT License',
     ],
     packages=find_packages(),
+    executables=[target],
+    options={
+        'build_exe': build_exe_opts
+    }
 )
