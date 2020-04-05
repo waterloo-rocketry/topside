@@ -12,21 +12,21 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 # cx_Freeze configuration
 
 base = None
-icon = 'resources/icon.png'
+icon = 'application/resources/icon.png'
 
 if platform.system() == 'Windows':
     base = 'Win32GUI'
-    icon = 'resources/icon.ico'
+    icon = 'application/resources/icon.ico'
 
 target = Executable(
-    script='operations_simulator/core/main.py',
+    script='application/main.py',
     targetName='OperationsSimulator',
     base=base,
     icon=icon
 )
 
 build_exe_opts = {
-    'include_files': [icon]
+    'include_files': ['application/resources']
 }
 
 setup(
