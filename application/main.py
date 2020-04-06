@@ -12,7 +12,7 @@ import operations_simulator as ops
 # paths. See below:
 # cx-freeze.readthedocs.io/en/latest/faq.html#using-data-files
 def find_resource(filename):
-    if getattr(sys, 'frozen'):
+    if getattr(sys, 'frozen', False):
         datadir = path.dirname(sys.executable)
     else:
         datadir = path.dirname(__file__)
