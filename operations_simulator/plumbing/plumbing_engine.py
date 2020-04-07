@@ -1,27 +1,13 @@
 import networkx as nx
 import matplotlib.pyplot as plt
-import config
-
-
-def teq_to_FC(teq):
-    if teq == 0:
-        fc = config.FC_MAX
-    elif teq == config.CLOSED_KEYWORD:
-        fc = 0
-    else:
-        fc = 4.5 / teq
-    return fc
-
-
-def FC_to_teq(FC):
-    return 4.5 / FC
+import plumbing_utils as utils
 
 
 class PlumbingEngine:
     '''Engine that represents a plumbing system'''
 
     def __init__(self, components=[], mapping={}, initial_nodes={}, initial_states={}):
-        self.time_resolution = config.DEFAULT_TIME_RESOLUTION
+        self.time_resolution = utils.DEFAULT_TIME_RESOLUTION_MICROS
         self.plumbing_graph = nx.MultiDiGraph()
         self.load_graph(components, mapping, initial_nodes, initial_states)
 
@@ -55,9 +41,9 @@ class PlumbingEngine:
         # Assign initial states to edges
         for component in self.components_list:
             state_id = initial_states[component.name]
-            self.toggle_component(component, state_id)
+            self.set_component_state(component, state_id)
 
-    def toggle_component(self, component, state_id):
+    def set_component_state(self, component, state_id):
         '''change a component's state on the main graph'''
         # Map from component to graph node for this component
         component_map = self.mapping[component.name]
@@ -81,16 +67,15 @@ class PlumbingEngine:
 
     def _set_time_resolution(self, component):
         '''set a time resolution based on lowest teq (highest FC)'''
-        max_fc = teq_to_FC(self.time_resolution *
-                           config.DEFAULT_RESOLUTION_SCALE)
+        max_fc = utils.teq_to_FC(self.time_resolution *
+                                 utils.DEFAULT_RESOLUTION_SCALE)
         component_states = component.states
         for state in component_states.values():
             for fc in state.values():
                 if fc > max_fc:
                     max_fc = fc
         if max_fc:
-            self.time_resolution = FC_to_teq(
-                max_fc) / config.DEFAULT_RESOLUTION_SCALE
+            self.time_resolution = utils.FC_to_teq(max_fc) / utils.DEFAULT_RESOLUTION_SCALE
 
 
 class PlumbingComponent:
@@ -98,14 +83,13 @@ class PlumbingComponent:
         self.name = name
         self.component_graph = nx.MultiDiGraph(edge_list)
         self.states = states
-        self.current_state = ''
+        self.current_state = None
 
         # Convert provided teq values into FC values
         for state in self.states.values():
             for edge in state:
-                if state[edge] == 0:
-                    state[edge] = config.FC_MAX
-                elif state[edge] == config.CLOSED_KEYWORD:
-                    state[edge] = 0
-                else:
-                    state[edge] = teq_to_FC(state[edge])
+                # TODO(jacob or wendi) figure out how exactly this error will be thrown
+                if state[edge] < utils.TEQ_MIN:
+                    print("Warning: provided teq value too low")
+                    state[edge] = utils.MIN_TEQ
+                state[edge] = utils.teq_to_FC(state[edge] * 1e6)
