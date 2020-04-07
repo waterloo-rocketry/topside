@@ -10,7 +10,7 @@ fi
 WORKSPACE_DIR=$(git rev-parse --show-toplevel)
 cd "$WORKSPACE_DIR"
 
-FILES=$(git diff --name-only master | grep '\.py')
+FILES=$(git diff --name-only master | grep '\.py$')
 
 if [ ! -z "$FILES" ]
 then
