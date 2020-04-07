@@ -2,6 +2,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import config
 
+
 def teq_to_FC(teq):
     if teq == 0:
         fc = config.FC_MAX
@@ -11,11 +12,14 @@ def teq_to_FC(teq):
         fc = 4.5 / teq
     return fc
 
+
 def FC_to_teq(FC):
     return 4.5 / FC
 
+
 class PlumbingEngine:
     '''Engine that represents a plumbing system'''
+
     def __init__(self, components=[], mapping={}, initial_nodes={}, initial_states={}):
         self.time_resolution = config.DEFAULT_TIME_RESOLUTION
         self.plumbing_graph = nx.MultiDiGraph()
@@ -32,7 +36,8 @@ class PlumbingEngine:
             component_graph = component.component_graph
             nodes_map = self.mapping[component.name]
             for start_node, end_node, edge_key in component_graph.edges(keys=True):
-                self.plumbing_graph.add_edge(nodes_map[start_node], nodes_map[end_node], edge_key)
+                self.plumbing_graph.add_edge(
+                    nodes_map[start_node], nodes_map[end_node], edge_key)
 
         # Set a time resolution based on lowest teq (highest FC) if graph isn't empty
         if not nx.classes.function.is_empty(self.plumbing_graph):
@@ -40,7 +45,8 @@ class PlumbingEngine:
                 self._set_time_resolution(component)
 
         # Assign default pressure value of 0 to every node
-        nx.classes.function.set_node_attributes(self.plumbing_graph, 0, 'pressure')
+        nx.classes.function.set_node_attributes(
+            self.plumbing_graph, 0, 'pressure')
 
         # Assign initial pressures to given nodes
         for node_name, node_pressure in initial_nodes.items():
@@ -65,23 +71,26 @@ class PlumbingEngine:
         state_edges_graph = {}
         for cedge in state_edges_component.keys():
             cstart_node, cend_node, key = cedge
-            new_edge = (component_map[cstart_node], component_map[cend_node], key)
+            new_edge = (component_map[cstart_node],
+                        component_map[cend_node], key)
             state_edges_graph[new_edge] = state_edges_component[cedge]
 
         # set FC on main graph according to new dict
-        nx.classes.function.set_edge_attributes(self.plumbing_graph, state_edges_graph, 'FC')
+        nx.classes.function.set_edge_attributes(
+            self.plumbing_graph, state_edges_graph, 'FC')
 
     def _set_time_resolution(self, component):
         '''set a time resolution based on lowest teq (highest FC)'''
-        max_fc = teq_to_FC(self.time_resolution * config.DEFAULT_RESOLUTION_SCALE)
+        max_fc = teq_to_FC(self.time_resolution *
+                           config.DEFAULT_RESOLUTION_SCALE)
         component_states = component.states
         for state in component_states.values():
             for fc in state.values():
                 if fc > max_fc:
                     max_fc = fc
         if max_fc:
-            self.time_resolution = FC_to_teq(max_fc) / config.DEFAULT_RESOLUTION_SCALE
-
+            self.time_resolution = FC_to_teq(
+                max_fc) / config.DEFAULT_RESOLUTION_SCALE
 
 
 class PlumbingComponent:
