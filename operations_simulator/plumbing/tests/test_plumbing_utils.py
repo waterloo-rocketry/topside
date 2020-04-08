@@ -7,11 +7,9 @@ def test_teq_to_FC():
     absurdly_large_teq = 100000000
 
     assert utils.teq_to_FC(0) == utils.FC_MAX
-    assert  utils.teq_to_FC(utils.CLOSED_KEYWORD) == 0
-
+    assert utils.teq_to_FC(utils.CLOSED_KEYWORD) == 0
     for i in range(utils.TEQ_MIN, reasonable_max_teq, 5):
         assert utils.teq_to_FC(i) == 4.5 / i
-
     assert utils.teq_to_FC(absurdly_large_teq) == 4.5 / absurdly_large_teq
 
 
@@ -30,7 +28,7 @@ def test_micros_to_s():
 
     epsilon = 1e-8
     for i in range(0, large_micros_amount, 100):
-        assert utils.micros_to_s(i) - (i / 1e6) < epsilon
+        assert abs(utils.micros_to_s(i) - (i / 1e6)) < epsilon
 
 
 def test_s_to_micros():
@@ -39,5 +37,5 @@ def test_s_to_micros():
     epsilon = 1e-8
     i = 0
     while i < large_second_amount:
-        assert utils.s_to_micros(i) - (i * 1e6) < epsilon
+        assert abs(utils.s_to_micros(i) - (i * 1e6)) < epsilon
         i += 0.5

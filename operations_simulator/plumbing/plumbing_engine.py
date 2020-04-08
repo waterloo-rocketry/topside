@@ -78,7 +78,7 @@ class PlumbingEngine:
 
 
 class PlumbingComponent:
-    ''' Represents a component of a subsystem, eg a tank or valve'''
+    '''Represents a discrete plumbing component, such as a tank or valve'''
 
     def __init__(self, name, states, edge_list):
         self.name = name
@@ -98,6 +98,6 @@ class PlumbingComponent:
 
                 # TODO(jacob/wendi): Figure out how exactly this error will be thrown.
                 if state[edge] > utils.FC_MAX:
-                    print("Warning: provided teq value too low, replaced by minimum value: {}s".format(
+                    print('Warning: provided teq value too low, replaced by minimum value: {}s'.format(
                         utils.micros_to_s(utils.TEQ_MIN)))
                     state[edge] = utils.FC_MAX
