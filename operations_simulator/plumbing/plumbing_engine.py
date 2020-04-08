@@ -78,6 +78,8 @@ class PlumbingEngine:
 
 
 class PlumbingComponent:
+    ''' Represents a component of a subsystem, eg a tank or valve'''
+
     def __init__(self, name, states, edge_list):
         self.name = name
         self.component_graph = nx.MultiDiGraph(edge_list)
@@ -88,9 +90,10 @@ class PlumbingComponent:
         for state in self.states.values():
             for edge in state:
                 if isinstance(state[edge], (float, int)):
-                    state[edge] = utils.s_to_micros_int(state[edge])
+                    state[edge] = utils.s_to_micros(state[edge])
 
-                # TODO(jacob/wendi): Look into eventually implementing this with datetime.timedelta object.
+                # TODO(jacob/wendi): Look into eventually implementing
+                # this with datetime.timedelta object.
                 state[edge] = utils.teq_to_FC(state[edge])
 
                 # TODO(jacob/wendi): Figure out how exactly this error will be thrown.

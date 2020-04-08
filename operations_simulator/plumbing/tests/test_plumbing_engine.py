@@ -48,11 +48,6 @@ def two_valve_setup(vAs1_1, vAs1_2, vAs2_1, vAs2_2, vBs1_1, vBs1_2, vBs2_1, vBs2
     return plumb
 
 
-def test_plumbing_engine_exists():
-    plumb = ops.PlumbingEngine()
-    assert plumb is not None
-
-
 def test_empty_graph():
     plumb = ops.PlumbingEngine()
 
@@ -83,12 +78,12 @@ def test_open_closed_valves():
 def test_arbitrary_states():
     plumb = two_valve_setup(0.5, 0.2, 10, 'closed', 0.5, 0.2, 10, 'closed')
 
-    assert plumb.time_resolution == int(utils.s_to_micros_int(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
+    assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
-        (1, 2, 'A1', {'FC': utils.teq_to_FC(utils.s_to_micros_int(10))}),
+        (1, 2, 'A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
         (2, 1, 'A2', {'FC': 0}),
-        (2, 3, 'B1', {'FC': utils.teq_to_FC(utils.s_to_micros_int(0.5))}),
-        (3, 2, 'B2', {'FC': utils.teq_to_FC(utils.s_to_micros_int(0.2))})
+        (2, 3, 'B1', {'FC': utils.teq_to_FC(utils.s_to_micros(0.5))}),
+        (3, 2, 'B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))})
     ]
     assert list(plumb.plumbing_graph.nodes(data=True)) == [
         (1, {'pressure': 0}),
@@ -107,12 +102,12 @@ def test_load_graph_to_empty():
     plumb = ops.PlumbingEngine()
     plumb.load_graph(plumb0.component_dict, plumb0.mapping, pressures, default_states)
 
-    assert plumb.time_resolution == int(utils.s_to_micros_int(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
+    assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
-        (1, 2, 'A1', {'FC': utils.teq_to_FC(utils.s_to_micros_int(10))}),
+        (1, 2, 'A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
         (2, 1, 'A2', {'FC': 0}),
-        (2, 3, 'B1', {'FC': utils.teq_to_FC(utils.s_to_micros_int(0.5))}),
-        (3, 2, 'B2', {'FC': utils.teq_to_FC(utils.s_to_micros_int(0.2))})
+        (2, 3, 'B1', {'FC': utils.teq_to_FC(utils.s_to_micros(0.5))}),
+        (3, 2, 'B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))})
     ]
     assert list(plumb.plumbing_graph.nodes(data=True)) == [
         (1, {'pressure': 0}),
@@ -131,12 +126,12 @@ def test_replace_graph():
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     plumb.load_graph(plumb0.component_dict, plumb0.mapping, pressures, default_states)
 
-    assert plumb.time_resolution == int(utils.s_to_micros_int(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
+    assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
-        (1, 2, 'A1', {'FC': utils.teq_to_FC(utils.s_to_micros_int(10))}),
+        (1, 2, 'A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
         (2, 1, 'A2', {'FC': 0}),
-        (2, 3, 'B1', {'FC': utils.teq_to_FC(utils.s_to_micros_int(0.5))}),
-        (3, 2, 'B2', {'FC': utils.teq_to_FC(utils.s_to_micros_int(0.2))})
+        (2, 3, 'B1', {'FC': utils.teq_to_FC(utils.s_to_micros(0.5))}),
+        (3, 2, 'B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))})
     ]
     assert list(plumb.plumbing_graph.nodes(data=True)) == [
         (1, {'pressure': 0}),
@@ -152,10 +147,10 @@ def test_new_component_state():
     plumb.set_component_state('valve1', 'open')
 
     assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
-        (1, 2, 'A1', {'FC': utils.teq_to_FC(utils.s_to_micros_int(0.5))}),
-        (2, 1, 'A2', {'FC': utils.teq_to_FC(utils.s_to_micros_int(0.2))}),
-        (2, 3, 'B1', {'FC': utils.teq_to_FC(utils.s_to_micros_int(0.5))}),
-        (3, 2, 'B2', {'FC': utils.teq_to_FC(utils.s_to_micros_int(0.2))})
+        (1, 2, 'A1', {'FC': utils.teq_to_FC(utils.s_to_micros(0.5))}),
+        (2, 1, 'A2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))}),
+        (2, 3, 'B1', {'FC': utils.teq_to_FC(utils.s_to_micros(0.5))}),
+        (3, 2, 'B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))})
     ]
     assert plumb.component_dict['valve1'].current_state == 'open'
     assert plumb.component_dict['valve2'].current_state == 'open'

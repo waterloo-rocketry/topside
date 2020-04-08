@@ -1,6 +1,7 @@
 import operations_simulator as ops
 import operations_simulator.plumbing.plumbing_utils as utils
 
+
 def two_edge_states_edges(s1e1, s1e2, s2e1, s2e2):
     states = {
         'open': {
@@ -13,11 +14,8 @@ def two_edge_states_edges(s1e1, s1e2, s2e1, s2e2):
         }
     }
     edges = [(1, 2, 'A1'), (2, 1, 'A2')]
-    return (states, edges)
 
-def test_plumbing_component_exists():
-    plumb_comp = ops.PlumbingComponent('', {}, [])
-    assert plumb_comp is not None
+    return (states, edges)
 
 
 def test_plumbing_component_setup():
@@ -37,14 +35,18 @@ def test_plumbing_component_setup():
         },
         'closed': {
             (1, 2, 'A1'): 0,
-            (2, 1, 'A2'): 0}
+            (2, 1, 'A2'): 0
         }
+    }
+
 
 def test_minimum_teq():
-    states, edges = two_edge_states_edges(0.1, 12, 57, 0.00000000000001)
+    normal_teq = 1
+    teq_too_low = utils.micros_to_s(utils.TEQ_MIN) / 2
+    states, edges = two_edge_states_edges(normal_teq, normal_teq, normal_teq, teq_too_low)
     pc = ops.PlumbingComponent('valve', states, edges)
 
-    # NOTE: When error raising is implemented, make sure to check that the proper error is raised here
+    # NOTE: When error raising is implemented, check that the proper error is raised here
     for state in pc.states.values():
         for fc in state.values():
             assert fc <= utils.FC_MAX
