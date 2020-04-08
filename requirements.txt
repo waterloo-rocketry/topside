@@ -4,3 +4,4 @@ networkx
 PySide2==5.14.1
 pytest
 shiboken2==5.14.1
+lark-parser
