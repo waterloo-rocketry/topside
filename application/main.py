@@ -24,8 +24,12 @@ if __name__ == '__main__':
     app = QGuiApplication(sys.argv)
     app.setWindowIcon(QIcon(find_resource('icon.ico')))
 
+    app.setOrganizationName("Waterloo Rocketry")
+    app.setOrganizationDomain("waterloorocketry.com")
+    app.setApplicationName("Operations Simulator")
+
     qml_engine = QQmlApplicationEngine()
-    qml_engine.load(find_resource('ui.qml'))
+    qml_engine.load(find_resource('main_window.qml'))
 
     plumb = ops.PlumbingEngine()
 
