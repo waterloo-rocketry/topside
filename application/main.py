@@ -1,8 +1,9 @@
 from os import path
 import sys
 
-from PySide2.QtWidgets import QApplication, QMainWindow
-from PySide2.QtGui import QIcon
+from PySide2.QtWidgets import QMainWindow, QApplication
+from PySide2.QtGui import QIcon, QGuiApplication
+from PySide2.QtQml import QQmlApplicationEngine
 
 import operations_simulator as ops
 
@@ -19,20 +20,16 @@ def find_resource(filename):
     return path.join(datadir, 'resources', filename)
 
 
-class Window(QMainWindow):
-    def __init__(self):
-        QMainWindow.__init__(self)
-        self.setWindowTitle('Operations Simulator')
-        self.setWindowIcon(QIcon(find_resource('icon.ico')))
-
-
 if __name__ == '__main__':
-    app = QApplication([])
+    app = QGuiApplication(sys.argv)
+    app.setWindowIcon(QIcon(find_resource('icon.ico')))
+
+    qml_engine = QQmlApplicationEngine()
+    qml_engine.load(find_resource('ui.qml'))
 
     plumb = ops.PlumbingEngine()
 
-    window = Window()
-    window.resize(1200, 800)
-    window.show()
+    if not qml_engine.rootObjects():
+        sys.exit(-1)
 
     sys.exit(app.exec_())
