@@ -2,6 +2,7 @@ import pytest
 
 import operations_simulator as ops
 import operations_simulator.plumbing.plumbing_utils as utils
+import operations_simulator.plumbing.exceptions as exceptions
 
 
 def create_component(s1v1, s1v2, s2v1, s2v2, name, key):
@@ -169,7 +170,7 @@ def test_missing_component():
 
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
-    with pytest.raises(KeyError):
+    with pytest.raises(exceptions.MissingInputError):
         plumb = ops.PlumbingEngine(
             {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
@@ -193,7 +194,7 @@ def test_wrong_node_mapping():
 
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
-    with pytest.raises(KeyError):
+    with pytest.raises(exceptions.MissingInputError):
         plumb = ops.PlumbingEngine(
             {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
@@ -216,7 +217,7 @@ def test_missing_node_pressure():
 
     pressures = {wrong_node_name: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
-    with pytest.raises(KeyError):
+    with pytest.raises(exceptions.MissingInputError):
         plumb = ops.PlumbingEngine(
             {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
@@ -239,7 +240,7 @@ def test_missing_initial_state():
 
     pressures = {3: 100}
     default_states = {wrong_component_name: 'closed', 'valve2': 'open'}
-    with pytest.raises(KeyError):
+    with pytest.raises(exceptions.MissingInputError):
         plumb = ops.PlumbingEngine(
             {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
@@ -247,12 +248,12 @@ def test_missing_initial_state():
 def test_set_component_wrong_state_name():
     wrong_state_name = 'potato'
     plumb = two_valve_setup(0.5, 0.2, 10, 'closed', 0.5, 0.2, 10, 'closed')
-    with pytest.raises(KeyError):
+    with pytest.raises(exceptions.MissingInputError):
         plumb.set_component_state('valve1', wrong_state_name)
 
 
 def test_set_component_wrong_component_name():
     wrong_component_name = 'potato'
     plumb = two_valve_setup(0.5, 0.2, 10, 'closed', 0.5, 0.2, 10, 'closed')
-    with pytest.raises(KeyError):
+    with pytest.raises(exceptions.MissingInputError):
         plumb.set_component_state(wrong_component_name, 'open')

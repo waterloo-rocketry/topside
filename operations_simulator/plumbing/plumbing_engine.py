@@ -1,6 +1,7 @@
 import networkx as nx
 
 import operations_simulator.plumbing.plumbing_utils as utils
+import operations_simulator.plumbing.exceptions as exceptions
 
 
 class PlumbingEngine:
@@ -22,13 +23,14 @@ class PlumbingEngine:
             component_graph = component.component_graph
             nodes_map = self.mapping.get(name)
             if nodes_map is None:
-                raise KeyError(f"Component with name '{name}' not found in provided mapping dict.")
+                raise exceptions.MissingInputError(
+                    f"Component with name '{name}' not found in provided mapping dict.")
             for start_node, end_node, edge_key in component_graph.edges(keys=True):
                 if nodes_map.get(start_node) is None:
-                    raise KeyError(
+                    raise exceptions.MissingInputError(
                         f"Component '{name}', node {start_node} not found in mapping dict.")
                 if nodes_map.get(end_node) is None:
-                    raise KeyError(
+                    raise exceptions.MissingInputError(
                         f"Component '{name}', node {end_node} not found in mapping dict.")
                 self.plumbing_graph.add_edge(
                     nodes_map[start_node], nodes_map[end_node], edge_key)
@@ -45,28 +47,30 @@ class PlumbingEngine:
         # Assign initial pressures to given nodes
         for node_name, node_pressure in initial_nodes.items():
             if self.plumbing_graph.nodes.get(node_name) is None:
-                raise KeyError(f"Node {node_name} not found in initial node pressures dict.")
+                raise exceptions.MissingInputError(
+                    f"Node {node_name} not found in initial node pressures dict.")
             self.plumbing_graph.nodes[node_name]['pressure'] = node_pressure
 
         # Assign initial states to edges
         for component_name in self.component_dict.keys():
             if initial_states.get(component_name) is None:
-                raise KeyError(
-                    f"Component `{component_name}` state not found in initial states dict.")
+                raise exceptions.MissingInputError(
+                    f"Component '{component_name}' state not found in initial states dict.")
             state_id = initial_states[component_name]
             self.set_component_state(component_name, state_id)
 
     def set_component_state(self, component_name, state_id):
         '''Change a component's state on the main graph'''
         if self.mapping.get(component_name) is None:
-            raise KeyError(f"Component '{component_name}' not found in mapping dict.")
+            raise exceptions.MissingInputError(
+                f"Component '{component_name}' not found in mapping dict.")
 
         # Map from component to graph node for this component
         component_map = self.mapping[component_name]
         component = self.component_dict[component_name]
 
         if component.states.get(state_id) is None:
-            raise KeyError(f"State '{state_id}' not found.")
+            raise exceptions.MissingInputError(f"State '{state_id}' not found.")
 
         # Dict of {edges:FC} with component node names
         state_edges_component = component.states[state_id]
