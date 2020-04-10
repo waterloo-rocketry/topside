@@ -1,0 +1,2 @@
+class MissingInputError(Exception):
+    pass
