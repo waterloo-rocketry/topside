@@ -1,33 +1,28 @@
+import pytest
+
 import operations_simulator as ops
 import operations_simulator.plumbing.plumbing_utils as utils
 
 
-def two_valve_setup(vAs1_1, vAs1_2, vAs2_1, vAs2_2, vBs1_1, vBs1_2, vBs2_1, vBs2_2,):
-    pc1_states = {
+def create_component(s1v1, s1v2, s2v1, s2v2, name, key):
+    pc_states = {
         'open': {
-            (1, 2, 'A1'): vAs1_1,
-            (2, 1, 'A2'): vAs1_2
+            (1, 2, key + '1'): s1v1,
+            (2, 1, key + '2'): s1v2
         },
         'closed': {
-            (1, 2, 'A1'): vAs2_1,
-            (2, 1, 'A2'): vAs2_2
+            (1, 2, key + '1'): s2v1,
+            (2, 1, key + '2'): s2v2
         }
     }
-    pc1_edges = [(1, 2, 'A1'), (2, 1, 'A2')]
-    pc1 = ops.PlumbingComponent('valve1', pc1_states, pc1_edges)
+    pc_edges = [(1, 2, key + '1'), (2, 1, key + '2')]
+    pc = ops.PlumbingComponent(name, pc_states, pc_edges)
+    return pc
 
-    pc2_states = {
-        'open': {
-            (1, 2, 'B1'): vBs1_1,
-            (2, 1, 'B2'): vBs1_2
-        },
-        'closed': {
-            (1, 2, 'B1'): vBs2_1,
-            (2, 1, 'B2'): vBs2_2
-        }
-    }
-    pc2_edges = [(1, 2, 'B1'), (2, 1, 'B2')]
-    pc2 = ops.PlumbingComponent('valve2', pc2_states, pc2_edges)
+
+def two_valve_setup(vAs1_1, vAs1_2, vAs2_1, vAs2_2, vBs1_1, vBs1_2, vBs2_1, vBs2_2):
+    pc1 = create_component(vAs1_1, vAs1_2, vAs2_1, vAs2_2, 'valve1', 'A')
+    pc2 = create_component(vBs1_1, vBs1_2, vBs2_1, vBs2_2, 'valve2', 'B')
 
     component_mapping = {
         'valve1': {
@@ -154,3 +149,110 @@ def test_new_component_state():
     ]
     assert plumb.component_dict['valve1'].current_state == 'open'
     assert plumb.component_dict['valve2'].current_state == 'open'
+
+
+def test_missing_component():
+    wrong_component_name = 'potato'
+    pc1 = create_component(0, 0, 0, 0, 'valve1', 'A')
+    pc2 = create_component(0, 0, 0, 0, 'valve2', 'B')
+
+    component_mapping = {
+        'valve1': {
+            1: 1,
+            2: 2
+        },
+        'valve2': {
+            1: 2,
+            2: 3
+        }
+    }
+
+    pressures = {3: 100}
+    default_states = {'valve1': 'closed', 'valve2': 'open'}
+    with pytest.raises(KeyError):
+        plumb = ops.PlumbingEngine(
+            {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
+
+
+def test_wrong_node_mapping():
+    # The node name should be 1.
+    wrong_node_name = 4
+    pc1 = create_component(0, 0, 0, 0, 'valve1', 'A')
+    pc2 = create_component(0, 0, 0, 0, 'valve2', 'B')
+
+    component_mapping = {
+        'valve1': {
+            wrong_node_name: 1,
+            2: 2
+        },
+        'valve2': {
+            1: 2,
+            2: 3
+        }
+    }
+
+    pressures = {3: 100}
+    default_states = {'valve1': 'closed', 'valve2': 'open'}
+    with pytest.raises(KeyError):
+        plumb = ops.PlumbingEngine(
+            {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
+
+
+def test_missing_node_pressure():
+    wrong_node_name = 4
+    pc1 = create_component(0, 0, 0, 0, 'valve1', 'A')
+    pc2 = create_component(0, 0, 0, 0, 'valve2', 'B')
+
+    component_mapping = {
+        'valve1': {
+            1: 1,
+            2: 2
+        },
+        'valve2': {
+            1: 2,
+            2: 3
+        }
+    }
+
+    pressures = {wrong_node_name: 100}
+    default_states = {'valve1': 'closed', 'valve2': 'open'}
+    with pytest.raises(KeyError):
+        plumb = ops.PlumbingEngine(
+            {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
+
+
+def test_missing_initial_state():
+    wrong_component_name = 'potato'
+    pc1 = create_component(0, 0, 0, 0, 'valve1', 'A')
+    pc2 = create_component(0, 0, 0, 0, 'valve2', 'B')
+
+    component_mapping = {
+        'valve1': {
+            1: 1,
+            2: 2
+        },
+        'valve2': {
+            1: 2,
+            2: 3
+        }
+    }
+
+    pressures = {3: 100}
+    default_states = {wrong_component_name: 'closed', 'valve2': 'open'}
+    with pytest.raises(KeyError):
+        plumb = ops.PlumbingEngine(
+            {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
+
+
+def test_set_component_wrong_state_name():
+    wrong_state_name = 'potato'
+    plumb = two_valve_setup(0.5, 0.2, 10, 'closed', 0.5, 0.2, 10, 'closed')
+    with pytest.raises(KeyError):
+        plumb.set_component_state('valve1', wrong_state_name)
+
+
+def test_set_component_wrong_component_name():
+    wrong_component_name = 'potato'
+    plumb = two_valve_setup(0.5, 0.2, 10, 'closed', 0.5, 0.2, 10, 'closed')
+    with pytest.raises(KeyError):
+        plumb.set_component_state(wrong_component_name, 'open')

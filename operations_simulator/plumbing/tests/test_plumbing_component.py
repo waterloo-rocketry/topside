@@ -1,3 +1,5 @@
+import pytest
+
 import operations_simulator as ops
 import operations_simulator.plumbing.plumbing_utils as utils
 
@@ -44,9 +46,5 @@ def test_minimum_teq():
     normal_teq = 1
     teq_too_low = utils.micros_to_s(utils.TEQ_MIN) / 2
     states, edges = two_edge_states_edges(normal_teq, normal_teq, normal_teq, teq_too_low)
-    pc = ops.PlumbingComponent('valve', states, edges)
-
-    # NOTE: When error raising is implemented, check that the proper error is raised here
-    for state in pc.states.values():
-        for fc in state.values():
-            assert fc <= utils.FC_MAX
+    with pytest.raises(ValueError):
+        pc = ops.PlumbingComponent('valve', states, edges)
