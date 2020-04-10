@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.14
 
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.13
@@ -14,6 +14,18 @@ ApplicationWindow {
     title: "Operations Simulator"
     visible: true
     visibility: Window.Maximized
+
+    menuBar: MenuBar {
+        Menu {
+            title: "&File"
+
+            Action {
+                text: "&Quit"
+                shortcut: StandardKey.Quit
+                onTriggered: main_window.close()
+            }
+        }
+    }
 
     // TODO(jacob): Save and restore window dimensions as well as SplitView dimensions.
 
@@ -44,33 +56,29 @@ ApplicationWindow {
             SplitView.minimumHeight: 600
             SplitView.fillHeight: true
 
-            Rectangle {
+            DAQPane {
                 id: daq_pane
                 SplitView.minimumWidth: 200
                 SplitView.preferredWidth: 400
-                color: "green"
             }
 
-            Rectangle {
+            PlumbingPane {
                 id: plumbing_pane
                 SplitView.minimumWidth: 800
                 SplitView.fillWidth: true
-                color: "blue"
             }
 
-            Rectangle {
+            ProceduresPane {
                 id: procedures_pane
                 SplitView.minimumWidth: 200
                 SplitView.preferredWidth: 400
-                color: "purple"
             }
         }
 
-        Rectangle {
+        ControlsPane {
             id: controls_pane
             SplitView.minimumHeight: 200
             SplitView.preferredHeight: 400
-            color: "red"
         }
     }
 }

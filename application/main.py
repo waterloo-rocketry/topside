@@ -1,7 +1,6 @@
 from os import path
 import sys
 
-from PySide2.QtWidgets import QMainWindow, QApplication
 from PySide2.QtGui import QIcon, QGuiApplication
 from PySide2.QtQml import QQmlApplicationEngine
 
@@ -29,7 +28,7 @@ if __name__ == '__main__':
     app.setApplicationName("Operations Simulator")
 
     qml_engine = QQmlApplicationEngine()
-    qml_engine.load(find_resource('main_window.qml'))
+    qml_engine.load(find_resource('application.qml'))
 
     plumb = ops.PlumbingEngine()
 
