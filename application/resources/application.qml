@@ -7,7 +7,7 @@ import QtQuick.Window 2.12
 import Qt.labs.settings 1.0
 
 ApplicationWindow {
-    id: main_window
+    id: mainWindow
     width: 1200
     height: 800
     title: "Operations Simulator"
@@ -21,7 +21,7 @@ ApplicationWindow {
             Action {
                 text: "&Quit"
                 shortcut: StandardKey.Quit
-                onTriggered: main_window.close()
+                onTriggered: mainWindow.close()
             }
         }
     }
@@ -29,54 +29,56 @@ ApplicationWindow {
     // TODO(jacob): Save and restore window dimensions as well as SplitView dimensions.
 
     Component.onCompleted: {
-        vertical_split.restoreState(settings.vertical_split_state)
-        horizontal_split.restoreState(settings.horizontal_split_state)
+        verticalSplit.restoreState(settings.verticalSplitState)
+        horizontalSplit.restoreState(settings.horizontalSplitState)
     }
 
     Component.onDestruction: {
-        settings.vertical_split_state = vertical_split.saveState()
-        settings.horizontal_split_state = horizontal_split.saveState()
+        settings.verticalSplitState = verticalSplit.saveState()
+        settings.horizontalSplitState = horizontalSplit.saveState()
     }
 
     Settings {
         id: settings
-        property var vertical_split_state
-        property var horizontal_split_state
+        property var verticalSplitState
+        property var horizontalSplitState
     }
 
     SplitView {
-        id: vertical_split
+        id: verticalSplit
         anchors.fill: parent
         orientation: Qt.Vertical
         
         SplitView {
-            id: horizontal_split
+            id: horizontalSplit
             orientation: Qt.Horizontal
-            SplitView.minimumHeight: 600
+            SplitView.preferredHeight: 600
             SplitView.fillHeight: true
+            Layout.margins: 10
 
             DAQPane {
-                id: daq_pane
-                SplitView.minimumWidth: 200
+                id: daqPane
+                // SplitView.minimumWidth: 200
                 SplitView.preferredWidth: 400
             }
 
             PlumbingPane {
-                id: plumbing_pane
-                SplitView.minimumWidth: 800
+                id: plumbingPane
+                SplitView.preferredWidth: 800
                 SplitView.fillWidth: true
             }
 
             ProceduresPane {
-                id: procedures_pane
-                SplitView.minimumWidth: 200
+                id: proceduresPane
+                // SplitView.minimumWidth: 200
                 SplitView.preferredWidth: 400
+                Layout.margins: 10
             }
         }
 
         ControlsPane {
-            id: controls_pane
-            SplitView.minimumHeight: 200
+            id: controlsPane
+            // SplitView.minimumHeight: 200
             SplitView.preferredHeight: 400
         }
     }
