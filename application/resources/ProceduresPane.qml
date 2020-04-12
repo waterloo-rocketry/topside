@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.7
 
 import QtQuick.Controls 2.14
 import QtQuick.Layouts 1.0
@@ -17,7 +17,7 @@ ColumnLayout {
             text: "PROCEDURES"
             color: "white"
             font.bold: true
-            font.pointSize: 12
+            font.pointSize: 10
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
             anchors.leftMargin: 10
@@ -30,6 +30,10 @@ ColumnLayout {
         Layout.leftMargin: 10
         Layout.rightMargin: 10
 
+        orientation: Qt.Vertical
+        spacing: 10
+        clip: true
+
         header: Rectangle {
             height: 10
             Layout.fillWidth: true
@@ -39,13 +43,16 @@ ColumnLayout {
             height: 10
             Layout.fillWidth: true
         }
-
-        orientation: Qt.Vertical
-        spacing: 10
-        clip: true
         
         model: simpleModel
         delegate: procedureStepDelegate
+
+        highlight: Rectangle {
+            color: "lightgreen"
+        }
+        highlightResizeDuration: 0
+        focus: true
+        keyNavigationEnabled: false
     }
 
     Rectangle {
@@ -54,6 +61,54 @@ ColumnLayout {
         Layout.preferredHeight: 100
         Layout.fillWidth: true
         color: "green"
+
+        RowLayout {
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            Button {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredHeight: 50
+                Layout.preferredWidth: 50
+                icon.source: "themes/default/play_backwards.png"
+                icon.color: "transparent"
+            }
+            Button {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredHeight: 50
+                Layout.preferredWidth: 50
+                icon.source: "themes/default/undo.png"
+                icon.color: "transparent"
+            }
+            Button {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredHeight: 50
+                Layout.preferredWidth: 50
+                icon.source: "themes/default/play.png"
+                icon.color: "transparent"
+            }
+            Button {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredHeight: 50
+                Layout.preferredWidth: 50
+                icon.source: "themes/default/stop.png"
+                icon.color: "transparent"
+            }
+            Button {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredHeight: 50
+                Layout.preferredWidth: 50
+                icon.source: "themes/default/step_forward.png"
+                icon.color: "transparent"
+            }
+            Button {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredHeight: 50
+                Layout.preferredWidth: 50
+                icon.source: "themes/default/advance.png"
+                icon.color: "transparent"
+            }
+        }
     }
 
     ListModel {
@@ -77,6 +132,7 @@ ColumnLayout {
 
     Component {
         id: procedureStepDelegate
+
         RowLayout {
             width: parent.width
             spacing: 10
