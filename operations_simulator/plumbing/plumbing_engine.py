@@ -1,21 +1,38 @@
+import copy
+
 import networkx as nx
 
-import operations_simulator.plumbing.plumbing_utils as utils
 import operations_simulator.plumbing.exceptions as exceptions
+import operations_simulator.plumbing.invalid_reasons as invalid
+import operations_simulator.plumbing.plumbing_utils as utils
 
 
 class PlumbingEngine:
     '''Engine that represents a plumbing system'''
 
-    def __init__(self, components={}, mapping={}, initial_nodes={}, initial_states={}):
+    def __init__(self, components=None, mapping=None, initial_nodes=None, initial_states=None):
+        if not components:
+            components = {}
+        if not mapping:
+            mapping = {}
+        if not initial_nodes:
+            initial_nodes = {}
+        if not initial_states:
+            initial_states = {}
+
         self.time_resolution = utils.DEFAULT_TIME_RESOLUTION_MICROS
         self.plumbing_graph = nx.MultiDiGraph()
+        self.error_list = []
         self.load_graph(components, mapping, initial_nodes, initial_states)
+        if not self.error_list:
+            self.valid = True
+        else:
+            self.valid = False
 
     def load_graph(self, components, mapping, initial_nodes, initial_states):
         '''Load in a graph to the PlumbingEngine'''
-        self.component_dict = components
-        self.mapping = mapping
+        self.component_dict = copy.deepcopy(components)
+        self.mapping = copy.deepcopy(mapping)
         self.plumbing_graph.clear()
 
         # Populating the graph by mapping from components
@@ -23,15 +40,23 @@ class PlumbingEngine:
             component_graph = component.component_graph
             nodes_map = self.mapping.get(name)
             if nodes_map is None:
-                raise exceptions.MissingInputError(
-                    f"Component with name '{name}' not found in provided mapping dict.")
+                error = invalid.InvalidComponentName(
+                    f"Component with name '{name}' not found in provided mapping dict.", name)
+                self.error_list.append(error)
+                continue
             for start_node, end_node, edge_key in component_graph.edges(keys=True):
                 if nodes_map.get(start_node) is None:
-                    raise exceptions.MissingInputError(
-                        f"Component '{name}', node {start_node} not found in mapping dict.")
+                    error = invalid.InvalidComponentNode(
+                        f"Component '{name}', node {start_node} not found in mapping dict.",
+                        name, start_node)
+                    self.error_list.append(error)
+                    continue
                 if nodes_map.get(end_node) is None:
-                    raise exceptions.MissingInputError(
-                        f"Component '{name}', node {end_node} not found in mapping dict.")
+                    error = invalid.InvalidComponentNode(
+                        f"Component '{name}', node {end_node} not found in mapping dict.",
+                        name, end_node)
+                    self.error_list.append(error)
+                    continue
                 self.plumbing_graph.add_edge(
                     nodes_map[start_node], nodes_map[end_node], edge_key)
 
@@ -45,17 +70,23 @@ class PlumbingEngine:
             self.plumbing_graph, 0, 'pressure')
 
         # Assign initial pressures to given nodes
+        # NOTE: don't modify initial_nodes, it's passed by reference
         for node_name, node_pressure in initial_nodes.items():
             if self.plumbing_graph.nodes.get(node_name) is None:
-                raise exceptions.MissingInputError(
-                    f"Node {node_name} not found in initial node pressures dict.")
+                error = invalid.InvalidNodePressure(
+                    f"Node {node_name} not found in initial node pressures dict.", node_name)
+                self.error_list.append(error)
+                continue
             self.plumbing_graph.nodes[node_name]['pressure'] = node_pressure
 
         # Assign initial states to edges
         for component_name in self.component_dict.keys():
             if initial_states.get(component_name) is None:
-                raise exceptions.MissingInputError(
-                    f"Component '{component_name}' state not found in initial states dict.")
+                error = invalid.InvalidComponentName(
+                    f"Component '{component_name}' state not found in initial states dict.",
+                    component_name)
+                self.error_list.append(error)
+                continue
             state_id = initial_states[component_name]
             self.set_component_state(component_name, state_id)
 
@@ -81,6 +112,18 @@ class PlumbingEngine:
         state_edges_graph = {}
         for cedge in state_edges_component.keys():
             cstart_node, cend_node, key = cedge
+            if component_map.get(cstart_node) is None:
+                error = invalid.InvalidComponentNode(
+                    f"Component '{component.name}', node {cstart_node} not found in mapping dict.",
+                    component.name, cstart_node)
+                self.error_list.append(error)
+                continue
+            if component_map.get(cend_node) is None:
+                error = invalid.InvalidComponentNode(
+                    f"Component '{component.name}', node {cend_node} not found in mapping dict.",
+                    component.name, cend_node)
+                self.error_list.append(error)
+                continue
             new_edge = (component_map[cstart_node], component_map[cend_node], key)
             state_edges_graph[new_edge] = state_edges_component[cedge]
 
@@ -98,29 +141,3 @@ class PlumbingEngine:
                     max_fc = fc
         if max_fc:
             self.time_resolution = int(utils.FC_to_teq(max_fc) / utils.DEFAULT_RESOLUTION_SCALE)
-
-
-class PlumbingComponent:
-    '''Represents a discrete plumbing component, such as a tank or valve'''
-
-    def __init__(self, name, states, edge_list):
-        self.name = name
-        self.component_graph = nx.MultiDiGraph(edge_list)
-        self.states = states
-        self.current_state = None
-
-        # Convert provided teq values into FC values
-        for state in self.states.values():
-            for edge in state:
-                if isinstance(state[edge], (float, int)):
-                    state[edge] = utils.s_to_micros(state[edge])
-
-                # TODO(jacob/wendi): Look into eventually implementing
-                # this with datetime.timedelta object.
-                state[edge] = utils.teq_to_FC(state[edge])
-
-                # NOTE: This error may have to be changed, depending on
-                # how the application handles bypassable warnings.
-                if state[edge] > utils.FC_MAX:
-                    raise ValueError(
-                        f"Provided teq value too low, minimum value is: {utils.micros_to_s(utils.TEQ_MIN)}s")
