@@ -24,10 +24,7 @@ class PlumbingEngine:
         self.plumbing_graph = nx.MultiDiGraph()
         self.error_list = []
         self.load_graph(components, mapping, initial_nodes, initial_states)
-        if not self.error_list:
-            self.valid = True
-        else:
-            self.valid = False
+        self.valid = len(self.error_list) == 0
 
     def load_graph(self, components, mapping, initial_nodes, initial_states):
         '''Load in a graph to the PlumbingEngine'''
@@ -45,20 +42,24 @@ class PlumbingEngine:
                 self.error_list.append(error)
                 continue
             for start_node, end_node, edge_key in component_graph.edges(keys=True):
+                both_nodes_valid = True
+
                 if nodes_map.get(start_node) is None:
                     error = invalid.InvalidComponentNode(
                         f"Component '{name}', node {start_node} not found in mapping dict.",
                         name, start_node)
                     self.error_list.append(error)
-                    continue
+                    both_nodes_valid = False
                 if nodes_map.get(end_node) is None:
                     error = invalid.InvalidComponentNode(
                         f"Component '{name}', node {end_node} not found in mapping dict.",
                         name, end_node)
                     self.error_list.append(error)
-                    continue
-                self.plumbing_graph.add_edge(
-                    nodes_map[start_node], nodes_map[end_node], edge_key)
+                    both_nodes_valid = False
+
+                if both_nodes_valid:
+                    self.plumbing_graph.add_edge(
+                        nodes_map[start_node], nodes_map[end_node], edge_key)
 
         # Set a time resolution based on lowest teq (highest FC) if graph isn't empty
         if not nx.classes.function.is_empty(self.plumbing_graph):
@@ -112,20 +113,24 @@ class PlumbingEngine:
         state_edges_graph = {}
         for cedge in state_edges_component.keys():
             cstart_node, cend_node, key = cedge
+
+            both_nodes_valid = True
             if component_map.get(cstart_node) is None:
                 error = invalid.InvalidComponentNode(
                     f"Component '{component.name}', node {cstart_node} not found in mapping dict.",
                     component.name, cstart_node)
                 self.error_list.append(error)
-                continue
+                both_nodes_valid = False
             if component_map.get(cend_node) is None:
                 error = invalid.InvalidComponentNode(
                     f"Component '{component.name}', node {cend_node} not found in mapping dict.",
                     component.name, cend_node)
                 self.error_list.append(error)
-                continue
-            new_edge = (component_map[cstart_node], component_map[cend_node], key)
-            state_edges_graph[new_edge] = state_edges_component[cedge]
+                both_nodes_valid = False
+
+            if both_nodes_valid:
+                new_edge = (component_map[cstart_node], component_map[cend_node], key)
+                state_edges_graph[new_edge] = state_edges_component[cedge]
 
         # Set FC on main graph according to new dict
         nx.classes.function.set_edge_attributes(self.plumbing_graph, state_edges_graph, 'FC')

@@ -194,6 +194,13 @@ def test_wrong_node_mapping():
     # The node name should be 1.
     proper_node_name = 1
     wrong_node_name = 5
+
+    # Since the node name is wrong in the mapping, an error should be added
+    # every time the mapping dict is accessed to find the matching graph node.
+    # This translates to twice (once per component) when populating the main graph,
+    # and twice (once per component) when assigning initial states by component,
+    # since the component node stored in the component's states dict needs to be
+    # translated into a main graph node. So 4 errors total.
     total_call_num = 4
     pc1 = create_component(0, 0, 0, 0, 'valve1', 'A')
     pc2 = create_component(0, 0, 0, 0, 'valve2', 'B')
@@ -302,17 +309,18 @@ def test_set_component_wrong_component_name():
 
 
 def test_plumbing_engines_independent():
-    pc1 = ops.PlumbingEngine()
-    pc2 = ops.PlumbingEngine()
-    pc3 = ops.PlumbingEngine()
+    plumb1 = ops.PlumbingEngine()
+    plumb2 = ops.PlumbingEngine()
 
     key = 'f'
     value = 1
-    pc1.mapping[key] = value
+    plumb1.mapping[key] = value
 
-    assert pc1.mapping == {key: value}
-    assert pc2.mapping == {}
-    assert pc3.mapping == {}
+    plumb3 = ops.PlumbingEngine()
+
+    assert plumb1.mapping == {key: value}
+    assert plumb2.mapping == {}
+    assert plumb3.mapping == {}
 
 
 def test_engine_dicts_remain_unchanged():

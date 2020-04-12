@@ -25,7 +25,8 @@ class PlumbingComponent:
                 elif isinstance(state[edge], str):
                     if state[edge] != utils.CLOSED_KEYWORD:
                         error = invalid.InvalidTeq(
-                            f"Invalid provided teq value ('{state[edge]}'), accepted keyword is: '{utils.CLOSED_KEYWORD}'", self.name, state_id, edge, og_teq)
+                            f"Invalid provided teq value ('{state[edge]}'), accepted keyword is: "
+                            f"'{utils.CLOSED_KEYWORD}'", self.name, state_id, edge, og_teq)
                         self.error_list.append(error)
                         state[edge] = utils.CLOSED_KEYWORD
 
@@ -35,12 +36,9 @@ class PlumbingComponent:
 
                 if state[edge] > utils.FC_MAX:
                     error = invalid.InvalidTeq(
-                        f"Provided teq value too low, minimum value is: {utils.micros_to_s(utils.TEQ_MIN)}s",
-                        self.name, state_id, edge, og_teq)
+                        "Provided teq value too low, minimum value is: "
+                        f"{utils.micros_to_s(utils.TEQ_MIN)}s", self.name, state_id, edge, og_teq)
                     self.error_list.append(error)
                     state[edge] = utils.FC_MAX
 
-        if not self.error_list:
-            self.valid = True
-        else:
-            self.valid = False
+        self.valid = len(self.error_list) == 0

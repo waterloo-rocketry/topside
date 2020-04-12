@@ -1,6 +1,6 @@
 import operations_simulator as ops
-import operations_simulator.plumbing.plumbing_utils as utils
 import operations_simulator.plumbing.invalid_reasons as invalid
+import operations_simulator.plumbing.plumbing_utils as utils
 
 
 def two_edge_states_edges(s1e1, s1e2, s2e1, s2e2):
