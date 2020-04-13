@@ -29,10 +29,3 @@ def micros_to_s(micros):
 
 def s_to_micros(sec):
     return sec * 1e6
-
-
-def multi_error_msg(error):
-    message = "Multiple instances of this error were detected:\n"\
-        + error + "\n"\
-        + "Consider checking for errors in the mapping dict."
-    return message

@@ -35,3 +35,21 @@ class InvalidTeq(PlumbingInvalidReason):
     state_id: str
     edge_id: Tuple
     teq: int
+
+
+@dataclass(frozen=True)
+class DuplicateError(PlumbingInvalidReason):
+    original_error: PlumbingInvalidReason
+
+
+def multi_error_msg(error_msg):
+    message = "Multiple instances of this error were detected:\n"\
+        + error_msg + "\n"\
+        + "Consider checking for errors in the mapping dict."
+    return message
+
+
+def add_error(error, error_set):
+    if error in error_set:
+        error = DuplicateError(multi_error_msg(error.error_message), error)
+    error_set.add(error)

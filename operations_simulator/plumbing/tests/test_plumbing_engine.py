@@ -227,10 +227,8 @@ def test_wrong_node_mapping():
         f"Component 'valve1', node {proper_node_name} not found in mapping dict.",
         'valve1', proper_node_name)
 
-    duplicate_error = invalid.InvalidComponentNode(
-        utils.multi_error_msg(
-            f"Component 'valve1', node {proper_node_name} not found in mapping dict."),
-        'valve1', proper_node_name)
+    duplicate_error = invalid.DuplicateError(invalid.multi_error_msg(
+        f"Component 'valve1', node {proper_node_name} not found in mapping dict."), error)
 
     assert error in plumb.error_set
     assert duplicate_error in plumb.error_set
