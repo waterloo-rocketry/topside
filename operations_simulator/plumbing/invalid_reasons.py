@@ -2,34 +2,34 @@ from dataclasses import dataclass
 from typing import Tuple
 
 
-@dataclass
+@dataclass(frozen=True)
 class PlumbingInvalidReason:
     error_message: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class InvalidComponentName(PlumbingInvalidReason):
     component_name: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class InvalidStateName(PlumbingInvalidReason):
     component_name: str
     state_id: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class InvalidComponentNode(PlumbingInvalidReason):
     component_name: str
     node_name: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class InvalidNodePressure(PlumbingInvalidReason):
     node_name: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class InvalidTeq(PlumbingInvalidReason):
     component_name: str
     state_id: str

@@ -22,44 +22,57 @@ class PlumbingEngine:
 
         self.time_resolution = utils.DEFAULT_TIME_RESOLUTION_MICROS
         self.plumbing_graph = nx.MultiDiGraph()
-        self.error_list = []
+        self.error_set = set()
         self.load_graph(components, mapping, initial_nodes, initial_states)
-        self.valid = len(self.error_list) == 0
 
     def load_graph(self, components, mapping, initial_nodes, initial_states):
         '''Load in a graph to the PlumbingEngine'''
         self.component_dict = copy.deepcopy(components)
         self.mapping = copy.deepcopy(mapping)
         self.plumbing_graph.clear()
+        self.error_set.clear()
 
         # Populating the graph by mapping from components
         for name, component in self.component_dict.items():
             component_graph = component.component_graph
             nodes_map = self.mapping.get(name)
+
             if nodes_map is None:
                 error = invalid.InvalidComponentName(
                     f"Component with name '{name}' not found in provided mapping dict.", name)
-                self.error_list.append(error)
+                if error in self.error_set:
+                    error = invalid.InvalidComponentName(
+                        utils.multi_error_msg(
+                            "Component with name '{name}' not found in provided mapping dict."),
+                        name)
+
+                self.error_set.add(error)
                 continue
+
             for start_node, end_node, edge_key in component_graph.edges(keys=True):
                 both_nodes_valid = True
 
                 if nodes_map.get(start_node) is None:
-                    error = invalid.InvalidComponentNode(
-                        f"Component '{name}', node {start_node} not found in mapping dict.",
-                        name, start_node)
-                    self.error_list.append(error)
+                    node = start_node
                     both_nodes_valid = False
                 if nodes_map.get(end_node) is None:
-                    error = invalid.InvalidComponentNode(
-                        f"Component '{name}', node {end_node} not found in mapping dict.",
-                        name, end_node)
-                    self.error_list.append(error)
+                    node = end_node
                     both_nodes_valid = False
 
                 if both_nodes_valid:
                     self.plumbing_graph.add_edge(
                         nodes_map[start_node], nodes_map[end_node], edge_key)
+                else:
+                    error = invalid.InvalidComponentNode(
+                        f"Component '{name}', node {node} not found in mapping dict.",
+                        name, node)
+                    if error in self.error_set:
+                        error = invalid.InvalidComponentNode(
+                            utils.multi_error_msg(
+                                f"Component '{name}', node {node} not found in mapping dict."),
+                            name, node)
+
+                    self.error_set.add(error)
 
         # Set a time resolution based on lowest teq (highest FC) if graph isn't empty
         if not nx.classes.function.is_empty(self.plumbing_graph):
@@ -76,7 +89,7 @@ class PlumbingEngine:
             if self.plumbing_graph.nodes.get(node_name) is None:
                 error = invalid.InvalidNodePressure(
                     f"Node {node_name} not found in initial node pressures dict.", node_name)
-                self.error_list.append(error)
+                self.error_set.add(error)
                 continue
             self.plumbing_graph.nodes[node_name]['pressure'] = node_pressure
 
@@ -86,10 +99,12 @@ class PlumbingEngine:
                 error = invalid.InvalidComponentName(
                     f"Component '{component_name}' state not found in initial states dict.",
                     component_name)
-                self.error_list.append(error)
+                self.error_set.add(error)
                 continue
             state_id = initial_states[component_name]
             self.set_component_state(component_name, state_id)
+
+        self.valid = len(self.error_set) == 0
 
     def set_component_state(self, component_name, state_id):
         '''Change a component's state on the main graph'''
@@ -116,21 +131,26 @@ class PlumbingEngine:
 
             both_nodes_valid = True
             if component_map.get(cstart_node) is None:
-                error = invalid.InvalidComponentNode(
-                    f"Component '{component.name}', node {cstart_node} not found in mapping dict.",
-                    component.name, cstart_node)
-                self.error_list.append(error)
+                node = cstart_node
                 both_nodes_valid = False
             if component_map.get(cend_node) is None:
-                error = invalid.InvalidComponentNode(
-                    f"Component '{component.name}', node {cend_node} not found in mapping dict.",
-                    component.name, cend_node)
-                self.error_list.append(error)
+                node = cend_node
                 both_nodes_valid = False
 
             if both_nodes_valid:
                 new_edge = (component_map[cstart_node], component_map[cend_node], key)
                 state_edges_graph[new_edge] = state_edges_component[cedge]
+            else:
+                error = invalid.InvalidComponentNode(
+                    f"Component '{component.name}', node {node} not found in mapping dict.",
+                    component.name, node)
+                if error in self.error_set:
+                    error = invalid.InvalidComponentNode(
+                        utils.multi_error_msg(
+                            f"Component '{component.name}', node {node} not found in mapping dict."),
+                            component.name, node)
+
+                self.error_set.add(error)
 
         # Set FC on main graph according to new dict
         nx.classes.function.set_edge_attributes(self.plumbing_graph, state_edges_graph, 'FC')
