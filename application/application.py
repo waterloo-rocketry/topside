@@ -26,12 +26,12 @@ class Application:
         self.procedures_bridge = ProceduresBridge()
 
         self.app = QGuiApplication(argv)
-        
+
         self.app.setWindowIcon(QIcon(find_resource('icon.ico')))
         self.app.setOrganizationName('Waterloo Rocketry')
         self.app.setOrganizationDomain('waterloorocketry.com')
         self.app.setApplicationName('Operations Simulator')
-        
+
         self.qml_engine = QQmlApplicationEngine()
 
         self.context = self.qml_engine.rootContext()

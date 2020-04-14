@@ -1,5 +1,5 @@
 from PySide2.QtCore import Qt, Slot, Signal, Property, \
-                           QObject, QAbstractListModel, QModelIndex
+    QObject, QAbstractListModel, QModelIndex
 
 
 class ProcedureStepsModel(QAbstractListModel):
