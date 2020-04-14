@@ -15,6 +15,11 @@ class ProcedureStepsModel(QAbstractListModel):
         return len(self.steps)
 
     def roleNames(self):
+        # NOTE(jacob): The values in this dict are byte strings instead
+        # of just plain strings because QML expects the return type to
+        # be a QHash. Leaving them as plain strings causes a runtime
+        # error ('expected hash, got dict'). See below:
+        # https://bugreports.qt.io/browse/PYSIDE-703
         return {
             ProcedureStepsModel.PersonRoleIdx: b'person',
             ProcedureStepsModel.StepRoleIdx: b'step'
