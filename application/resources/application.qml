@@ -66,6 +66,7 @@ ApplicationWindow {
 
             PlumbingPane {
                 id: plumbingPane
+                SplitView.minimumWidth: 400
                 SplitView.preferredWidth: 800
                 SplitView.fillWidth: true
             }
