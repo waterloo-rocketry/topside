@@ -70,8 +70,8 @@ ApplicationWindow {
 
             ProceduresPane {
                 id: proceduresPane
-                SplitView.minimumWidth: 200
-                SplitView.preferredWidth: 400
+                SplitView.minimumWidth: 400
+                SplitView.preferredWidth: 600
                 Layout.margins: 10
             }
         }
