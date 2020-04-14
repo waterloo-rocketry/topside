@@ -45,6 +45,9 @@ class ProcedureStepsModel(QAbstractListModel):
         self.endInsertRows()
 
 
+# TODO(jacob): Once the procedures engine exists and the internal logic
+# is a bit more fleshed out, investigate if we really need a separate
+# bridge class or if we can connect the signals directly to the model.
 class ProceduresBridge(QObject):
     goto_step_sig = Signal(int, name='gotoStep')
     steps_changed_sig = Signal(name='stepsChanged')
