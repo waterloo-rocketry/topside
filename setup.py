@@ -41,7 +41,7 @@ setup(
     classifiers=[
         'License :: OSI Approved :: MIT License',
     ],
-    packages=find_packages(),
+    packages=find_packages(exclude=['application']),
     executables=[target],
     options={
         'build_exe': build_exe_opts
