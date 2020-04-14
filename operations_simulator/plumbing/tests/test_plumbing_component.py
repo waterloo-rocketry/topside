@@ -40,7 +40,7 @@ def test_plumbing_component_setup():
         }
     }
     assert pc1.valid
-    assert not pc1.error_list
+    assert not pc1.error_set
 
 
 def test_minimum_teq():
@@ -50,16 +50,12 @@ def test_minimum_teq():
     pc = ops.PlumbingComponent('valve', states, edges)
 
     assert not pc.valid
-    assert len(pc.error_list) == 1
-    assert isinstance(pc.error_list[0], invalid.InvalidTeq)
+    assert len(pc.error_set) == 1
 
-    error = pc.error_list[0]
-    assert error.error_message ==\
-        f'Provided teq value too low, minimum value is: {utils.micros_to_s(utils.TEQ_MIN)}s'
-    assert error.component_name == 'valve'
-    assert error.state_id == 'closed'
-    assert error.edge_id == (2, 1, 'A2')
-    assert error.teq == teq_too_low
+    error = invalid.InvalidTeq(
+        f'Provided teq value too low, minimum value is: {utils.micros_to_s(utils.TEQ_MIN)}s',
+        'valve', 'closed', (2, 1, 'A2'), teq_too_low)
+    assert error in pc.error_set
 
 
 def test_invalid_keyword():
@@ -69,14 +65,13 @@ def test_invalid_keyword():
     pc = ops.PlumbingComponent('valve', states, edges)
 
     assert not pc.valid
-    assert len(pc.error_list) == 1
-    assert isinstance(pc.error_list[0], invalid.InvalidTeq)
-    assert pc.error_list[0].error_message ==\
-        "Invalid provided teq value ('potato'), accepted keyword is: 'closed'"
-    assert pc.error_list[0].component_name == 'valve'
-    assert pc.error_list[0].state_id == 'closed'
-    assert pc.error_list[0].edge_id == (2, 1, 'A2')
-    assert pc.error_list[0].teq == wrong_keyword_teq
+    assert len(pc.error_set) == 1
+
+    error = invalid.InvalidTeq(
+        "Invalid provided teq value ('potato'), accepted keyword is: 'closed'",
+        'valve', 'closed', (2, 1, 'A2'), wrong_keyword_teq)
+
+    assert error in pc.error_set
 
 
 def test_multiple_errors():
@@ -87,25 +82,19 @@ def test_multiple_errors():
     pc = ops.PlumbingComponent('valve', states, edges)
 
     assert not pc.valid
-    assert len(pc.error_list) == 2
-    assert isinstance(pc.error_list[0], invalid.InvalidTeq) and isinstance(
-        pc.error_list[1], invalid.InvalidTeq)
+    assert len(pc.error_set) == 2
 
-    error1 = pc.error_list[0]
-    assert error1.error_message ==\
-        f"Provided teq value too low, minimum value is: {utils.micros_to_s(utils.TEQ_MIN)}s"
-    assert error1.component_name == 'valve'
-    assert error1.state_id == 'closed'
-    assert error1.edge_id == (1, 2, 'A1')
-    assert error1.teq == teq_too_low
+    error1 = invalid.InvalidTeq(
+        f"Provided teq value too low, minimum value is: {utils.micros_to_s(utils.TEQ_MIN)}s",
+        'valve', 'closed', (1, 2, 'A1'), teq_too_low)
 
-    error2 = pc.error_list[1]
-    assert error2.error_message == \
-        "Invalid provided teq value ('potato'), accepted keyword is: 'closed'"
-    assert error2.component_name == 'valve'
-    assert error2.state_id == 'closed'
-    assert error2.edge_id == (2, 1, 'A2')
-    assert error2.teq == wrong_keyword_teq
+    error2 = invalid.InvalidTeq(
+        f"Invalid provided teq value ('{wrong_keyword_teq}'),"
+        f" accepted keyword is: '{utils.CLOSED_KEYWORD}'",
+        'valve', 'closed', (2, 1, 'A2'), wrong_keyword_teq)
+
+    assert error1 in pc.error_set
+    assert error2 in pc.error_set
 
 
 def test_component_dicts_remain_unchanged():

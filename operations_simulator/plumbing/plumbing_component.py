@@ -14,7 +14,7 @@ class PlumbingComponent:
         self.component_graph = nx.MultiDiGraph(edge_list)
         self.states = copy.deepcopy(states)
         self.current_state = None
-        self.error_list = []
+        self.error_set = set()
 
         # Convert provided teq values into FC values
         for state_id, state in self.states.items():
@@ -27,18 +27,17 @@ class PlumbingComponent:
                         error = invalid.InvalidTeq(
                             f"Invalid provided teq value ('{state[edge]}'), accepted keyword is: "
                             f"'{utils.CLOSED_KEYWORD}'", self.name, state_id, edge, og_teq)
-                        self.error_list.append(error)
+                        self.error_set.add(error)
                         state[edge] = utils.CLOSED_KEYWORD
 
-                # TODO(jacob/wendi): Look into eventually implementing
-                # this with datetime.timedelta object.
+                # TODO(jacob/wendi): Look into eventually implementing this with datetime.timedelta.
                 state[edge] = utils.teq_to_FC(state[edge])
 
                 if state[edge] > utils.FC_MAX:
                     error = invalid.InvalidTeq(
                         "Provided teq value too low, minimum value is: "
                         f"{utils.micros_to_s(utils.TEQ_MIN)}s", self.name, state_id, edge, og_teq)
-                    self.error_list.append(error)
+                    self.error_set.add(error)
                     state[edge] = utils.FC_MAX
 
-        self.valid = len(self.error_list) == 0
+        self.valid = len(self.error_set) == 0

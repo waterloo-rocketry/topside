@@ -175,33 +175,24 @@ def test_missing_component():
         {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
     assert not plumb.valid
-    assert len(plumb.error_list) == 2
+    assert len(plumb.error_set) == 2
 
-    error1 = plumb.error_list[0]
-    assert isinstance(error1, invalid.InvalidComponentName)
-    assert error1.component_name == wrong_component_name
-    assert error1.error_message ==\
-        f"Component with name '{wrong_component_name}' not found in provided mapping dict."
+    error1 = invalid.InvalidComponentName(
+        f"Component with name '{wrong_component_name}' not found in provided mapping dict.",
+        wrong_component_name)
 
-    error2 = plumb.error_list[1]
-    assert isinstance(error2, invalid.InvalidComponentName)
-    assert error2.component_name == wrong_component_name
-    assert error2.error_message ==\
-        f"Component '{wrong_component_name}' state not found in initial states dict."
+    error2 = invalid.InvalidComponentName(
+        f"Component '{wrong_component_name}' state not found in initial states dict.",
+        wrong_component_name)
+
+    assert error1 in plumb.error_set
+    assert error2 in plumb.error_set
 
 
 def test_wrong_node_mapping():
     # The node name should be 1.
     proper_node_name = 1
     wrong_node_name = 5
-
-    # Since the node name is wrong in the mapping, an error should be added
-    # every time the mapping dict is accessed to find the matching graph node.
-    # This translates to twice (once per component) when populating the main graph,
-    # and twice (once per component) when assigning initial states by component,
-    # since the component node stored in the component's states dict needs to be
-    # translated into a main graph node. So 4 errors total.
-    total_call_num = 4
     pc1 = create_component(0, 0, 0, 0, 'valve1', 'A')
     pc2 = create_component(0, 0, 0, 0, 'valve2', 'B')
 
@@ -222,13 +213,25 @@ def test_wrong_node_mapping():
         {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
     assert not plumb.valid
-    assert len(plumb.error_list) == total_call_num
-    for error in plumb.error_list:
-        assert isinstance(error, invalid.InvalidComponentNode)
-        assert error.error_message ==\
-            f"Component 'valve1', node {proper_node_name} not found in mapping dict."
-        assert error.component_name == 'valve1'
-        assert error.node_name == proper_node_name
+
+    # Since the node name is wrong in the mapping, an error should be added
+    # every time the mapping dict is accessed to find the matching graph node.
+    # This translates to twice (once per component) when populating the main graph,
+    # and twice (once per component) when assigning initial states by component,
+    # since the component node stored in the component's states dict needs to be
+    # translated into a main graph node. So 4 errors total, but they're identical
+    # so we should get one original error and one multi-error note.
+    assert len(plumb.error_set) == 2
+
+    error = invalid.InvalidComponentNode(
+        f"Component 'valve1', node {proper_node_name} not found in mapping dict.",
+        'valve1', proper_node_name)
+
+    duplicate_error = invalid.DuplicateError(invalid.multi_error_msg(
+        f"Component 'valve1', node {proper_node_name} not found in mapping dict."), error)
+
+    assert error in plumb.error_set
+    assert duplicate_error in plumb.error_set
 
 
 def test_missing_node_pressure():
@@ -253,13 +256,12 @@ def test_missing_node_pressure():
         {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
     assert not plumb.valid
-    assert len(plumb.error_list) == 1
+    assert len(plumb.error_set) == 1
 
-    error = plumb.error_list[0]
-    assert isinstance(error, invalid.InvalidNodePressure)
-    assert error.error_message ==\
-        f"Node {wrong_node_name} not found in initial node pressures dict."
-    assert error.node_name == wrong_node_name
+    error = invalid.InvalidNodePressure(
+        f"Node {wrong_node_name} not found in initial node pressures dict.", wrong_node_name)
+
+    assert error in plumb.error_set
 
 
 def test_missing_initial_state():
@@ -285,13 +287,41 @@ def test_missing_initial_state():
         {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
     assert not plumb.valid
-    assert len(plumb.error_list) == 1
+    assert len(plumb.error_set) == 1
 
-    error = plumb.error_list[0]
-    assert isinstance(error, invalid.InvalidComponentName)
-    assert error.error_message ==\
-        f"Component '{proper_component_name}' state not found in initial states dict."
-    assert error.component_name == proper_component_name
+    error = invalid.InvalidComponentName(
+        f"Component '{proper_component_name}' state not found in initial states dict.",
+        proper_component_name)
+
+    assert error in plumb.error_set
+
+
+def test_error_reset():
+    wrong_component_name = 'potato'
+    pc1 = create_component(0, 0, 0, 0, 'valve1', 'A')
+    pc2 = create_component(0, 0, 0, 0, 'valve2', 'B')
+
+    component_mapping = {
+        'valve1': {
+            1: 1,
+            2: 2
+        },
+        'valve2': {
+            1: 2,
+            2: 3
+        }
+    }
+
+    pressures = {3: 100}
+    default_states = {'valve1': 'closed', 'valve2': 'open'}
+    plumb = ops.PlumbingEngine(
+        {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
+
+    assert not plumb.valid
+
+    plumb = ops.PlumbingEngine()
+
+    assert plumb.valid
 
 
 def test_set_component_wrong_state_name():
