@@ -52,13 +52,13 @@ ApplicationWindow {
         SplitView {
             id: horizontalSplit
             orientation: Qt.Horizontal
-            SplitView.preferredHeight: 600
+            SplitView.minimumHeight: 600
             SplitView.fillHeight: true
             Layout.margins: 10
 
             DAQPane {
                 id: daqPane
-                // SplitView.minimumWidth: 200
+                SplitView.minimumWidth: 200
                 SplitView.preferredWidth: 400
             }
 
@@ -70,7 +70,7 @@ ApplicationWindow {
 
             ProceduresPane {
                 id: proceduresPane
-                // SplitView.minimumWidth: 200
+                SplitView.minimumWidth: 200
                 SplitView.preferredWidth: 400
                 Layout.margins: 10
             }
@@ -78,7 +78,7 @@ ApplicationWindow {
 
         ControlsPane {
             id: controlsPane
-            // SplitView.minimumHeight: 200
+            SplitView.minimumHeight: 200
             SplitView.preferredHeight: 400
         }
     }
