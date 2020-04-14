@@ -1,13 +1,12 @@
 import sys
 
-from application.qt_bridge import Application, Bridge
+from application.application import Application
 
 
 if __name__ == '__main__':
-    bridge = Bridge()
-    app = Application(bridge, sys.argv)
+    app = Application(sys.argv)
 
     if not app.ready():
-        sys.exit(-1)
+        sys.exit(1)
 
     sys.exit(app.run())

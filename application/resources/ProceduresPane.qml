@@ -6,6 +6,11 @@ import QtQuick.Layouts 1.0
 ColumnLayout {
     spacing: 0
 
+    // TODO(jacob): Investigate if this connection logic can/should be moved into Python
+    Component.onCompleted: {
+        proceduresBridge.gotoStep.connect(proceduresList.gotoStep)
+    }
+
     Rectangle {
         Layout.alignment: Qt.AlignTop
         Layout.minimumHeight: 30
@@ -16,7 +21,6 @@ ColumnLayout {
         Text {
             text: "PROCEDURES"
             color: "white"
-            font.bold: true
             font.pointSize: 10
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
@@ -25,6 +29,7 @@ ColumnLayout {
     }
 
     ListView {
+        id: proceduresList
         Layout.fillHeight: true
         Layout.fillWidth: true
         Layout.leftMargin: 10
@@ -44,15 +49,22 @@ ColumnLayout {
             Layout.fillWidth: true
         }
         
-        model: simpleModel
-        delegate: procedureStepDelegate
-
         highlight: Rectangle {
             color: "lightgreen"
         }
         highlightResizeDuration: 0
+        highlightMoveDuration: 100
+        highlightMoveVelocity: -1
+        
         focus: true
         keyNavigationEnabled: false
+
+        model: proceduresBridge.steps
+        delegate: procedureStepDelegate
+
+        function gotoStep(idx) {
+            currentIndex = idx
+        }
     }
 
     Rectangle {
@@ -72,6 +84,8 @@ ColumnLayout {
                 Layout.preferredWidth: 50
                 icon.source: "themes/default/play_backwards.png"
                 icon.color: "transparent"
+
+                onClicked: proceduresBridge.play_backwards()
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
@@ -79,13 +93,25 @@ ColumnLayout {
                 Layout.preferredWidth: 50
                 icon.source: "themes/default/undo.png"
                 icon.color: "transparent"
+
+                onClicked: proceduresBridge.undo()
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
                 Layout.preferredHeight: 50
                 Layout.preferredWidth: 50
-                icon.source: "themes/default/play.png"
                 icon.color: "transparent"
+                property bool is_play: true
+                icon.source: is_play ? "themes/default/play.png" : "themes/default/pause.png"
+                
+                onClicked: {
+                    if (is_play) {
+                        proceduresBridge.play()
+                    } else {
+                        proceduresBridge.pause()
+                    }
+                    is_play = !is_play
+                }
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
@@ -93,6 +119,8 @@ ColumnLayout {
                 Layout.preferredWidth: 50
                 icon.source: "themes/default/stop.png"
                 icon.color: "transparent"
+
+                onClicked: proceduresBridge.stop()
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
@@ -100,6 +128,8 @@ ColumnLayout {
                 Layout.preferredWidth: 50
                 icon.source: "themes/default/step_forward.png"
                 icon.color: "transparent"
+
+                onClicked: proceduresBridge.step_forward()
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
@@ -107,26 +137,9 @@ ColumnLayout {
                 Layout.preferredWidth: 50
                 icon.source: "themes/default/advance.png"
                 icon.color: "transparent"
+
+                onClicked: proceduresBridge.advance()
             }
-        }
-    }
-
-    ListModel {
-        id: simpleModel
-    
-        ListElement {
-            person: "PRIMARY"
-            action: "Open Series Fill Valve"
-        }
-
-        ListElement {
-            person: "PRIMARY"
-            action: "Open Line Fill Valve"
-        }
-
-        ListElement {
-            person: "SECONDARY"
-            action: "Open Series Fill Valve Open Series Fill Valve Open Series Fill Valve"
         }
     }
 
@@ -138,14 +151,14 @@ ColumnLayout {
             spacing: 10
             
             Text {
-                text: index + 1 + "."
+                text: model.index + 1 + "."
                 font.bold: true
                 font.pointSize: 10
                 Layout.alignment: Qt.AlignTop
             }
             
             Text {
-                text: person + ":"
+                text: model.person + ":"
                 font.bold: true
                 font.pointSize: 10
                 color: "blue"
@@ -153,7 +166,7 @@ ColumnLayout {
             }
             
             Text {
-                text: action
+                text: model.step
                 font.pointSize: 10
                 wrapMode: Text.Wrap
                 Layout.fillWidth: true
