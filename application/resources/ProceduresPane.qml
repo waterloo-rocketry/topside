@@ -39,6 +39,10 @@ ColumnLayout {
         spacing: 10
         clip: true
 
+        ScrollBar.vertical: ScrollBar {
+            width: 15
+        }
+
         header: Rectangle {
             height: 10
             Layout.fillWidth: true
@@ -52,10 +56,11 @@ ColumnLayout {
         highlight: Rectangle {
             color: "lightgreen"
         }
+
         highlightResizeDuration: 0
         highlightMoveDuration: 100
         highlightMoveVelocity: -1
-        
+
         focus: true
         keyNavigationEnabled: false
 
