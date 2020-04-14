@@ -8,10 +8,13 @@ import Qt.labs.settings 1.0
 
 ApplicationWindow {
     id: mainWindow
-    width: 1200
-    height: 800
     title: "Operations Simulator"
     visible: true
+
+    // TODO(jacob): Either constrain window size so SplitView dimensions are not violated, or
+    // give scrollbars to the whole window when it's too small.
+    width: 1200
+    height: 800
     visibility: Window.Maximized
 
     menuBar: MenuBar {
@@ -27,7 +30,6 @@ ApplicationWindow {
     }
 
     // TODO(jacob): Save and restore window dimensions as well as SplitView dimensions.
-
     Component.onCompleted: {
         verticalSplit.restoreState(settings.verticalSplitState)
         horizontalSplit.restoreState(settings.horizontalSplitState)
