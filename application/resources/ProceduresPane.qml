@@ -61,6 +61,8 @@ ColumnLayout {
         highlightMoveDuration: 100
         highlightMoveVelocity: -1
 
+        boundsBehavior: Flickable.DragOverBounds
+
         focus: true
         keyNavigationEnabled: false
 
