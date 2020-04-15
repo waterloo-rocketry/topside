@@ -30,7 +30,7 @@ build_exe_opts = {
 }
 
 setup(
-    name='Topside',
+    name='topside',
     version='0.1.0',
     description='A simulator for rocket launch operations',
     long_description=long_description,
