@@ -19,7 +19,7 @@ if platform.system() == 'Windows':
     icon = 'application/resources/icon.ico'
 
 target = Executable(
-    script='application/main.py',
+    script='main.py',
     targetName='OperationsSimulator',
     base=base,
     icon=icon
@@ -41,7 +41,7 @@ setup(
     classifiers=[
         'License :: OSI Approved :: MIT License',
     ],
-    packages=find_packages(),
+    packages=find_packages(exclude=['application']),
     executables=[target],
     options={
         'build_exe': build_exe_opts
