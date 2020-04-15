@@ -8,7 +8,7 @@ import Qt.labs.settings 1.0
 
 ApplicationWindow {
     id: mainWindow
-    title: "Operations Simulator"
+    title: "Topside"
     visible: true
 
     // TODO(jacob): Either constrain window size so SplitView dimensions are not violated, or

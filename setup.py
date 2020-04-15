@@ -20,7 +20,7 @@ if platform.system() == 'Windows':
 
 target = Executable(
     script='main.py',
-    targetName='OperationsSimulator',
+    targetName='Topside',
     base=base,
     icon=icon
 )
@@ -30,12 +30,12 @@ build_exe_opts = {
 }
 
 setup(
-    name='operations_simulator',
+    name='Topside',
     version='0.1.0',
     description='A simulator for rocket launch operations',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/waterloo-rocketry/operations-simulator',
+    url='https://github.com/waterloo-rocketry/topside',
     author='Waterloo Rocketry',
     license='MIT',
     classifiers=[
