@@ -4,7 +4,7 @@ import sys
 from PySide2.QtGui import QGuiApplication, QIcon
 from PySide2.QtQml import QQmlApplicationEngine
 
-import operations_simulator as ops
+import topside as top
 from .procedures_bridge import ProceduresBridge
 
 
@@ -30,7 +30,7 @@ class Application:
         self.app.setWindowIcon(QIcon(find_resource('icon.ico')))
         self.app.setOrganizationName('Waterloo Rocketry')
         self.app.setOrganizationDomain('waterloorocketry.com')
-        self.app.setApplicationName('Operations Simulator')
+        self.app.setApplicationName('Topside')
 
         self.qml_engine = QQmlApplicationEngine()
 

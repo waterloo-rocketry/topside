@@ -1,6 +1,6 @@
-import operations_simulator as ops
-import operations_simulator.plumbing.invalid_reasons as invalid
-import operations_simulator.plumbing.plumbing_utils as utils
+import topside as top
+import topside.plumbing.invalid_reasons as invalid
+import topside.plumbing.plumbing_utils as utils
 
 
 def two_edge_states_edges(s1e1, s1e2, s2e1, s2e2):
@@ -21,7 +21,7 @@ def two_edge_states_edges(s1e1, s1e2, s2e1, s2e2):
 
 def test_plumbing_component_setup():
     pc1_states, pc1_edges = two_edge_states_edges(0, 0, 'closed', 'closed')
-    pc1 = ops.PlumbingComponent('valve1', pc1_states, pc1_edges)
+    pc1 = top.PlumbingComponent('valve1', pc1_states, pc1_edges)
 
     assert pc1.current_state is None
     assert list(pc1.component_graph.edges(keys=True)) == [
@@ -47,7 +47,7 @@ def test_minimum_teq():
     normal_teq = 1
     teq_too_low = utils.micros_to_s(utils.TEQ_MIN) / 2
     states, edges = two_edge_states_edges(normal_teq, normal_teq, normal_teq, teq_too_low)
-    pc = ops.PlumbingComponent('valve', states, edges)
+    pc = top.PlumbingComponent('valve', states, edges)
 
     assert not pc.valid
     assert len(pc.error_set) == 1
@@ -62,7 +62,7 @@ def test_invalid_keyword():
     normal_teq = 1
     wrong_keyword_teq = 'potato'
     states, edges = two_edge_states_edges(normal_teq, normal_teq, normal_teq, wrong_keyword_teq)
-    pc = ops.PlumbingComponent('valve', states, edges)
+    pc = top.PlumbingComponent('valve', states, edges)
 
     assert not pc.valid
     assert len(pc.error_set) == 1
@@ -79,7 +79,7 @@ def test_multiple_errors():
     teq_too_low = utils.micros_to_s(utils.TEQ_MIN) / 2
     wrong_keyword_teq = 'potato'
     states, edges = two_edge_states_edges(normal_teq, normal_teq, teq_too_low, wrong_keyword_teq)
-    pc = ops.PlumbingComponent('valve', states, edges)
+    pc = top.PlumbingComponent('valve', states, edges)
 
     assert not pc.valid
     assert len(pc.error_set) == 2
@@ -100,7 +100,7 @@ def test_multiple_errors():
 def test_component_dicts_remain_unchanged():
     teq = 5
     pc_states, edges = two_edge_states_edges(teq, teq, teq, teq)
-    pc = ops.PlumbingComponent('valve', pc_states, edges)
+    pc = top.PlumbingComponent('valve', pc_states, edges)
 
     assert pc_states == two_edge_states_edges(teq, teq, teq, teq)[0]
     assert pc_states != {

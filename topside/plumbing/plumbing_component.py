@@ -2,8 +2,8 @@ import copy
 
 import networkx as nx
 
-import operations_simulator.plumbing.invalid_reasons as invalid
-import operations_simulator.plumbing.plumbing_utils as utils
+import topside.plumbing.invalid_reasons as invalid
+import topside.plumbing.plumbing_utils as utils
 
 
 class PlumbingComponent:

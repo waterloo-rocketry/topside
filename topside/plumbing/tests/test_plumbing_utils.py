@@ -1,5 +1,4 @@
-import operations_simulator as ops
-import operations_simulator.plumbing.plumbing_utils as utils
+import topside.plumbing.plumbing_utils as utils
 
 
 def test_teq_to_FC():
