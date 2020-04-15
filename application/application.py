@@ -4,7 +4,7 @@ import sys
 from PySide2.QtGui import QGuiApplication, QIcon
 from PySide2.QtQml import QQmlApplicationEngine
 
-import topside as ops
+import topside as top
 from .procedures_bridge import ProceduresBridge
 
 
