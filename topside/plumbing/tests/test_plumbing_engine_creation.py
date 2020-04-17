@@ -16,7 +16,9 @@ def test_empty_graph():
 
 
 def test_open_closed_valves():
-    plumb = test_utils.two_valve_setup(0, 0, 'closed', 'closed', 0, 0, 'closed', 'closed')
+    plumb = test_utils.two_valve_setup(
+        0, 0, utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD,
+        0, 0, utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD)
 
     assert plumb.time_resolution == utils.DEFAULT_TIME_RESOLUTION_MICROS
     assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
@@ -35,7 +37,8 @@ def test_open_closed_valves():
 
 
 def test_arbitrary_states():
-    plumb = test_utils.two_valve_setup(0.5, 0.2, 10, 'closed', 0.5, 0.2, 10, 'closed')
+    plumb = test_utils.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
 
     assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
@@ -54,7 +57,8 @@ def test_arbitrary_states():
 
 
 def test_load_graph_to_empty():
-    plumb0 = test_utils.two_valve_setup(0.5, 0.2, 10, 'closed', 0.5, 0.2, 10, 'closed')
+    plumb0 = test_utils.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
 
@@ -78,8 +82,10 @@ def test_load_graph_to_empty():
 
 
 def test_replace_graph():
-    plumb0 = test_utils.two_valve_setup(0.5, 0.2, 10, 'closed', 0.5, 0.2, 10, 'closed')
-    plumb = test_utils.two_valve_setup(0, 0, 'closed', 'closed', 0, 0, 'closed', 'closed')
+    plumb0 = test_utils.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+    plumb = test_utils.two_valve_setup(
+        0, 0, utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD, 0, 0, utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD)
 
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
@@ -102,7 +108,8 @@ def test_replace_graph():
 
 
 def test_new_component_state():
-    plumb = test_utils.two_valve_setup(0.5, 0.2, 10, 'closed', 0.5, 0.2, 10, 'closed')
+    plumb = test_utils.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
     plumb.set_component_state('valve1', 'open')
 
     assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
@@ -288,15 +295,17 @@ def test_error_reset():
 
 def test_set_component_wrong_state_name():
     wrong_state_name = 'potato'
-    plumb = test_utils.two_valve_setup(0.5, 0.2, 10, 'closed', 0.5, 0.2, 10, 'closed')
-    with pytest.raises(exceptions.MissingInputError):
+    plumb = test_utils.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+    with pytest.raises(exceptions.BadInputError):
         plumb.set_component_state('valve1', wrong_state_name)
 
 
 def test_set_component_wrong_component_name():
     wrong_component_name = 'potato'
-    plumb = test_utils.two_valve_setup(0.5, 0.2, 10, 'closed', 0.5, 0.2, 10, 'closed')
-    with pytest.raises(exceptions.MissingInputError):
+    plumb = test_utils.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+    with pytest.raises(exceptions.BadInputError):
         plumb.set_component_state(wrong_component_name, 'open')
 
 
@@ -385,7 +394,8 @@ def test_load_errorless_graph():
     assert error1 in plumb.error_set
     assert error2 in plumb.error_set
 
-    plumb0 = test_utils.two_valve_setup(0.5, 0.2, 10, 'closed', 0.5, 0.2, 10, 'closed')
+    plumb0 = test_utils.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
 

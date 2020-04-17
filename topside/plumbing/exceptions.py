@@ -1,5 +1,6 @@
-class MissingInputError(Exception):
+class BadInputError(Exception):
     pass
 
-class InvalidRemoveError(Exception):
+
+class InvalidComponentError(Exception):
     pass

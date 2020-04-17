@@ -80,7 +80,7 @@ class PlumbingEngine:
     def set_component_state(self, component_name, state_id):
         '''Change a component's state on the main graph'''
         if self.mapping.get(component_name) is None:
-            raise exceptions.MissingInputError(
+            raise exceptions.BadInputError(
                 f"Component '{component_name}' not found in mapping dict.")
 
         # Map from component to graph node for this component
@@ -88,7 +88,7 @@ class PlumbingEngine:
         component = self.component_dict[component_name]
 
         if component.states.get(state_id) is None:
-            raise exceptions.MissingInputError(f"State '{state_id}' not found.")
+            raise exceptions.BadInputError(f"State '{state_id}' not found.")
 
         # Dict of {edges:FC} with component node names
         state_edges_component = component.states[state_id]
@@ -123,7 +123,7 @@ class PlumbingEngine:
         nx.classes.function.set_edge_attributes(self.plumbing_graph, state_edges_graph, 'FC')
 
     def _set_time_resolution(self, component_name):
-        '''Set a time resolution based on lowest teq (highest FC)'''
+        '''Given a component, set a time resolution based on its lowest teq (highest FC)'''
         max_fc = utils.teq_to_FC(self.time_resolution * utils.DEFAULT_RESOLUTION_SCALE)
         component_states = (self.component_dict[component_name]).states
         for state in component_states.values():
@@ -165,7 +165,7 @@ class PlumbingEngine:
                     mapping[start_node], mapping[end_node], component.name + '.' + edge_key)
         self.valid = len(self.error_set) == 0
 
-    def add_component(self, component, mapping, state_id, pressures=None):       
+    def add_component(self, component, mapping, state_id, pressures=None):
         if not pressures:
             pressures = {}
 
@@ -179,7 +179,7 @@ class PlumbingEngine:
 
         for node_name, node_pressure in pressures.items():
             if self.plumbing_graph.nodes.get(node_name) is None:
-                raise exceptions.MissingInputError(
+                raise exceptions.BadInputError(
                     f"Node {node_name} not found in plumbing engine graph, check mapping dict.")
             self.plumbing_graph.nodes[node_name]['pressure'] = node_pressure
 
@@ -189,7 +189,8 @@ class PlumbingEngine:
     def remove_component(self, component_name):
         # Check validity of provided component name
         if self.component_dict.get(component_name) is None:
-            raise exceptions.InvalidRemoveError
+            raise exceptions.BadInputError(
+                f"Component with name {component_name} not found in component dict.")
 
         component = self.component_dict[component_name]
         og_name = component_name
@@ -203,8 +204,8 @@ class PlumbingEngine:
                 to_remove.append(edge)
         self.plumbing_graph.remove_edges_from(to_remove)
 
-        to_remove = []
         # Remove unconnected (redundant) nodes
+        to_remove = []
         for node in self.plumbing_graph.nodes():
             if not list(self.plumbing_graph.neighbors(node)):
                 to_remove.append(node)
@@ -216,9 +217,13 @@ class PlumbingEngine:
         if self.mapping.get(component_name):
             del self.mapping[component_name]
         del self.component_dict[og_name]
+        self.time_resolution = utils.DEFAULT_TIME_RESOLUTION_MICROS
+        for name in self.component_dict.keys():
+            self._set_time_resolution(name)
         self.valid = len(self.error_set) == 0
 
     def _resolve_errors(self, component_name):
+        '''Resolve all errors associated with a certain component'''
         component = self.component_dict[component_name]
         to_remove = []
         for error in self.error_set:
@@ -235,3 +240,66 @@ class PlumbingEngine:
 
         for error in to_remove:
             self.error_set.remove(error)
+
+    def reverse_orientation(self, component_name):
+        '''Reverse direction of suitable components, such as check valves'''
+        if self.component_dict.get(component_name) is None:
+            raise exceptions.BadInputError(
+                f"Component {component_name} not found in component dict.")
+
+        component = self.component_dict[component_name]
+
+        if len(component.component_graph.edges()) != 2:
+            raise exceptions.InvalidComponentError(
+                "Component must only have two edges to be automatically reversed.\n"
+                "Consider adjusting direction manually.")
+
+        to_switch = [e for e in self.plumbing_graph.edges(keys=True) if component_name in e[2]]
+        edge1 = list(to_switch[0])
+        edge2 = list(to_switch[1])
+
+        temp = self.plumbing_graph.edges[edge1]['FC']
+        self.plumbing_graph.edges[edge1]['FC'] = self.plumbing_graph.edges[edge2]['FC']
+        self.plumbing_graph.edges[edge2]['FC'] = temp
+
+    def set_pressure(self, node_name, pressure):
+        if not isinstance(pressure, (int, float)):
+            raise exceptions.BadInputError(f"Pressure {pressure} must be a number.")
+        if pressure < 0:
+            raise exceptions.BadInputError(f"Negative pressure {pressure} not allowed.")
+        if not node_name in self.plumbing_graph:
+            raise exceptions.BadInputError(f"Node {node_name} not found in graph.")
+
+        self.plumbing_graph.nodes[node_name]['pressure'] = pressure
+
+    def set_teq(self, component_name, input_which_edge):
+        if self.component_dict.get(component_name) is None:
+            raise exceptions.BadInputError(
+                f"Component name {component_name} not found in component dict.")
+
+        component = self.component_dict[component_name]
+        which_edge = copy.deepcopy(input_which_edge)
+
+        for state_id, edge_dict in which_edge.items():
+            if component.states.get(state_id) is None:
+                raise exceptions.BadInputError(
+                    f"State {state_id} not found in component {component_name}'s states dict.")
+
+            for edge, teq in edge_dict.items():
+                teq = utils.s_to_micros(teq)
+                if teq < utils.TEQ_MIN:
+                    raise exceptions.BadInputError(
+                        f"Provided teq {teq} (component {component_name}, state {state_id}, edge "
+                        f"{edge}) too low. Minimum teq is {utils.micros_to_s(utils.TEQ_MIN)}s.")
+                if component.states[state_id].get(edge) is None:
+                    raise exceptions.BadInputError(
+                        f"State {state_id}, edge {edge} not found in component"
+                        f"{component_name}'s' states dict.")
+
+                component.states[state_id][edge] = utils.teq_to_FC(teq)
+
+        # Update teq changes on main plumbing graph
+        if component.current_state in which_edge.keys():
+            self.set_component_state(component_name, component.current_state)
+
+        self._set_time_resolution(component_name)

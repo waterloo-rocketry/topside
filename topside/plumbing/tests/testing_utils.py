@@ -1,5 +1,6 @@
 import topside as top
 
+
 def create_component(s1v1, s1v2, s2v1, s2v2, name, key):
     pc_states = {
         'open': {
