@@ -59,6 +59,9 @@ class PlumbingEngine:
             self.add_component(
                 component, mapping[name], initial_states[name], node_pressures, fail_silently=True)
 
+        # Raise this error (instead of writing to the error set) because there's no intuitive
+        # point to remove afterwards. Won't interfere with any engine setup, since it's at the very
+        # end of the function call
         for node in initial_nodes.keys():
             if node not in self.plumbing_graph.nodes():
                 raise exceptions.BadInputError(f"Node {node} not found in graph.")
@@ -225,6 +228,7 @@ class PlumbingEngine:
         for error in self.error_set:
             if hasattr(error, 'component_name') and error.component_name == component_name:
                 to_remove.append(error)
+            # Remove any errors associated with nodes that have now been removed
             elif hasattr(error, 'node_name'):
                 if error.node_name not in self.plumbing_graph:
                     to_remove.append(error)

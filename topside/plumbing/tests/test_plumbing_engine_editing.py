@@ -269,6 +269,36 @@ def test_reverse_orientation_wrong_component():
     assert str(err.value) == f"Component '{wrong_name}' not found in component dict."
 
 
+def test_reverse_orientation_three_edges():
+    pc_states = {
+        'open': {
+            (1, 2, 'A1'): 5,
+            (2, 1, 'A2'): 0,
+            (1, 3, 'B1'): 3,
+            (3, 1, 'B2'): 0,
+            (2, 3, 'C1'): 4,
+            (3, 2, 'C2'): 5
+        }
+    }
+    pc_edges = [(1, 2, 'A1'), (2, 1, 'A2'), (1, 3, 'B1'), (3, 1, 'B2'), (2, 3, 'C1'), (3, 2, 'C2')]
+    pc = top.PlumbingComponent('threeway', pc_states, pc_edges)
+
+    plumb = test_utils.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+
+    mapping = {
+        1: 3,
+        2: 4,
+        3: 5
+    }
+    plumb.add_component(pc, mapping, 'open')
+
+    with pytest.raises(exceptions.InvalidComponentError) as err:
+        plumb.reverse_orientation('threeway')
+    assert str(err.value) == "Component must only have two edges to be automatically reversed.\n" +\
+        "Consider adjusting direction manually."
+
+
 def test_set_pressure():
     plumb = test_utils.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)

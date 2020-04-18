@@ -203,9 +203,6 @@ def test_wrong_node_mapping():
     assert duplicate_error in plumb.error_set
 
 
-test_wrong_node_mapping()
-
-
 def test_missing_node_pressure():
     wrong_node_name = 4
     pc1 = test_utils.create_component(0, 0, 0, 0, 'valve1', 'A')
