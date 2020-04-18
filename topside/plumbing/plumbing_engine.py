@@ -315,7 +315,7 @@ class PlumbingEngine:
     def list_toggles(self):
         toggles = []
         for component in self.component_dict.values():
-            if len(component.component_graph.edges()) == 2:
+            if len(component.states.keys()) > 1:
                 toggles.append(component.name)
 
         return toggles
