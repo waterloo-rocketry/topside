@@ -23,7 +23,6 @@ class PlumbingEngine:
         self.time_resolution = utils.DEFAULT_TIME_RESOLUTION_MICROS
         self.plumbing_graph = nx.MultiDiGraph()
         self.error_set = set()
-        self.valid = True
         self.load_graph(components, mapping, initial_nodes, initial_states)
 
     def load_graph(self, components, mapping, initial_nodes, initial_states):
@@ -35,48 +34,34 @@ class PlumbingEngine:
         initial_nodes = copy.deepcopy(initial_nodes)
         initial_states = copy.deepcopy(initial_states)
 
-        # Populating the graph by mapping from components
         for name, component in self.component_dict.items():
-            nodes_map = self.mapping.get(name)
-
-            if nodes_map is None:
+            name_valid = True
+            if self.mapping.get(name) is None:
                 error = invalid.InvalidComponentName(
-                    f"Component with name '{name}' not found in provided mapping dict.", name)
+                    f"Component with name '{name}' not found in mapping dict.", name)
                 invalid.add_error(error, self.error_set)
-                continue
-
-            self._add_component(component, nodes_map)
-
-        # Set a time resolution based on lowest teq (highest FC) if graph isn't empty
-        if not nx.classes.function.is_empty(self.plumbing_graph):
-            for component_name in self.component_dict.keys():
-                self._set_time_resolution(component_name)
-
-        # Assign initial pressure of 0
-        for node in self.plumbing_graph.nodes():
-            self.set_pressure(node, 0)
-
-        # Assign initial pressures to given nodes
-        for node_name, node_pressure in initial_nodes.items():
-            try:
-                self.set_pressure(node_name, node_pressure)
-            except exceptions.BadInputError as err:
-                error = invalid.InvalidNodePressure(
-                    err.args[0], node_name)
-                self.error_set.add(error)
-
-        # Assign initial states to edges
-        for component_name in self.component_dict.keys():
-            if initial_states.get(component_name) is None:
+                name_valid = False
+            if initial_states.get(name) is None:
                 error = invalid.InvalidComponentName(
-                    f"Component '{component_name}' state not found in initial states dict.",
-                    component_name)
-                self.error_set.add(error)
+                    f"Component '{name}' state not found in initial states dict.",
+                    name)
+                invalid.add_error(error, self.error_set)
+                name_valid = False
+            if not name_valid:
                 continue
-            state_id = initial_states[component_name]
-            self.set_component_state(component_name, state_id)
 
-        self.valid = len(self.error_set) == 0
+            # Only pass in those pressures that are relevant to the current component
+            node_pressures = {}
+            for node, pressure in initial_nodes.items():
+                if node in self.mapping[name].values():
+                    node_pressures[node] = pressure
+
+            self.add_component(
+                component, mapping[name], initial_states[name], node_pressures, fail_silently=True)
+
+        for node in initial_nodes.keys():
+            if node not in self.plumbing_graph.nodes():
+                raise exceptions.BadInputError(f"Node {node} not found in graph.")
 
     def set_component_state(self, component_name, state_id):
         '''Change a component's state on the main graph'''
@@ -136,7 +121,11 @@ class PlumbingEngine:
         if max_fc:
             self.time_resolution = int(utils.FC_to_teq(max_fc) / utils.DEFAULT_RESOLUTION_SCALE)
 
-    def _add_component(self, component, mapping):
+    def add_component(self, component, mapping, state_id, pressures=None, fail_silently=False):
+        '''Adds a component to the main plumbing graph according to provided specifications'''
+        if not pressures:
+            pressures = {}
+
         name = component.name
         component_graph = component.component_graph
 
@@ -150,52 +139,59 @@ class PlumbingEngine:
             both_nodes_valid = True
 
             if mapping.get(start_node) is None:
-                error = invalid.InvalidComponentNode(
-                    f"Component '{name}', node {start_node} not found in mapping dict.",
-                    name, start_node)
-                invalid.add_error(error, self.error_set)
-                both_nodes_valid = False
+                error_msg = f"Component '{name}', node {start_node} not found in mapping dict."
+                if fail_silently:
+                    error = invalid.InvalidComponentNode(error_msg, name, start_node)
+                    invalid.add_error(error, self.error_set)
+                    both_nodes_valid = False
+                else:
+                    raise exceptions.BadInputError(error_msg)
             if mapping.get(end_node) is None:
-                error = invalid.InvalidComponentNode(
-                    f"Component '{name}', node {end_node} not found in mapping dict.",
-                    name, end_node)
-                invalid.add_error(error, self.error_set)
-                both_nodes_valid = False
+                error_msg = f"Component '{name}', node {end_node} not found in mapping dict."
+                if fail_silently:
+                    error = invalid.InvalidComponentNode(error_msg, name, end_node)
+                    invalid.add_error(error, self.error_set)
+                    both_nodes_valid = False
+                else:
+                    raise exceptions.BadInputError(error_msg)
 
             if both_nodes_valid:
                 self.plumbing_graph.add_edge(
                     mapping[start_node], mapping[end_node], component.name + '.' + edge_key)
-        self.valid = len(self.error_set) == 0
 
-    def add_component(self, component, mapping, state_id, pressures=None):
-        '''Adds a component to the main plumbing graph according to provided specifications'''
-        if not pressures:
-            pressures = {}
-
-        pressures = copy.deepcopy(pressures)
-        for node in mapping.values():
-            if not pressures.get(node) and node not in self.plumbing_graph:
-                pressures[node] = 0
-
-        self._add_component(component, mapping)
         self.set_component_state(component.name, state_id)
 
+        # Set a default pressure of 0
+        for node in mapping.values():
+            if node in self.plumbing_graph and not self.plumbing_graph.nodes[node].get('pressure'):
+                self.set_pressure(node, 0)
+
+        # Assign specified node pressures
+        pressures = copy.deepcopy(pressures)
         for node_name, node_pressure in pressures.items():
-            self.set_pressure(node_name, node_pressure)
+            try:
+                self.set_pressure(node_name, node_pressure)
+            except exceptions.BadInputError as err:
+                if fail_silently:
+                    if err.args[0] == f"Node {node_name} not found in graph.":
+                        raise
+                    error = invalid.InvalidNodePressure(err.args[0], node_name)
+                    invalid.add_error(error, self.error_set)
+                else:
+                    raise
 
     def is_valid(self):
         '''Returns whether the plumbing engine is valid'''
-        return self.valid
+        return len(self.error_set) == 0
 
-    def remove_component(self, component_name):
+    def remove_component(self, input_component_name):
         '''Removes component and associated errors'''
         # Check validity of provided component name
-        if self.component_dict.get(component_name) is None:
+        if self.component_dict.get(input_component_name) is None:
             raise exceptions.BadInputError(
-                f"Component with name {component_name} not found in component dict.")
+                f"Component with name {input_component_name} not found in component dict.")
 
-        component = self.component_dict[component_name]
-        og_name = component_name  # In case of errors
+        component = self.component_dict[input_component_name]
         component_name = component.name
         mapping = self.mapping[component_name]
 
@@ -211,31 +207,26 @@ class PlumbingEngine:
         for node in self.plumbing_graph.nodes():
             if not list(self.plumbing_graph.neighbors(node)):
                 to_remove.append(node)
-
         self.plumbing_graph.remove_nodes_from(to_remove)
 
         # Self info housekeeping
-        self._resolve_errors(og_name)
+        self._resolve_errors(input_component_name)
         if self.mapping.get(component_name):
             del self.mapping[component_name]
-        del self.component_dict[og_name]
+        del self.component_dict[input_component_name]
         self.time_resolution = utils.DEFAULT_TIME_RESOLUTION_MICROS
         for name in self.component_dict.keys():
             self._set_time_resolution(name)
-        self.valid = len(self.error_set) == 0
 
     def _resolve_errors(self, component_name):
         '''Resolve all errors associated with a certain component'''
-        component = self.component_dict[component_name]
-
         # Find all errors associated with a component
         to_remove = []
         for error in self.error_set:
             if hasattr(error, 'component_name') and error.component_name == component_name:
                 to_remove.append(error)
             elif hasattr(error, 'node_name'):
-                mapped_nodes = [self.mapping[component][node] for node in component.component_graph]
-                if error.node_name in mapped_nodes:
+                if error.node_name not in self.plumbing_graph:
                     to_remove.append(error)
 
         for error in self.error_set:
@@ -273,7 +264,7 @@ class PlumbingEngine:
             raise exceptions.BadInputError(f"Pressure {pressure} must be a number.")
         if pressure < 0:
             raise exceptions.BadInputError(f"Negative pressure {pressure} not allowed.")
-        if not node_name in self.plumbing_graph:
+        if node_name not in self.plumbing_graph:
             raise exceptions.BadInputError(f"Node {node_name} not found in graph.")
 
         self.plumbing_graph.nodes[node_name]['pressure'] = pressure
@@ -313,9 +304,5 @@ class PlumbingEngine:
         self._set_time_resolution(component_name)
 
     def list_toggles(self):
-        toggles = []
-        for component in self.component_dict.values():
-            if len(component.states.keys()) > 1:
-                toggles.append(component.name)
-
-        return toggles
+        '''Returns a list of toggleable components (by name)'''
+        return [c.name for c in self.component_dict.values() if len(c.states) > 1]

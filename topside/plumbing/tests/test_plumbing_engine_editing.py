@@ -7,7 +7,28 @@ import topside.plumbing.tests.testing_utils as test_utils
 import topside.plumbing.plumbing_utils as utils
 
 
-# TODO(wendi): Add testing for specific error messages from raised errors.
+def test_add_to_empty():
+    plumb = top.PlumbingEngine()
+    pc = test_utils.create_component(2, utils.CLOSED_KEYWORD, 0, 0, 'valve', 'A')
+
+    mapping = {
+        1: 1,
+        2: 2
+    }
+
+    plumb.add_component(pc, mapping, 'open', {1: 20})
+
+    assert plumb.is_valid()
+    assert plumb.time_resolution == utils.DEFAULT_TIME_RESOLUTION_MICROS
+    assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
+        (1, 2, 'valve.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(2))}),
+        (2, 1, 'valve.A2', {'FC': 0})
+    ]
+    assert list(plumb.plumbing_graph.nodes(data=True)) == [
+        (1, {'pressure': 20}),
+        (2, {'pressure': 0})
+    ]
+    assert plumb.component_dict['valve'].current_state == 'open'
 
 
 def test_add_component():
@@ -58,21 +79,8 @@ def test_add_component_errors():
 
     with pytest.raises(exceptions.BadInputError) as err:
         plumb.add_component(pc, mapping, 'closed', {4: 50})
-    assert str(err.value) == "Node 4 not found in graph."
-
-    assert not plumb.is_valid()
-    assert len(plumb.error_set) == 2
-
-    error = invalid.InvalidComponentNode(
-        f"Component '{name}', node {right_node} not found in mapping dict.",
-        name, right_node)
-    dup_error = invalid.DuplicateError(
-        invalid.multi_error_msg(
-            f"Component '{name}', node {right_node} not found in mapping dict."),
-        error)
-
-    assert error in plumb.error_set
-    assert dup_error in plumb.error_set
+    assert str(err.value) ==\
+        f"Component '{name}', node {right_node} not found in mapping dict."
 
 
 def test_remove_component():
@@ -157,19 +165,8 @@ def test_remove_add_errors():
 
     with pytest.raises(exceptions.BadInputError) as err:
         plumb.add_component(pc, mapping, 'closed', {4: 50})
-    assert str(err.value) == "Node 4 not found in graph."
-
-    assert not plumb.is_valid()
-    assert len(plumb.error_set) == 2
-    error = invalid.InvalidComponentNode(
-        f"Component '{name}', node {right_node} not found in mapping dict.",
-        name, right_node)
-    dup_error = invalid.DuplicateError(
-        invalid.multi_error_msg(
-            f"Component '{name}', node {right_node} not found in mapping dict."),
-        error)
-    assert error in plumb.error_set
-    assert dup_error in plumb.error_set
+    assert str(err.value) ==\
+        f"Component '{name}', node {right_node} not found in mapping dict."
 
     plumb.remove_component(name)
 
@@ -215,7 +212,7 @@ def test_remove_errors_wrong_component_name():
     assert len(plumb.error_set) == 2
 
     error1 = invalid.InvalidComponentName(
-        f"Component with name '{wrong_component_name}' not found in provided mapping dict.",
+        f"Component with name '{wrong_component_name}' not found in mapping dict.",
         wrong_component_name)
 
     error2 = invalid.InvalidComponentName(
@@ -452,8 +449,22 @@ def test_toggle_listing():
     plumb = test_utils.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
 
+    pc_states = {
+        'open': {
+            (1, 2, 'A1'): 0,
+            (2, 1, 'A2'): 0
+        }
+    }
+    pc_edges = [(1, 2, 'A1'), (2, 1, 'A2')]
+
+    pc = top.PlumbingComponent('tank', pc_states, pc_edges)
+
+    mapping = {1: 3, 2: 4}
+    plumb.add_component(pc, mapping, 'open')
+
     toggles = plumb.list_toggles()
 
     assert len(toggles) == 2
     assert 'valve1' in toggles
     assert 'valve2' in toggles
+    assert 'tank' not in toggles

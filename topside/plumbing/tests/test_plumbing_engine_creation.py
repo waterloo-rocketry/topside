@@ -1,6 +1,6 @@
 import pytest
 
-import topside as ops
+import topside as top
 import topside.plumbing.invalid_reasons as invalid
 import topside.plumbing.exceptions as exceptions
 import topside.plumbing.tests.testing_utils as test_utils
@@ -8,7 +8,7 @@ import topside.plumbing.plumbing_utils as utils
 
 
 def test_empty_graph():
-    plumb = ops.PlumbingEngine()
+    plumb = top.PlumbingEngine()
 
     assert plumb.time_resolution == utils.DEFAULT_TIME_RESOLUTION_MICROS
     assert not list(plumb.plumbing_graph.edges(data=True, keys=True))
@@ -62,7 +62,7 @@ def test_load_graph_to_empty():
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
 
-    plumb = ops.PlumbingEngine()
+    plumb = top.PlumbingEngine()
     plumb.load_graph(plumb0.component_dict, plumb0.mapping, pressures, default_states)
 
     assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
@@ -141,14 +141,14 @@ def test_missing_component():
 
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
-    plumb = ops.PlumbingEngine(
+    plumb = top.PlumbingEngine(
         {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
     assert not plumb.is_valid()
     assert len(plumb.error_set) == 2
 
     error1 = invalid.InvalidComponentName(
-        f"Component with name '{wrong_component_name}' not found in provided mapping dict.",
+        f"Component with name '{wrong_component_name}' not found in mapping dict.",
         wrong_component_name)
 
     error2 = invalid.InvalidComponentName(
@@ -160,7 +160,6 @@ def test_missing_component():
 
 
 def test_wrong_node_mapping():
-    # The node name should be 1.
     proper_node_name = 1
     wrong_node_name = 5
     pc1 = test_utils.create_component(0, 0, 0, 0, 'valve1', 'A')
@@ -169,17 +168,17 @@ def test_wrong_node_mapping():
     component_mapping = {
         'valve1': {
             wrong_node_name: 1,
-            2: 2
+            2: 8
         },
         'valve2': {
-            1: 2,
+            1: 8,
             2: 3
         }
     }
 
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
-    plumb = ops.PlumbingEngine(
+    plumb = top.PlumbingEngine(
         {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
     assert not plumb.is_valid()
@@ -204,6 +203,9 @@ def test_wrong_node_mapping():
     assert duplicate_error in plumb.error_set
 
 
+test_wrong_node_mapping()
+
+
 def test_missing_node_pressure():
     wrong_node_name = 4
     pc1 = test_utils.create_component(0, 0, 0, 0, 'valve1', 'A')
@@ -220,18 +222,12 @@ def test_missing_node_pressure():
         }
     }
 
-    pressures = {wrong_node_name: 100}
+    pressures = {wrong_node_name: 100, 2: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
-    plumb = ops.PlumbingEngine(
-        {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
-
-    assert not plumb.is_valid()
-    assert len(plumb.error_set) == 1
-
-    error = invalid.InvalidNodePressure(
-        f"Node {wrong_node_name} not found in graph.", wrong_node_name)
-
-    assert error in plumb.error_set
+    with pytest.raises(exceptions.BadInputError) as err:
+        plumb = top.PlumbingEngine(
+            {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
+    assert str(err.value) == f"Node {wrong_node_name} not found in graph."
 
 
 def test_missing_initial_state():
@@ -253,7 +249,7 @@ def test_missing_initial_state():
 
     pressures = {3: 100}
     default_states = {wrong_component_name: 'closed', 'valve2': 'open'}
-    plumb = ops.PlumbingEngine(
+    plumb = top.PlumbingEngine(
         {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
     assert not plumb.is_valid()
@@ -284,12 +280,12 @@ def test_error_reset():
 
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
-    plumb = ops.PlumbingEngine(
+    plumb = top.PlumbingEngine(
         {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
     assert not plumb.is_valid()
 
-    plumb = ops.PlumbingEngine()
+    plumb = top.PlumbingEngine()
 
     assert plumb.is_valid()
 
@@ -313,14 +309,14 @@ def test_set_component_wrong_component_name():
 
 
 def test_plumbing_engines_independent():
-    plumb1 = ops.PlumbingEngine()
-    plumb2 = ops.PlumbingEngine()
+    plumb1 = top.PlumbingEngine()
+    plumb2 = top.PlumbingEngine()
 
     key = 'f'
     value = 1
     plumb1.mapping[key] = value
 
-    plumb3 = ops.PlumbingEngine()
+    plumb3 = top.PlumbingEngine()
 
     assert plumb1.mapping == {key: value}
     assert plumb2.mapping == {}
@@ -344,7 +340,7 @@ def test_engine_dicts_remain_unchanged():
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     component_dict = {'valve1': pc1, 'valve2': pc2}
-    plumb = ops.PlumbingEngine(
+    plumb = top.PlumbingEngine(
         component_dict, component_mapping, pressures, default_states)
 
     assert component_mapping == {
@@ -380,14 +376,14 @@ def test_load_errorless_graph():
 
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
-    plumb = ops.PlumbingEngine(
+    plumb = top.PlumbingEngine(
         {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
     assert not plumb.is_valid()
     assert len(plumb.error_set) == 2
 
     error1 = invalid.InvalidComponentName(
-        f"Component with name '{wrong_component_name}' not found in provided mapping dict.",
+        f"Component with name '{wrong_component_name}' not found in mapping dict.",
         wrong_component_name)
 
     error2 = invalid.InvalidComponentName(
@@ -405,4 +401,3 @@ def test_load_errorless_graph():
     plumb.load_graph(plumb0.component_dict, plumb0.mapping, pressures, default_states)
 
     assert plumb.is_valid()
-    assert len(plumb.error_set) == 0
