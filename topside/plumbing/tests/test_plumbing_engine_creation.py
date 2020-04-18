@@ -85,7 +85,8 @@ def test_replace_graph():
     plumb0 = test_utils.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
     plumb = test_utils.two_valve_setup(
-        0, 0, utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD, 0, 0, utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD)
+        0, 0, utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD,
+        0, 0, utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD)
 
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
@@ -228,7 +229,7 @@ def test_missing_node_pressure():
     assert len(plumb.error_set) == 1
 
     error = invalid.InvalidNodePressure(
-        f"Node {wrong_node_name} not found in initial node pressures dict.", wrong_node_name)
+        f"Node {wrong_node_name} not found in graph.", wrong_node_name)
 
     assert error in plumb.error_set
 
@@ -297,16 +298,18 @@ def test_set_component_wrong_state_name():
     wrong_state_name = 'potato'
     plumb = test_utils.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         plumb.set_component_state('valve1', wrong_state_name)
+    assert str(err.value) == f"State '{wrong_state_name}' not found in valve1 states dict."
 
 
 def test_set_component_wrong_component_name():
     wrong_component_name = 'potato'
     plumb = test_utils.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         plumb.set_component_state(wrong_component_name, 'open')
+    assert str(err.value) == f"Component '{wrong_component_name}' not found in mapping dict."
 
 
 def test_plumbing_engines_independent():

@@ -56,8 +56,10 @@ def test_add_component_errors():
         wrong_node: 4
     }
 
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         plumb.add_component(pc, mapping, 'closed', {4: 50})
+    assert str(err.value) == "Node 4 not found in graph."
+
     assert not plumb.valid
     assert len(plumb.error_set) == 2
 
@@ -134,8 +136,10 @@ def test_remove_nonexistent_component():
         0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
     nonexistent_component = 'potato'
 
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         plumb.remove_component(nonexistent_component)
+    assert str(err.value) ==\
+        f"Component with name {nonexistent_component} not found in component dict."
 
 
 def test_remove_add_errors():
@@ -151,8 +155,10 @@ def test_remove_add_errors():
         wrong_node: 4
     }
 
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         plumb.add_component(pc, mapping, 'closed', {4: 50})
+    assert str(err.value) == "Node 4 not found in graph."
+
     assert not plumb.valid
     assert len(plumb.error_set) == 2
     error = invalid.InvalidComponentNode(
@@ -261,8 +267,9 @@ def test_reverse_orientation_wrong_component():
     plumb = test_utils.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
 
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         plumb.reverse_orientation(wrong_name)
+    assert str(err.value) == f"Component '{wrong_name}' not found in component dict."
 
 
 def test_set_pressure():
@@ -308,11 +315,14 @@ def test_set_pressure_errors():
 
     negative_pressure = -20
     not_a_number = 'potato'
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         plumb.set_pressure(4, negative_pressure)
+    assert str(err.value) == f"Negative pressure {negative_pressure} not allowed."
 
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         plumb.set_pressure(4, not_a_number)
+    assert str(err.value) == f"Pressure {not_a_number} must be a number."
+
     assert list(plumb.plumbing_graph.nodes(data=True)) == [
         (1, {'pressure': 0}),
         (2, {'pressure': 0}),
@@ -321,8 +331,9 @@ def test_set_pressure_errors():
     ]
 
     nonexistent_node = 5
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         plumb.set_pressure(nonexistent_node, 100)
+    assert str(err.value) == f"Node {nonexistent_node} not found in graph."
 
     plumb.set_pressure(4, 100)
     assert list(plumb.plumbing_graph.nodes(data=True)) == [
@@ -418,14 +429,20 @@ def test_set_teq_errors():
         }
     }
 
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         plumb.set_teq('valve1', bad_teq)
+    assert str(err.value) == f"Provided teq {teq_too_low} (component 'valve1', state 'closed'," +\
+        f" edge (2, 1, 'A2')) too low. Minimum teq is {utils.micros_to_s(utils.TEQ_MIN)}s."
 
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         plumb.set_teq(wrong_name, which_edge)
+    assert str(err.value) == f"Component name '{wrong_name}' not found in component dict."
 
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         plumb.set_teq('valve1', bad_key)
+    assert str(err.value) == f"State 'closed', edge (2, 1, '{wrong_name}') not found in" +\
+        f" component valve1's states dict."
 
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         plumb.set_teq('valve1', bad_state)
+    assert str(err.value) == f"State '{wrong_name}' not found in component valve1's states dict."
