@@ -22,7 +22,7 @@ def test_add_component():
 
     plumb.add_component(pc, mapping, 'closed', {4: 50})
 
-    assert plumb.valid
+    assert plumb.is_valid()
     assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
@@ -60,7 +60,7 @@ def test_add_component_errors():
         plumb.add_component(pc, mapping, 'closed', {4: 50})
     assert str(err.value) == "Node 4 not found in graph."
 
-    assert not plumb.valid
+    assert not plumb.is_valid()
     assert len(plumb.error_set) == 2
 
     error = invalid.InvalidComponentNode(
@@ -80,7 +80,7 @@ def test_remove_component():
         0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
     plumb.remove_component('valve2')
 
-    assert plumb.valid
+    assert plumb.is_valid()
     assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
@@ -113,7 +113,7 @@ def test_add_remove():
 
     plumb.remove_component('valve3')
 
-    assert plumb.valid
+    assert plumb.is_valid()
     assert plumb.time_resolution ==\
         int(utils.s_to_micros(old_lowest_teq) / utils.DEFAULT_RESOLUTION_SCALE)
     assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
@@ -159,7 +159,7 @@ def test_remove_add_errors():
         plumb.add_component(pc, mapping, 'closed', {4: 50})
     assert str(err.value) == "Node 4 not found in graph."
 
-    assert not plumb.valid
+    assert not plumb.is_valid()
     assert len(plumb.error_set) == 2
     error = invalid.InvalidComponentNode(
         f"Component '{name}', node {right_node} not found in mapping dict.",
@@ -173,7 +173,7 @@ def test_remove_add_errors():
 
     plumb.remove_component(name)
 
-    assert plumb.valid
+    assert plumb.is_valid()
     assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
@@ -211,7 +211,7 @@ def test_remove_errors_wrong_component_name():
     plumb = top.PlumbingEngine(
         {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
-    assert not plumb.valid
+    assert not plumb.is_valid()
     assert len(plumb.error_set) == 2
 
     error1 = invalid.InvalidComponentName(
@@ -227,7 +227,7 @@ def test_remove_errors_wrong_component_name():
 
     plumb.remove_component(wrong_component_name)
 
-    assert plumb.valid
+    assert plumb.is_valid()
     assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
         (2, 3, 'valve2.B1', {'FC': utils.teq_to_FC(utils.s_to_micros(0))}),
@@ -245,7 +245,7 @@ def test_reverse_orientation():
         0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
     plumb.reverse_orientation('valve1')
 
-    assert plumb.valid
+    assert plumb.is_valid()
     assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
         (1, 2, 'valve1.A1', {'FC': 0}),
@@ -446,3 +446,14 @@ def test_set_teq_errors():
     with pytest.raises(exceptions.BadInputError) as err:
         plumb.set_teq('valve1', bad_state)
     assert str(err.value) == f"State '{wrong_name}' not found in component valve1's states dict."
+
+
+def test_toggle_listing():
+    plumb = test_utils.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+
+    toggles = plumb.list_toggles()
+
+    assert len(toggles) == 2
+    assert 'valve1' in toggles
+    assert 'valve2' in toggles

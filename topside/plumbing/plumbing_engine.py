@@ -311,3 +311,11 @@ class PlumbingEngine:
             self.set_component_state(component_name, component.current_state)
 
         self._set_time_resolution(component_name)
+
+    def list_toggles(self):
+        toggles = []
+        for component in self.component_dict.values():
+            if len(component.component_graph.edges()) == 2:
+                toggles.append(component.name)
+
+        return toggles

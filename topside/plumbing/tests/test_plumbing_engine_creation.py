@@ -144,7 +144,7 @@ def test_missing_component():
     plumb = ops.PlumbingEngine(
         {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
-    assert not plumb.valid
+    assert not plumb.is_valid()
     assert len(plumb.error_set) == 2
 
     error1 = invalid.InvalidComponentName(
@@ -182,7 +182,7 @@ def test_wrong_node_mapping():
     plumb = ops.PlumbingEngine(
         {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
-    assert not plumb.valid
+    assert not plumb.is_valid()
 
     # Since the node name is wrong in the mapping, an error should be added
     # every time the mapping dict is accessed to find the matching graph node.
@@ -225,7 +225,7 @@ def test_missing_node_pressure():
     plumb = ops.PlumbingEngine(
         {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
-    assert not plumb.valid
+    assert not plumb.is_valid()
     assert len(plumb.error_set) == 1
 
     error = invalid.InvalidNodePressure(
@@ -256,7 +256,7 @@ def test_missing_initial_state():
     plumb = ops.PlumbingEngine(
         {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
-    assert not plumb.valid
+    assert not plumb.is_valid()
     assert len(plumb.error_set) == 1
 
     error = invalid.InvalidComponentName(
@@ -287,11 +287,11 @@ def test_error_reset():
     plumb = ops.PlumbingEngine(
         {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
-    assert not plumb.valid
+    assert not plumb.is_valid()
 
     plumb = ops.PlumbingEngine()
 
-    assert plumb.valid
+    assert plumb.is_valid()
 
 
 def test_set_component_wrong_state_name():
@@ -383,7 +383,7 @@ def test_load_errorless_graph():
     plumb = ops.PlumbingEngine(
         {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
-    assert not plumb.valid
+    assert not plumb.is_valid()
     assert len(plumb.error_set) == 2
 
     error1 = invalid.InvalidComponentName(
@@ -404,5 +404,5 @@ def test_load_errorless_graph():
 
     plumb.load_graph(plumb0.component_dict, plumb0.mapping, pressures, default_states)
 
-    assert plumb.valid
+    assert plumb.is_valid()
     assert len(plumb.error_set) == 0
