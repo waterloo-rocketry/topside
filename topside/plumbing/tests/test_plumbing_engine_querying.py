@@ -143,8 +143,8 @@ def test_FC_name_overlap():
     }
 
     # Since these edges belongs only to remote_fill_valve
-    assert (2, 3, 'remote_fill_valve.A1') not in plumb.current_FC('fill_valve')
-    assert (3, 2, 'remote_fill_valve.A2') not in plumb.current_FC('fill_valve')
+    assert (2, 3, 'remote_fill_valve.B1') not in plumb.current_FC('fill_valve')
+    assert (3, 2, 'remote_fill_valve.B2') not in plumb.current_FC('fill_valve')
 
     assert plumb.current_FC('remote_fill_valve') == {
         (2, 3, 'remote_fill_valve.B1'): utils.teq_to_FC(utils.s_to_micros(1)),
