@@ -354,7 +354,7 @@ class PlumbingEngine:
                     for edge in self.plumbing_graph.edges(keys=True)}
 
         # If passed a list, unpack those list elements into args
-        args = utils.flatten(args)
+        args = utils.flatten(args, allow_tuples=False)
 
         if len(args) == 1 and args[0] in list(self.plumbing_graph.edges(keys=True)):
             return self.plumbing_graph.edges[args[0]]['FC']

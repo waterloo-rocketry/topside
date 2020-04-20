@@ -31,10 +31,11 @@ def s_to_micros(sec):
     return sec * 1e6
 
 
-def flatten(args):
+def flatten(args, allow_tuples=True):
     flattened_args = []
     for arg in args:
-        if isinstance(arg, list):
+        unpack = isinstance(arg, (list, tuple)) if allow_tuples else isinstance(arg, list)
+        if unpack:
             flattened_args.extend(arg)
         else:
             flattened_args.append(arg)

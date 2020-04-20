@@ -30,7 +30,14 @@ def test_current_state():
         'valve2': 'open'
     }
 
-    assert plumb.current_state(['valve1', 'valve2']) == {
+    list_valves = ['valve1', 'valve2']
+    assert plumb.current_state(list_valves) == {
+        'valve1': 'open',
+        'valve2': 'open'
+    }
+
+    tuple_valves = ('valve1', 'valve2')
+    assert plumb.current_state(tuple_valves) == {
         'valve1': 'open',
         'valve2': 'open'
     }
@@ -65,7 +72,15 @@ def test_current_pressures():
         1: 100,
         2: 50
     }
-    assert plumb.current_pressures([1, 2]) == {
+
+    list_nodes = [1, 2]
+    assert plumb.current_pressures(list_nodes) == {
+        1: 100,
+        2: 50
+    }
+
+    tuple_nodes = (1, 2)
+    assert plumb.current_pressures(tuple_nodes) == {
         1: 100,
         2: 50
     }
@@ -88,6 +103,14 @@ def test_current_FC():
         0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
 
     assert plumb.current_FC() == {
+        (1, 2, 'valve1.A1'): utils.teq_to_FC(utils.s_to_micros(10)),
+        (2, 1, 'valve1.A2'): 0,
+        (2, 3, 'valve2.B1'): utils.teq_to_FC(utils.s_to_micros(0.5)),
+        (3, 2, 'valve2.B2'): utils.teq_to_FC(utils.s_to_micros(0.2))
+    }
+
+    list_valves = ['valve1', 'valve2']
+    assert plumb.current_FC(list_valves) == {
         (1, 2, 'valve1.A1'): utils.teq_to_FC(utils.s_to_micros(10)),
         (2, 1, 'valve1.A2'): 0,
         (2, 3, 'valve2.B1'): utils.teq_to_FC(utils.s_to_micros(0.5)),
