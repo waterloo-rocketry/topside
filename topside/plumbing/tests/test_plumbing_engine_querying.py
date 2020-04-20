@@ -92,6 +92,8 @@ def test_current_FC():
         (3, 2, 'valve2.B2'): utils.teq_to_FC(utils.s_to_micros(0.2))
     }
 
+    assert plumb.current_FC((1, 2, 'valve1.A1')) == utils.teq_to_FC(utils.s_to_micros(10))
+
     assert plumb.current_FC((1, 2, 'valve1.A1'), (2, 3, 'valve2.B1')) == {
         (1, 2, 'valve1.A1'): utils.teq_to_FC(utils.s_to_micros(10)),
         (2, 3, 'valve2.B1'): utils.teq_to_FC(utils.s_to_micros(0.5))

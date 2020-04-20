@@ -356,6 +356,9 @@ class PlumbingEngine:
         # If passed a list, unpack those list elements into args
         args = utils.flatten(args)
 
+        if len(args) == 1 and args[0] in list(self.plumbing_graph.edges(keys=True)):
+            return self.plumbing_graph.edges[args[0]]['FC']
+
         ret = {}
         for arg in args:
             if arg in self.component_dict:
