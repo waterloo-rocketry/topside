@@ -29,3 +29,14 @@ def micros_to_s(micros):
 
 def s_to_micros(sec):
     return sec * 1e6
+
+
+def flatten(args):
+    flattened_args = []
+    for arg in args:
+        if isinstance(arg, list):
+            flattened_args.extend(arg)
+        else:
+            flattened_args.append(arg)
+
+    return flattened_args

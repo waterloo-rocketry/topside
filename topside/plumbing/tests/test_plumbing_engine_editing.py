@@ -28,7 +28,7 @@ def test_add_to_empty():
         (1, {'pressure': 20}),
         (2, {'pressure': 0})
     ]
-    assert plumb.component_dict['valve'].current_state == 'open'
+    assert plumb.current_state('valve') == 'open'
 
 
 def test_add_component():
@@ -59,9 +59,9 @@ def test_add_component():
         (3, {'pressure': 100}),
         (4, {'pressure': 50})
     ]
-    assert plumb.component_dict['valve1'].current_state == 'closed'
-    assert plumb.component_dict['valve2'].current_state == 'open'
-    assert plumb.component_dict['valve3'].current_state == 'closed'
+    assert plumb.current_state('valve1') == 'closed'
+    assert plumb.current_state('valve2') == 'open'
+    assert plumb.current_state('valve3') == 'closed'
 
 
 def test_add_component_errors():
@@ -98,7 +98,7 @@ def test_remove_component():
         (1, {'pressure': 0}),
         (2, {'pressure': 0}),
     ]
-    assert plumb.component_dict['valve1'].current_state == 'closed'
+    assert plumb.current_state('valve1') == 'closed'
 
 
 def test_add_remove():
@@ -135,8 +135,8 @@ def test_add_remove():
         (2, {'pressure': 0}),
         (3, {'pressure': 100}),
     ]
-    assert plumb.component_dict['valve1'].current_state == 'closed'
-    assert plumb.component_dict['valve2'].current_state == 'open'
+    assert plumb.current_state('valve1') == 'closed'
+    assert plumb.current_state('valve2') == 'open'
 
 
 def test_remove_nonexistent_component():
@@ -183,8 +183,8 @@ def test_remove_add_errors():
         (2, {'pressure': 0}),
         (3, {'pressure': 100}),
     ]
-    assert plumb.component_dict['valve1'].current_state == 'closed'
-    assert plumb.component_dict['valve2'].current_state == 'open'
+    assert plumb.current_state('valve1') == 'closed'
+    assert plumb.current_state('valve2') == 'open'
 
 
 def test_remove_errors_wrong_component_name():
@@ -234,7 +234,7 @@ def test_remove_errors_wrong_component_name():
         (2, {'pressure': 0}),
         (3, {'pressure': 100}),
     ]
-    assert plumb.component_dict['valve2'].current_state == 'open'
+    assert plumb.current_state('valve2') == 'open'
 
 
 def test_reverse_orientation():
@@ -255,8 +255,8 @@ def test_reverse_orientation():
         (2, {'pressure': 0}),
         (3, {'pressure': 100})
     ]
-    assert plumb.component_dict['valve1'].current_state == 'closed'
-    assert plumb.component_dict['valve2'].current_state == 'open'
+    assert plumb.current_state('valve1') == 'closed'
+    assert plumb.current_state('valve2') == 'open'
 
 
 def test_reverse_orientation_wrong_component():

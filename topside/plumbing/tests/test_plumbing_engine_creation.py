@@ -32,8 +32,8 @@ def test_open_closed_valves():
         (2, {'pressure': 0}),
         (3, {'pressure': 100})
     ]
-    assert plumb.component_dict['valve1'].current_state == 'closed'
-    assert plumb.component_dict['valve2'].current_state == 'open'
+    assert plumb.current_state('valve1') == 'closed'
+    assert plumb.current_state('valve2') == 'open'
 
 
 def test_arbitrary_states():
@@ -52,8 +52,8 @@ def test_arbitrary_states():
         (2, {'pressure': 0}),
         (3, {'pressure': 100})
     ]
-    assert plumb.component_dict['valve1'].current_state == 'closed'
-    assert plumb.component_dict['valve2'].current_state == 'open'
+    assert plumb.current_state('valve1') == 'closed'
+    assert plumb.current_state('valve2') == 'open'
 
 
 def test_load_graph_to_empty():
@@ -77,8 +77,8 @@ def test_load_graph_to_empty():
         (2, {'pressure': 0}),
         (3, {'pressure': 100})
     ]
-    assert plumb.component_dict['valve1'].current_state == 'closed'
-    assert plumb.component_dict['valve2'].current_state == 'open'
+    assert plumb.current_state('valve1') == 'closed'
+    assert plumb.current_state('valve2') == 'open'
 
 
 def test_replace_graph():
@@ -104,8 +104,8 @@ def test_replace_graph():
         (2, {'pressure': 0}),
         (3, {'pressure': 100})
     ]
-    assert plumb.component_dict['valve1'].current_state == 'closed'
-    assert plumb.component_dict['valve2'].current_state == 'open'
+    assert plumb.current_state('valve1') == 'closed'
+    assert plumb.current_state('valve2') == 'open'
 
 
 def test_new_component_state():
@@ -119,8 +119,8 @@ def test_new_component_state():
         (2, 3, 'valve2.B1', {'FC': utils.teq_to_FC(utils.s_to_micros(0.5))}),
         (3, 2, 'valve2.B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))})
     ]
-    assert plumb.component_dict['valve1'].current_state == 'open'
-    assert plumb.component_dict['valve2'].current_state == 'open'
+    assert plumb.current_state('valve1') == 'open'
+    assert plumb.current_state('valve2') == 'open'
 
 
 def test_missing_component():
