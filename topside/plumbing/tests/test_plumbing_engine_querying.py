@@ -19,10 +19,12 @@ def test_current_state():
 
     assert plumb.current_state('valve1') == 'open'
     assert plumb.current_state(['valve1']) == 'open'
+
     assert plumb.current_state() == {
         'valve1': 'open',
         'valve2': 'open'
     }
+
     assert plumb.current_state('valve1', 'valve2') == {
         'valve1': 'open',
         'valve2': 'open'
@@ -113,3 +115,38 @@ def test_current_FC():
         plumb.current_FC((1, 2, wrong_name))
     assert str(err.value) ==\
         f"'(1, 2, '{wrong_name}')' not found as component name or edge identifier."
+
+
+def test_FC_name_overlap():
+    pc1 = test_utils.create_component(0, 0, 0, 0, 'fill_valve', 'A')
+    pc2 = test_utils.create_component(1, 1, 1, 1, 'remote_fill_valve', 'B')
+
+    component_mapping = {
+        'fill_valve': {
+            1: 1,
+            2: 2
+        },
+        'remote_fill_valve': {
+            1: 2,
+            2: 3
+        }
+    }
+
+    pressures = {3: 100}
+    default_states = {'fill_valve': 'closed', 'remote_fill_valve': 'open'}
+    plumb = top.PlumbingEngine(
+        {'fill_valve': pc1, 'remote_fill_valve': pc2}, component_mapping, pressures, default_states)
+
+    assert plumb.current_FC('fill_valve') == {
+        (1, 2, 'fill_valve.A1'): utils.FC_MAX,
+        (2, 1, 'fill_valve.A2'): utils.FC_MAX
+    }
+
+    # Since these edges belongs only to remote_fill_valve
+    assert (2, 3, 'remote_fill_valve.A1') not in plumb.current_FC('fill_valve')
+    assert (3, 2, 'remote_fill_valve.A2') not in plumb.current_FC('fill_valve')
+
+    assert plumb.current_FC('remote_fill_valve') == {
+        (2, 3, 'remote_fill_valve.B1'): utils.teq_to_FC(utils.s_to_micros(1)),
+        (3, 2, 'remote_fill_valve.B2'): utils.teq_to_FC(utils.s_to_micros(1))
+    }

@@ -363,7 +363,7 @@ class PlumbingEngine:
         for arg in args:
             if arg in self.component_dict:
                 for edge in self.plumbing_graph.edges(keys=True):
-                    if arg in edge[2]:
+                    if edge[2].startswith(arg + '.'):
                         ret[edge] = self.plumbing_graph.edges[edge]['FC']
             elif arg in list(self.plumbing_graph.edges(keys=True)):
                 ret[arg] = self.plumbing_graph.edges[arg]['FC']
