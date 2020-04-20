@@ -38,3 +38,20 @@ def test_s_to_micros():
     while i < large_second_amount:
         assert abs(utils.s_to_micros(i) - (i * 1e6)) < epsilon
         i += 0.5
+
+
+def test_flatten():
+    l = []
+    assert utils.flatten(l) == []
+
+    l = [1, 2]
+    assert utils.flatten(l) == [1, 2]
+
+    l = [[1]]
+    assert utils.flatten(l) == [1]
+
+    l = [[1, 2], ['potato', 'turnip']]
+    assert utils.flatten(l) == [1, 2, 'potato', 'turnip']
+
+    l = [1, 2, [1, 2], 'potato', ['potato']]
+    assert utils.flatten(l) == [1, 2, 1, 2, 'potato', 'potato']
