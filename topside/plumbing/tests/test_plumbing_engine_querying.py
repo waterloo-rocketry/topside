@@ -68,6 +68,7 @@ def test_current_pressures():
         2: 50,
         3: 100
     }
+
     assert plumb.current_pressures(1, 2) == {
         1: 100,
         2: 50
@@ -90,6 +91,7 @@ def test_current_pressures():
         1: 100,
         2: 50
     }
+
     assert plumb.current_pressures(3) == 100
 
     wrong_node = 4
