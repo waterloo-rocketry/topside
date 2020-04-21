@@ -41,7 +41,7 @@ def test_plumbing_component_setup():
         }
     }
     assert pc1.is_valid()
-    assert not pc1.list_errors()
+    assert not pc1.errors()
 
 
 def test_minimum_teq():
@@ -51,12 +51,12 @@ def test_minimum_teq():
     pc = top.PlumbingComponent('valve', states, edges)
 
     assert not pc.is_valid()
-    assert len(pc.list_errors()) == 1
+    assert len(pc.errors()) == 1
 
     error = invalid.InvalidTeq(
         f'Provided teq value too low, minimum value is: {utils.micros_to_s(utils.TEQ_MIN)}s',
         'valve', 'closed', (2, 1, 'A2'), teq_too_low)
-    assert error in pc.list_errors()
+    assert error in pc.errors()
 
 
 def test_invalid_keyword():
@@ -66,13 +66,13 @@ def test_invalid_keyword():
     pc = top.PlumbingComponent('valve', states, edges)
 
     assert not pc.is_valid()
-    assert len(pc.list_errors()) == 1
+    assert len(pc.errors()) == 1
 
     error = invalid.InvalidTeq(
         f"Invalid provided teq value ('potato'), accepted keyword is: '{utils.CLOSED_KEYWORD}'",
         'valve', 'closed', (2, 1, 'A2'), wrong_keyword_teq)
 
-    assert error in pc.list_errors()
+    assert error in pc.errors()
 
 
 def test_duplicate_edges():
@@ -94,7 +94,7 @@ def test_duplicate_edges():
     assert not pc.is_valid()
 
     error = invalid.InvalidComponentEdge(f"Duplicate edges '{edge}' found in edge list.", edge)
-    assert error in pc.list_errors()
+    assert error in pc.errors()
 
 
 def test_edge_id_error():
@@ -117,7 +117,7 @@ def test_edge_id_error():
     assert not pc.is_valid()
     error = invalid.InvalidComponentEdge(
         f"Edge '({wrong_node}, 2, 'A1')' not found in provided edge list.", (wrong_node, 2, 'A1'))
-    assert error in pc.list_errors()
+    assert error in pc.errors()
 
 
 def test_multiple_errors():
@@ -128,7 +128,7 @@ def test_multiple_errors():
     pc = top.PlumbingComponent('valve', states, edges)
 
     assert not pc.is_valid()
-    assert len(pc.list_errors()) == 2
+    assert len(pc.errors()) == 2
 
     error1 = invalid.InvalidTeq(
         f"Provided teq value too low, minimum value is: {utils.micros_to_s(utils.TEQ_MIN)}s",
@@ -139,8 +139,8 @@ def test_multiple_errors():
         f" accepted keyword is: '{utils.CLOSED_KEYWORD}'",
         'valve', 'closed', (2, 1, 'A2'), wrong_keyword_teq)
 
-    assert error1 in pc.list_errors()
-    assert error2 in pc.list_errors()
+    assert error1 in pc.errors()
+    assert error2 in pc.errors()
 
 
 def test_component_dicts_remain_unchanged():
