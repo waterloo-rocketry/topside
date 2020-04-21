@@ -60,23 +60,30 @@ def test_flatten():
 def test_flatten_tuples():
     test_tuple = [()]
     assert utils.flatten(test_tuple) == []
+    assert utils.flatten(test_tuple, unpack_tuples=False) == [()]
 
     test_tuple = [(1, 2)]
     assert utils.flatten(test_tuple) == [1, 2]
+    assert utils.flatten(test_tuple, unpack_tuples=False) == [(1, 2)]
 
     test_tuple = [(1)]
     assert utils.flatten(test_tuple) == [1]
+    assert utils.flatten(test_tuple, unpack_tuples=False) == [(1)]
 
     test_tuple = [(1, 2), ('potato', 'turnip')]
     assert utils.flatten(test_tuple) == [1, 2, 'potato', 'turnip']
+    assert utils.flatten(test_tuple, unpack_tuples=False) == [(1, 2), ('potato', 'turnip')]
 
     test_tuple = [1, 2, (1, 2), 'potato', ('potato')]
     assert utils.flatten(test_tuple) == [1, 2, 1, 2, 'potato', 'potato']
+    assert utils.flatten(test_tuple, unpack_tuples=False) == [1, 2, (1, 2), 'potato', ('potato')]
 
 
 def test_flatten_mixed():
     test = [(1, 2), ['potato', 'turnip']]
     assert utils.flatten(test) == [1, 2, 'potato', 'turnip']
+    assert utils.flatten(test, unpack_tuples=False) == [(1, 2), 'potato', 'turnip']
 
     test = [(1, 2), [1, 2], 'potato', ('potato')]
     assert utils.flatten(test) == [1, 2, 1, 2, 'potato', 'potato']
+    assert utils.flatten(test, unpack_tuples=False) == [(1, 2), 1, 2, 'potato', ('potato')]

@@ -31,11 +31,11 @@ def s_to_micros(sec):
     return sec * 1e6
 
 
-def flatten(args, allow_tuples=True):
+def flatten(args, unpack_tuples=True):
     '''Takes list of lists and/or tuples and flattens it to a one dimensional list'''
     flattened_args = []
     for arg in args:
-        unpack = isinstance(arg, (list, tuple)) if allow_tuples else isinstance(arg, list)
+        unpack = isinstance(arg, (list, tuple)) if unpack_tuples else isinstance(arg, list)
         if unpack:
             flattened_args.extend(arg)
         else:
