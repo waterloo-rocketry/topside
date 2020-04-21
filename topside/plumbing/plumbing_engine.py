@@ -383,11 +383,11 @@ class PlumbingEngine:
 
         return ret
 
-    def list_errors(self):
+    def errors(self):
         return self.error_set
 
-    def list_nodes(self, data=True):
+    def nodes(self, data=True):
         return list(self.plumbing_graph.nodes(data=data))
 
-    def list_edges(self, data=True):
+    def edges(self, data=True):
         return list(self.plumbing_graph.edges(keys=True, data=data))

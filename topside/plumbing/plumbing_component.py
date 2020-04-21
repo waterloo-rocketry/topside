@@ -18,12 +18,11 @@ class PlumbingComponent:
 
         edge_set = set()
         for edge in edge_list:
-            last_len = len(edge_set)
-            edge_set.add(edge)
-            if len(edge_set) == last_len:
+            if edge in edge_set:
                 error = invalid.InvalidComponentEdge(
                     f"Duplicate edges '{edge}' found in edge list.", edge)
                 invalid.add_error(error, self.error_set)
+            edge_set.add(edge)
 
         # Convert provided teq values into FC values
         for state_id, state in self.states.items():
