@@ -19,6 +19,11 @@ class PlumbingComponent:
         # Convert provided teq values into FC values
         for state_id, state in self.states.items():
             for edge in state:
+                if edge not in edge_list:
+                    error = invalid.InvalidComponentEdge(
+                        f"Edge '{edge}' not found in provided edge list.", edge)
+                    invalid.add_error(error, self.error_set)
+                    continue
                 og_teq = state[edge]
                 if isinstance(state[edge], (float, int)):
                     state[edge] = int(utils.s_to_micros(state[edge]))
@@ -27,7 +32,7 @@ class PlumbingComponent:
                         error = invalid.InvalidTeq(
                             f"Invalid provided teq value ('{state[edge]}'), accepted keyword is: "
                             f"'{utils.CLOSED_KEYWORD}'", self.name, state_id, edge, og_teq)
-                        self.error_set.add(error)
+                        invalid.add_error(error, self.error_set)
                         state[edge] = utils.CLOSED_KEYWORD
 
                 # TODO(jacob/wendi): Look into eventually implementing this with datetime.timedelta.
@@ -37,7 +42,8 @@ class PlumbingComponent:
                     error = invalid.InvalidTeq(
                         "Provided teq value too low, minimum value is: "
                         f"{utils.micros_to_s(utils.TEQ_MIN)}s", self.name, state_id, edge, og_teq)
-                    self.error_set.add(error)
+                    invalid.add_error(error, self.error_set)
                     state[edge] = utils.FC_MAX
 
-        self.valid = len(self.error_set) == 0
+    def is_valid(self):
+        return len(self.error_set) == 0

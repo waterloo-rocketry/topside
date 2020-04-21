@@ -25,6 +25,11 @@ class InvalidComponentNode(PlumbingInvalidReason):
 
 
 @dataclass(frozen=True)
+class InvalidComponentEdge(PlumbingInvalidReason):
+    edge: tuple
+
+
+@dataclass(frozen=True)
 class InvalidNodePressure(PlumbingInvalidReason):
     node_name: str
 
@@ -33,7 +38,7 @@ class InvalidNodePressure(PlumbingInvalidReason):
 class InvalidTeq(PlumbingInvalidReason):
     component_name: str
     state_id: str
-    edge_id: Tuple
+    edge_id: tuple
     teq: int
 
 

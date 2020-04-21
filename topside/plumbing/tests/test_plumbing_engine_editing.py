@@ -83,6 +83,31 @@ def test_add_component_errors():
         f"Component '{name}', node {right_node} not found in mapping dict."
 
 
+def test_add_invalid_component():
+    plumb = test_utils.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+
+    wrong_node = 5
+    pc_states = {
+        'open': {
+            (1, wrong_node, 'A1'): 0,
+            (2, 1, 'A2'): 0
+        },
+        'closed': {
+            (1, 2, 'A1'): 0,
+            (2, 1, 'A2'): 0
+        }
+    }
+    pc_edges = [(1, 2, 'A1'), (2, 1, 'A2')]
+    invalid_pc = top.PlumbingComponent('valve', pc_states, pc_edges)
+
+    assert not invalid_pc.is_valid()
+
+    with pytest.raises(exceptions.BadInputError) as err:
+        plumb.add_component(invalid_pc, {1: 3, 2: 4}, 'open')
+    assert str(err.value) == "Component not valid; all errors must be resolved before loading in."
+
+
 def test_remove_component():
     plumb = test_utils.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)

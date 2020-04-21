@@ -123,6 +123,38 @@ def test_new_component_state():
     assert plumb.current_state('valve2') == 'open'
 
 
+def test_invalid_component():
+    wrong_node = 5
+    pc_states = {
+        'open': {
+            (1, wrong_node, 'A1'): 0,
+            (2, 1, 'A2'): 0
+        },
+        'closed': {
+            (1, 2, 'A1'): 0,
+            (2, 1, 'A2'): 0
+        }
+    }
+    pc_edges = [(1, 2, 'A1'), (2, 1, 'A2')]
+    invalid_pc = top.PlumbingComponent('valve', pc_states, pc_edges)
+
+    assert not invalid_pc.is_valid()
+
+    plumb = top.PlumbingEngine()
+
+    with pytest.raises(exceptions.BadInputError) as err:
+        plumb.load_graph({'valve': invalid_pc}, {1: 1, 2: 2}, {1: 100}, {'valve': 'open'})
+    assert str(err.value) == "Node 1 not found in graph."
+
+    assert not plumb.is_valid()
+    assert len(plumb.error_set) == 1
+
+    error = invalid.InvalidComponentName(
+        "Component with name 'valve' is not valid;"
+        " component cannot be loaded in until errors are resolved.", 'valve')
+    assert error in plumb.error_set
+
+
 def test_missing_component():
     wrong_component_name = 'potato'
     pc1 = test_utils.create_component(0, 0, 0, 0, 'valve1', 'A')
