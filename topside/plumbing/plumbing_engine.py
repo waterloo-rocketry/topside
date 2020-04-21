@@ -36,12 +36,12 @@ class PlumbingEngine:
 
         for name, component in self.component_dict.items():
             name_valid = True
-            if self.mapping.get(name) is None:
+            if name not in self.mapping:
                 error = invalid.InvalidComponentName(
                     f"Component with name '{name}' not found in mapping dict.", name)
                 invalid.add_error(error, self.error_set)
                 name_valid = False
-            if initial_states.get(name) is None:
+            if name not in initial_states:
                 error = invalid.InvalidComponentName(
                     f"Component '{name}' state not found in initial states dict.",
                     name)
@@ -68,7 +68,7 @@ class PlumbingEngine:
 
     def set_component_state(self, component_name, state_id):
         '''Change a component's state on the main graph'''
-        if self.mapping.get(component_name) is None:
+        if component_name not in self.mapping:
             raise exceptions.BadInputError(
                 f"Component '{component_name}' not found in mapping dict.")
 
@@ -76,7 +76,7 @@ class PlumbingEngine:
         component_map = self.mapping[component_name]
         component = self.component_dict[component_name]
 
-        if component.states.get(state_id) is None:
+        if state_id not in component.states:
             raise exceptions.BadInputError(
                 f"State '{state_id}' not found in {component_name} states dict.")
 
@@ -91,13 +91,13 @@ class PlumbingEngine:
             cstart_node, cend_node, key = cedge
 
             both_nodes_valid = True
-            if component_map.get(cstart_node) is None:
+            if cstart_node not in component_map:
                 error = invalid.InvalidComponentNode(
                     f"Component '{component.name}', node {cstart_node} not found in mapping dict.",
                     component.name, cstart_node)
                 invalid.add_error(error, self.error_set)
                 both_nodes_valid = False
-            if component_map.get(cend_node) is None:
+            if cend_node not in component_map:
                 error = invalid.InvalidComponentNode(
                     f"Component '{component.name}', node {cend_node} not found in mapping dict.",
                     component.name, cend_node)
@@ -141,7 +141,7 @@ class PlumbingEngine:
         for start_node, end_node, edge_key in component_graph.edges(keys=True):
             both_nodes_valid = True
 
-            if mapping.get(start_node) is None:
+            if start_node not in mapping:
                 error_msg = f"Component '{name}', node {start_node} not found in mapping dict."
                 if fail_silently:
                     error = invalid.InvalidComponentNode(error_msg, name, start_node)
@@ -149,7 +149,7 @@ class PlumbingEngine:
                     both_nodes_valid = False
                 else:
                     raise exceptions.BadInputError(error_msg)
-            if mapping.get(end_node) is None:
+            if end_node not in mapping:
                 error_msg = f"Component '{name}', node {end_node} not found in mapping dict."
                 if fail_silently:
                     error = invalid.InvalidComponentNode(error_msg, name, end_node)
@@ -166,7 +166,7 @@ class PlumbingEngine:
 
         # Set a default pressure of 0
         for node in mapping.values():
-            if node in self.plumbing_graph and not self.plumbing_graph.nodes[node].get('pressure'):
+            if node in self.plumbing_graph and 'pressure' not in self.plumbing_graph.nodes[node]:
                 self.set_pressure(node, 0)
 
         # Assign specified node pressures
@@ -190,7 +190,7 @@ class PlumbingEngine:
     def remove_component(self, input_component_name):
         '''Removes component and associated errors'''
         # Check validity of provided component name
-        if self.component_dict.get(input_component_name) is None:
+        if input_component_name not in self.component_dict:
             raise exceptions.BadInputError(
                 f"Component with name {input_component_name} not found in component dict.")
 
@@ -214,7 +214,7 @@ class PlumbingEngine:
 
         # Self info housekeeping
         self._resolve_errors(input_component_name)
-        if self.mapping.get(component_name):
+        if component_name in self.mapping:
             del self.mapping[component_name]
         del self.component_dict[input_component_name]
         self.time_resolution = utils.DEFAULT_TIME_RESOLUTION_MICROS
@@ -242,7 +242,7 @@ class PlumbingEngine:
 
     def reverse_orientation(self, component_name):
         '''Reverse direction of suitable components, such as check valves'''
-        if self.component_dict.get(component_name) is None:
+        if component_name not in self.component_dict:
             raise exceptions.BadInputError(
                 f"Component '{component_name}' not found in component dict.")
 
@@ -275,7 +275,7 @@ class PlumbingEngine:
 
     def set_teq(self, component_name, which_edge):
         '''Sets teq at given dict of edges for one component'''
-        if self.component_dict.get(component_name) is None:
+        if component_name not in self.component_dict:
             raise exceptions.BadInputError(
                 f"Component name '{component_name}' not found in component dict.")
 
@@ -283,7 +283,7 @@ class PlumbingEngine:
         which_edge = copy.deepcopy(which_edge)
 
         for state_id, edge_dict in which_edge.items():
-            if component.states.get(state_id) is None:
+            if state_id not in component.states:
                 raise exceptions.BadInputError(
                     f"State '{state_id}' not found in component {component_name}'s states dict.")
 
@@ -294,7 +294,7 @@ class PlumbingEngine:
                         f"Provided teq {utils.micros_to_s(teq)} (component '{component_name}',"
                         f" state '{state_id}', edge {edge}) too low. "
                         f"Minimum teq is {utils.micros_to_s(utils.TEQ_MIN)}s.")
-                if component.states[state_id].get(edge) is None:
+                if edge not in component.states[state_id]:
                     raise exceptions.BadInputError(
                         f"State '{state_id}', edge {edge} not found in component"
                         f" {component_name}'s states dict.")
@@ -310,3 +310,65 @@ class PlumbingEngine:
     def list_toggles(self):
         '''Returns a list of toggleable components (by name)'''
         return [c.name for c in self.component_dict.values() if len(c.states) > 1]
+
+    def current_state(self, *args):
+        '''Given one or more component_names, returns the state_id of their current states'''
+        if len(args) == 0:
+            return {component.name: component.current_state
+                    for component in self.component_dict.values()}
+
+        # If passed a list, unpack those list elements into args
+        args = utils.flatten(args)
+
+        try:
+            if len(args) == 1:
+                component_name = args[0]
+                return self.component_dict[component_name].current_state
+            else:
+                return {name: self.component_dict[name].current_state for name in args}
+        except KeyError as err:
+            raise exceptions.BadInputError(
+                f"Component '{err.args[0]}' not found in component dict.")
+
+    def current_pressures(self, *args):
+        '''Given one or more nodes, returns their current pressure'''
+        if len(args) == 0:
+            return {n: self.plumbing_graph.nodes[n]['pressure']
+                    for n in self.plumbing_graph.nodes()}
+
+        # If passed a list, unpack those list elements into args
+        args = utils.flatten(args)
+
+        try:
+            if len(args) == 1:
+                return self.plumbing_graph.nodes[args[0]]['pressure']
+            else:
+                return {n: self.plumbing_graph.nodes[n]['pressure'] for n in args}
+        except KeyError as err:
+            raise exceptions.BadInputError(f"Node {err.args[0]} not found in graph.")
+
+    def current_FC(self, *args):
+        '''Given a component name or edge id, return a dict of corresponding FCs'''
+        if len(args) == 0:
+            return {edge: self.plumbing_graph.edges[edge]['FC']
+                    for edge in self.plumbing_graph.edges(keys=True)}
+
+        # If passed a list, unpack those list elements into args
+        args = utils.flatten(args, unpack_tuples=False)
+
+        if len(args) == 1 and args[0] in list(self.plumbing_graph.edges(keys=True)):
+            return self.plumbing_graph.edges[args[0]]['FC']
+
+        ret = {}
+        for arg in args:
+            if arg in self.component_dict:
+                for edge in self.plumbing_graph.edges(keys=True):
+                    if edge[2].startswith(arg + '.'):
+                        ret[edge] = self.plumbing_graph.edges[edge]['FC']
+            elif arg in list(self.plumbing_graph.edges(keys=True)):
+                ret[arg] = self.plumbing_graph.edges[arg]['FC']
+            else:
+                raise exceptions.BadInputError(
+                    f"'{arg}' not found as component name or edge identifier.")
+
+        return ret
