@@ -56,3 +56,6 @@ class PlumbingComponent:
 
     def is_valid(self):
         return len(self.error_set) == 0
+
+    def list_errors(self):
+        return self.error_set
