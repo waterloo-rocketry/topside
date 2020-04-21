@@ -1,49 +1,40 @@
-import platform
 from os import path
 
 from setuptools import setup, find_packages
-from cx_Freeze import setup, Executable
+
+from topside import release_info
 
 here = path.abspath(path.dirname(__file__))
 
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-# cx_Freeze configuration
-
-base = None
-icon = 'application/resources/icon.png'
-
-if platform.system() == 'Windows':
-    base = 'Win32GUI'
-    icon = 'application/resources/icon.ico'
-
-target = Executable(
-    script='main.py',
-    targetName='Topside',
-    base=base,
-    icon=icon
-)
-
-build_exe_opts = {
-    'include_files': ['application/resources']
-}
-
 setup(
-    name='topside',
-    version='0.1.0',
-    description='A simulator for rocket launch operations',
+    name=release_info.name,
+    version=release_info.version,
+    description=release_info.description,
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/waterloo-rocketry/topside',
     author='Waterloo Rocketry',
+    author_email='contact@waterloorocketry.com',
     license='MIT',
     classifiers=[
+        'Development Status :: 3 - Alpha',
+
         'License :: OSI Approved :: MIT License',
+
+        'Operating System :: OS Independent',
+
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3 :: Only',
+
+        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Scientific/Engineering',
     ],
     packages=find_packages(exclude=['application']),
-    executables=[target],
-    options={
-        'build_exe': build_exe_opts
-    }
 )

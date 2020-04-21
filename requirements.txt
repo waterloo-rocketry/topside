@@ -3,4 +3,7 @@ cx-freeze==6.1
 networkx
 PySide2==5.14.1
 pytest
+setuptools
 shiboken2==5.14.1
+twine
+wheel
