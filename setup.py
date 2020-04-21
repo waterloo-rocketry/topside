@@ -25,6 +25,8 @@ setup(
         'License :: OSI Approved :: MIT License',
 
         'Operating System :: OS Independent',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft :: Windows :: Windows 10',
 
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.7',
