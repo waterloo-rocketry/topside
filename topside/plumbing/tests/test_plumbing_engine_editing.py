@@ -20,11 +20,11 @@ def test_add_to_empty():
 
     assert plumb.is_valid()
     assert plumb.time_resolution == utils.DEFAULT_TIME_RESOLUTION_MICROS
-    assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
+    assert plumb.list_edges() == [
         (1, 2, 'valve.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(2))}),
         (2, 1, 'valve.A2', {'FC': 0})
     ]
-    assert list(plumb.plumbing_graph.nodes(data=True)) == [
+    assert plumb.list_nodes() == [
         (1, {'pressure': 20}),
         (2, {'pressure': 0})
     ]
@@ -45,7 +45,7 @@ def test_add_component():
 
     assert plumb.is_valid()
     assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
-    assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
+    assert plumb.list_edges() == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
         (2, 1, 'valve1.A2', {'FC': 0}),
         (2, 3, 'valve2.B1', {'FC': utils.teq_to_FC(utils.s_to_micros(0.5))}),
@@ -53,7 +53,7 @@ def test_add_component():
         (3, 4, 'valve3.C1', {'FC': utils.teq_to_FC(0)}),
         (4, 3, 'valve3.C2', {'FC': utils.teq_to_FC(utils.s_to_micros(1))})
     ]
-    assert list(plumb.plumbing_graph.nodes(data=True)) == [
+    assert plumb.list_nodes() == [
         (1, {'pressure': 0}),
         (2, {'pressure': 0}),
         (3, {'pressure': 100}),
@@ -115,11 +115,11 @@ def test_remove_component():
 
     assert plumb.is_valid()
     assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
-    assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
+    assert plumb.list_edges() == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
         (2, 1, 'valve1.A2', {'FC': 0}),
     ]
-    assert list(plumb.plumbing_graph.nodes(data=True)) == [
+    assert plumb.list_nodes() == [
         (1, {'pressure': 0}),
         (2, {'pressure': 0}),
     ]
@@ -149,13 +149,13 @@ def test_add_remove():
     assert plumb.is_valid()
     assert plumb.time_resolution ==\
         int(utils.s_to_micros(old_lowest_teq) / utils.DEFAULT_RESOLUTION_SCALE)
-    assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
+    assert plumb.list_edges() == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
         (2, 1, 'valve1.A2', {'FC': 0}),
         (2, 3, 'valve2.B1', {'FC': utils.teq_to_FC(utils.s_to_micros(0.5))}),
         (3, 2, 'valve2.B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))}),
     ]
-    assert list(plumb.plumbing_graph.nodes(data=True)) == [
+    assert plumb.list_nodes() == [
         (1, {'pressure': 0}),
         (2, {'pressure': 0}),
         (3, {'pressure': 100}),
@@ -197,13 +197,13 @@ def test_remove_add_errors():
 
     assert plumb.is_valid()
     assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
-    assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
+    assert plumb.list_edges() == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
         (2, 1, 'valve1.A2', {'FC': 0}),
         (2, 3, 'valve2.B1', {'FC': utils.teq_to_FC(utils.s_to_micros(0.5))}),
         (3, 2, 'valve2.B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))}),
     ]
-    assert list(plumb.plumbing_graph.nodes(data=True)) == [
+    assert plumb.list_nodes() == [
         (1, {'pressure': 0}),
         (2, {'pressure': 0}),
         (3, {'pressure': 100}),
@@ -234,7 +234,7 @@ def test_remove_errors_wrong_component_name():
         {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
     assert not plumb.is_valid()
-    assert len(plumb.error_set) == 2
+    assert len(plumb.list_errors()) == 2
 
     error1 = invalid.InvalidComponentName(
         f"Component with name '{wrong_component_name}' not found in mapping dict.",
@@ -244,18 +244,18 @@ def test_remove_errors_wrong_component_name():
         f"Component '{wrong_component_name}' state not found in initial states dict.",
         wrong_component_name)
 
-    assert error1 in plumb.error_set
-    assert error2 in plumb.error_set
+    assert error1 in plumb.list_errors()
+    assert error2 in plumb.list_errors()
 
     plumb.remove_component(wrong_component_name)
 
     assert plumb.is_valid()
     assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
-    assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
+    assert plumb.list_edges() == [
         (2, 3, 'valve2.B1', {'FC': utils.teq_to_FC(utils.s_to_micros(0))}),
         (3, 2, 'valve2.B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0))}),
     ]
-    assert list(plumb.plumbing_graph.nodes(data=True)) == [
+    assert plumb.list_nodes() == [
         (2, {'pressure': 0}),
         (3, {'pressure': 100}),
     ]
@@ -269,13 +269,13 @@ def test_reverse_orientation():
 
     assert plumb.is_valid()
     assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
-    assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
+    assert plumb.list_edges() == [
         (1, 2, 'valve1.A1', {'FC': 0}),
         (2, 1, 'valve1.A2', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
         (2, 3, 'valve2.B1', {'FC': utils.teq_to_FC(utils.s_to_micros(0.5))}),
         (3, 2, 'valve2.B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))})
     ]
-    assert list(plumb.plumbing_graph.nodes(data=True)) == [
+    assert plumb.list_nodes() == [
         (1, {'pressure': 0}),
         (2, {'pressure': 0}),
         (3, {'pressure': 100})
@@ -337,7 +337,7 @@ def test_set_pressure():
     plumb.set_pressure(1, 200)
     plumb.set_pressure(2, 7000)
 
-    assert list(plumb.plumbing_graph.nodes(data=True)) == [
+    assert plumb.list_nodes() == [
         (1, {'pressure': 200}),
         (2, {'pressure': 7000}),
         (3, {'pressure': 100}),
@@ -347,7 +347,7 @@ def test_set_pressure():
     plumb.set_pressure(4, 10)
     plumb.set_pressure(1, 0)
 
-    assert list(plumb.plumbing_graph.nodes(data=True)) == [
+    assert plumb.list_nodes() == [
         (1, {'pressure': 0}),
         (2, {'pressure': 7000}),
         (3, {'pressure': 100}),
@@ -375,7 +375,7 @@ def test_set_pressure_errors():
         plumb.set_pressure(4, not_a_number)
     assert str(err.value) == f"Pressure {not_a_number} must be a number."
 
-    assert list(plumb.plumbing_graph.nodes(data=True)) == [
+    assert plumb.list_nodes() == [
         (1, {'pressure': 0}),
         (2, {'pressure': 0}),
         (3, {'pressure': 100}),
@@ -388,7 +388,7 @@ def test_set_pressure_errors():
     assert str(err.value) == f"Node {nonexistent_node} not found in graph."
 
     plumb.set_pressure(4, 100)
-    assert list(plumb.plumbing_graph.nodes(data=True)) == [
+    assert plumb.list_nodes() == [
         (1, {'pressure': 0}),
         (2, {'pressure': 0}),
         (3, {'pressure': 100}),
@@ -417,7 +417,7 @@ def test_set_teq():
 
     assert plumb.time_resolution ==\
         int(utils.s_to_micros(new_lowest_teq) / utils.DEFAULT_RESOLUTION_SCALE)
-    assert list(plumb.plumbing_graph.edges(data=True, keys=True)) == [
+    assert plumb.list_edges() == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(7))}),
         (2, 1, 'valve1.A2', {'FC': utils.teq_to_FC(utils.s_to_micros(new_lowest_teq))}),
         (2, 3, 'valve2.B1', {'FC': utils.teq_to_FC(utils.s_to_micros(0.5))}),

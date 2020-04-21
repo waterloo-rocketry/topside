@@ -175,3 +175,52 @@ def test_FC_name_overlap():
         (2, 3, 'remote_fill_valve.B1'): utils.teq_to_FC(utils.s_to_micros(1)),
         (3, 2, 'remote_fill_valve.B2'): utils.teq_to_FC(utils.s_to_micros(1))
     }
+
+
+def test_list_functions():
+    pc1 = test_utils.create_component(0.5, 0.2, 10, utils.CLOSED_KEYWORD, 'valve1', 'A')
+    pc2 = test_utils.create_component(0.5, 0.2, 10, utils.CLOSED_KEYWORD, 'valve2', 'B')
+
+    component_mapping = {
+        'valve1': {
+            1: 1,
+            2: 2
+        },
+        'valve2': {
+            1: 2,
+            2: 3
+        }
+    }
+
+    negative_pressure = -50
+    pressures = {3: negative_pressure}
+    default_states = {'valve1': 'closed', 'valve2': 'open'}
+    plumb = top.PlumbingEngine(
+        {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
+
+    assert plumb.list_edges() == [
+        (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
+        (2, 1, 'valve1.A2', {'FC': 0}),
+        (2, 3, 'valve2.B1', {'FC': utils.teq_to_FC(utils.s_to_micros(0.5))}),
+        (3, 2, 'valve2.B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))})
+    ]
+
+    assert plumb.list_edges(data=False) == [
+        (1, 2, 'valve1.A1'),
+        (2, 1, 'valve1.A2'),
+        (2, 3, 'valve2.B1'),
+        (3, 2, 'valve2.B2')
+    ]
+
+    # Pressure at node 3 will be 0, since the provided one was invalid
+    assert plumb.list_nodes() == [
+        (1, {'pressure': 0}),
+        (2, {'pressure': 0}),
+        (3, {'pressure': 0})
+    ]
+
+    assert plumb.list_nodes(data=False) == [1, 2, 3]
+
+    assert plumb.list_errors() == {
+        invalid.InvalidNodePressure(f"Negative pressure {negative_pressure} not allowed.", 3)
+    }
