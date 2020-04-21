@@ -75,6 +75,28 @@ def test_invalid_keyword():
     assert error in pc.error_set
 
 
+def test_duplicate_edges():
+    states = {
+        'open': {
+            (1, 2, 'A1'): 0,
+            (2, 1, 'A2'): 0
+        },
+        'closed': {
+            (1, 2, 'A1'): 0,
+            (2, 1, 'A2'): 0
+        }
+    }
+    edge = (1, 2, 'A1')
+    edges = [edge, edge, (2, 1, 'A2')]
+
+    pc = top.PlumbingComponent('valve', states, edges)
+
+    assert not pc.is_valid()
+
+    error = invalid.InvalidComponentEdge(f"Duplicate edges '{edge}' found in edge list.", edge)
+    assert error in pc.error_set
+
+
 def test_edge_id_error():
     wrong_node = 5
 
