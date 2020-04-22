@@ -35,6 +35,12 @@ class PlumbingEngine:
         initial_states = copy.deepcopy(initial_states)
 
         for name, component in self.component_dict.items():
+            if not component.is_valid():
+                error = invalid.InvalidComponentName(
+                    f"Component with name '{name}' is not valid;"
+                    " component cannot be loaded in until errors are resolved.", name)
+                invalid.add_error(error, self.error_set)
+                continue
             name_valid = True
             if name not in self.mapping:
                 error = invalid.InvalidComponentName(
@@ -126,6 +132,10 @@ class PlumbingEngine:
 
     def add_component(self, component, mapping, state_id, pressures=None, fail_silently=False):
         '''Adds a component to the main plumbing graph according to provided specifications'''
+        if not fail_silently and not component.is_valid():
+            raise exceptions.BadInputError(
+                "Component not valid; all errors must be resolved before loading in.")
+
         if not pressures:
             pressures = {}
 
@@ -372,3 +382,12 @@ class PlumbingEngine:
                     f"'{arg}' not found as component name or edge identifier.")
 
         return ret
+
+    def errors(self):
+        return self.error_set
+
+    def nodes(self, data=True):
+        return list(self.plumbing_graph.nodes(data=data))
+
+    def edges(self, data=True):
+        return list(self.plumbing_graph.edges(keys=True, data=data))
