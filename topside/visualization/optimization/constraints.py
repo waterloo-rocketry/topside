@@ -34,16 +34,16 @@ def right_angle_cons_h(i, j, x, v):
     iy = 2*i+1
     jx = 2*j
     jy = 2*j+1
-    
+
     hess[ix, iy] = 1
     hess[iy, ix] = 1
 
     hess[ix, jy] = -1
     hess[jy, ix] = -1
-    
+
     hess[jx, iy] = -1
     hess[iy, jx] = -1
-    
+
     hess[jx, jy] = 1
     hess[jy, jx] = 1
 

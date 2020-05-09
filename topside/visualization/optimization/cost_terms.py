@@ -27,7 +27,7 @@ def neighboring_distance_cost_term(x, g, node_indices, node_component_neighbors,
                 if other in node_component_neighbors[node]:
                     nominal_dist = settings.nominal_dist_internal
                     weight = settings.internal_weight
-                   
+
                 else:
                     nominal_dist = settings.nominal_dist_neighbors
                     weight = settings.neighbors_weight
@@ -64,12 +64,13 @@ def nonneighboring_distance_cost_term(x, g, node_indices, node_component_neighbo
             if other not in g.neighbors(node):
                 if norm < settings.minimum_dist_others:
                     cost += settings.others_weight * (norm - settings.minimum_dist_others) ** 2
-                    common = settings.others_weight * 2 * (norm - settings.minimum_dist_others) * (0.5 / norm) * 2
+                    common = settings.others_weight * 2 * \
+                        (norm - settings.minimum_dist_others) * (0.5 / norm) * 2
                     grad[2*i] += common * delta[0]
                     grad[2*i+1] += common * delta[1]
                     grad[2*j] += common * -delta[0]
                     grad[2*j+1] += common * -delta[1]
-    
+
     return (cost, grad)
 
 
@@ -129,7 +130,7 @@ def right_angle_deviation_cost_term(x, g, node_indices, node_component_neighbors
                 grad[2*i+1] += settings.right_angle_weight * 2 * dy * dx**2
                 grad[2*j] += settings.right_angle_weight * -2 * dy**2 * dx
                 grad[2*j+1] += settings.right_angle_weight * -2 * dy * dx**2
-   
+
     return (cost, grad)
 
 

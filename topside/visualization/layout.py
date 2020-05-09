@@ -11,7 +11,7 @@ def terminal_graph(plumbing_engine):
 
     non_atm_nodes = [n for n in plumbing_engine.plumbing_graph if not n == 'atm']
     T.add_nodes_from(non_atm_nodes)
-    
+
     component_nodes = {}
 
     for name, c in plumbing_engine.component_dict.items():

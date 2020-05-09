@@ -25,11 +25,16 @@ class OptimizerSettings:
 
 
 def cost_fn(x, g, node_indices, node_component_neighbors, settings):
-    c1, g1 = top.neighboring_distance_cost_term(x, g, node_indices, node_component_neighbors, settings)
-    c2, g2 = top.nonneighboring_distance_cost_term(x, g, node_indices, node_component_neighbors, settings)
-    c3, g3 = top.centroid_deviation_cost_term(x, g, node_indices, node_component_neighbors, settings)
-    c4, g4 = top.right_angle_deviation_cost_term(x, g, node_indices, node_component_neighbors, settings)
-    c5, g5 = top.horizontal_deviation_cost_term(x, g, node_indices, node_component_neighbors, settings)
+    c1, g1 = top.neighboring_distance_cost_term(
+        x, g, node_indices, node_component_neighbors, settings)
+    c2, g2 = top.nonneighboring_distance_cost_term(
+        x, g, node_indices, node_component_neighbors, settings)
+    c3, g3 = top.centroid_deviation_cost_term(
+        x, g, node_indices, node_component_neighbors, settings)
+    c4, g4 = top.right_angle_deviation_cost_term(
+        x, g, node_indices, node_component_neighbors, settings)
+    c5, g5 = top.horizontal_deviation_cost_term(
+        x, g, node_indices, node_component_neighbors, settings)
 
     cost = sum([c1, c2, c3, c4, c5])
     grad = sum([g1, g2, g3, g4, g5])
@@ -57,7 +62,7 @@ def make_initial_pos(num_nodes):
     for i in range(num_nodes):
         initial_pos[2*i] = i
         initial_pos[2*i+1] = i / 2
-    
+
     return initial_pos
 
 
@@ -78,7 +83,7 @@ def layout_plumbing_engine(plumbing_engine):
 
     # TODO(jacob): Investigate if BFGS is really the best option.
     initial_positioning_res = minimize(cost_fn, initial_pos, jac=True, method='BFGS',
-                                                    args=stage_1_args, options={'maxiter': 400})
+                                       args=stage_1_args, options={'maxiter': 400})
     print(initial_positioning_res)
 
     # TODO(jacob): Reformulate this to only create one constraint that covers every component instead
@@ -100,8 +105,8 @@ def layout_plumbing_engine(plumbing_engine):
     stage_2_args = (t, node_indices, node_component_neighbors, stage_2_settings)
 
     fine_tuning_res = minimize(cost_fn, initial_positioning_res.x, jac=True, method='SLSQP',
-                                            constraints=constraints, args=stage_2_args,
-                                            options={'maxiter': 200})
+                               constraints=constraints, args=stage_2_args,
+                               options={'maxiter': 200})
     print(fine_tuning_res)
 
     pos = top.vector_to_pos_dict(fine_tuning_res.x, node_indices)
