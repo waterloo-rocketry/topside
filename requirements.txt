@@ -1,8 +1,11 @@
 autopep8
 cx-freeze==6.1
+matplotlib
 networkx
+numpy
 PySide2==5.14.1
 pytest
+scipy
 setuptools
 shiboken2==5.14.1
 twine
