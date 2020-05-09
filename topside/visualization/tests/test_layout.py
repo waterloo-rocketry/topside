@@ -61,40 +61,49 @@ def parallel_component_engine():
 
 def test_terminal_graph_one_component():
     p = one_component_engine()
-    t, non_atm_nodes, component_nodes = top.terminal_graph(p)
+    t = top.terminal_graph(p)
 
     expected_t = nx.Graph([(1, 'c1.1'), ('c1.1', 'c1.2'), ('c1.2', 2)])
-    expected_non_atm_nodes = [1, 2]
-    expected_component_nodes = {'c1': ['c1.1', 'c1.2']}
-
     assert nx.is_isomorphic(t, expected_t)
-    assert non_atm_nodes == expected_non_atm_nodes
-    assert component_nodes == expected_component_nodes
 
 
 def test_terminal_graph_series_components():
     p = series_component_engine()
-    t, non_atm_nodes, component_nodes = top.terminal_graph(p)
+    t = top.terminal_graph(p)
 
     expected_t = nx.Graph([(1, 'c1.1'), ('c1.1', 'c1.2'), ('c1.2', 2),
                            (2, 'c2.1'), ('c2.1', 'c2.2'), ('c2.2', 3)])
-    expected_non_atm_nodes = [1, 2, 3]
-    expected_component_nodes = {'c1': ['c1.1', 'c1.2'], 'c2': ['c2.1', 'c2.2']}
-
     assert nx.is_isomorphic(t, expected_t)
-    assert non_atm_nodes == expected_non_atm_nodes
-    assert component_nodes == expected_component_nodes
 
 
 def test_terminal_graph_parallel_components():
     p = parallel_component_engine()
-    t, non_atm_nodes, component_nodes = top.terminal_graph(p)
+    t = top.terminal_graph(p)
 
     expected_t = nx.Graph([(1, 'c1.1'), ('c1.1', 'c1.2'), ('c1.2', 2),
                            (1, 'c2.1'), ('c2.1', 'c2.2'), ('c2.2', 2)])
-    expected_non_atm_nodes = [1, 2]
-    expected_component_nodes = {'c1': ['c1.1', 'c1.2'], 'c2': ['c2.1', 'c2.2']}
-
     assert nx.is_isomorphic(t, expected_t)
-    assert non_atm_nodes == expected_non_atm_nodes
-    assert component_nodes == expected_component_nodes
+
+
+def test_component_nodes_one_component():
+    p = one_component_engine()
+    nodes = top.component_nodes(p)
+
+    expected_component_nodes = [['c1.1', 'c1.2']]
+    assert nodes == expected_component_nodes
+
+
+def test_component_nodes_series_components():
+    p = series_component_engine()
+    nodes = top.component_nodes(p)
+
+    expected_component_nodes = [['c1.1', 'c1.2'], ['c2.1', 'c2.2']]
+    assert nodes == expected_component_nodes
+
+
+def test_component_nodes_parallel_components():
+    p = parallel_component_engine()
+    nodes = top.component_nodes(p)
+
+    expected_component_nodes = [['c1.1', 'c1.2'], ['c2.1', 'c2.2']]
+    assert nodes == expected_component_nodes

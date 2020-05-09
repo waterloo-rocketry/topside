@@ -1,3 +1,4 @@
+import numpy as np
 import matplotlib.pyplot as plt
 
 import topside as top
@@ -16,10 +17,11 @@ def plot_graph(g, pos):
         p2 = pos[edge[1]]
         ax.plot([p1[0], p2[0]], [p1[1], p2[1]], color='darkgrey', zorder=1)
 
-    xmin = min([v[0] for k, v in pos.items()])
-    xmax = max([v[0] for k, v in pos.items()])
-    ymin = min([v[1] for k, v in pos.items()])
-    ymax = max([v[1] for k, v in pos.items()])
+    pts = np.transpose(list(pos.values()))
+    xmin = min(pts[0])
+    xmax = max(pts[0])
+    ymin = min(pts[1])
+    ymax = max(pts[1])
 
     ax.set_xlim(xmin-5, xmax+5)
     ax.set_ylim(ymin-5, ymax+5)
@@ -30,15 +32,8 @@ def plot_graph(g, pos):
     return fig, ax
 
 
-def plot_plumbing_engine(engine, pos):
-    t, _, __ = top.terminal_graph(engine)
-
-    fig, ax = plot_graph(t, pos)
-
-    return fig, ax
-
-
 def layout_and_plot_plumbing_engine(engine):
+    t = top.terminal_graph(engine)
     pos = top.layout_plumbing_engine(engine)
 
-    return plot_plumbing_engine(engine, pos)
+    return plot_graph(t, pos)

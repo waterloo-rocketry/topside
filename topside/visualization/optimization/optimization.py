@@ -67,12 +67,13 @@ def make_initial_pos(num_nodes):
 
 
 def layout_plumbing_engine(plumbing_engine):
-    t, non_atm_nodes, components = top.terminal_graph(plumbing_engine)
+    t = top.terminal_graph(plumbing_engine)
+    components = top.component_nodes(plumbing_engine)
 
     node_indices = {n: i for i, n in enumerate(t.nodes)}
 
     node_component_neighbors = {n: [] for n in t.nodes}
-    for cname, cnodes in components.items():
+    for cnodes in components:
         for n in cnodes:
             node_component_neighbors[n] = [v for v in t.neighbors(n) if v in cnodes]
 
@@ -90,7 +91,7 @@ def layout_plumbing_engine(plumbing_engine):
     # covers every component instead# of having N constraints for N
     # components.
     constraints = []
-    for cname, cnodes in components.items():
+    for cnodes in components:
         i = node_indices[cnodes[0]]
         j = node_indices[cnodes[1]]
 
