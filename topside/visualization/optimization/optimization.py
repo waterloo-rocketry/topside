@@ -86,8 +86,9 @@ def layout_plumbing_engine(plumbing_engine):
                                        args=stage_1_args, options={'maxiter': 400})
     print(initial_positioning_res)
 
-    # TODO(jacob): Reformulate this to only create one constraint that covers every component instead
-    # of having N constraints for N components.
+    # TODO(jacob): Reformulate this to only create one constraint that
+    # covers every component instead# of having N constraints for N
+    # components.
     constraints = []
     for cname, cnodes in components.items():
         i = node_indices[cnodes[0]]
