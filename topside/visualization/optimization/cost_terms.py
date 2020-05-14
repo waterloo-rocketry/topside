@@ -4,42 +4,55 @@ import numpy as np
 # TODO(jacob): Vectorize all of these for (hopefully) significant
 # speedup.
 
+# TODO(jacob): Once vectorization is done, split this into two cost
+# terms for better readability.
 def neighboring_distance_cost_term(x, g, node_indices, node_component_neighbors, settings):
     xr = np.reshape(x, (-1, 2))
 
     cost = 0
     grad = np.zeros(x.shape[0])
 
+    internal_mask = np.ones((xr.shape[0], xr.shape[0]))
+    neighbors_mask = np.ones((xr.shape[0], xr.shape[0]))
     for node in g:
         i = node_indices[node]
+        for neighbor in g.neighbors(node):
+            j = node_indices[neighbor]
+            if neighbor in node_component_neighbors[node]:
+                internal_mask[i, j] = 0
+                internal_mask[j, i] = 0
+            else:
+                neighbors_mask[i, j] = 0
+                neighbors_mask[j, i] = 0
 
-        for other in g:
-            if other == node:
-                continue
+    deltas = xr[:, None, :] - xr[None, :, :]
+    norms = np.linalg.norm(deltas, axis=2)
 
-            j = node_indices[other]
-            delta = xr[j] - xr[i]
-            dx = delta[0]
-            dy = delta[1]
-            norm = np.linalg.norm(delta)
+    internal_norms = np.ma.masked_array(norms, mask=internal_mask)
+    neighbors_norms = np.ma.masked_array(norms, mask=neighbors_mask)
 
-            if other in g.neighbors(node):
-                if other in node_component_neighbors[node]:
-                    nominal_dist = settings.nominal_dist_internal
-                    weight = settings.internal_weight
+    internal_matrix = settings.internal_weight * \
+        (settings.nominal_dist_internal - internal_norms) ** 2
+    cost += np.sum(internal_matrix.filled(0))
 
-                else:
-                    nominal_dist = settings.nominal_dist_neighbors
-                    weight = settings.neighbors_weight
+    neighbors_matrix = settings.neighbors_weight * \
+        (settings.nominal_dist_neighbors - neighbors_norms) ** 2
+    cost += np.sum(neighbors_matrix.filled(0))
 
-                cost += weight * (nominal_dist - norm) ** 2
-                common = weight * -2 * (nominal_dist - norm) / norm
-                grad[2*i] += common * -dx
-                grad[2*i+1] += common * -dy
-                grad[2*j] += common * dx
-                grad[2*j+1] += common * dy
+    internal_grad_mask = np.repeat(internal_mask, 2, axis=np.newaxis)
+    neighbors_grad_mask = np.repeat(neighbors_mask, 2, axis=np.newaxis)
 
-    return cost, grad
+    internal_grad_common = settings.internal_weight * \
+        (internal_norms - settings.nominal_dist_internal) * (4 / internal_norms)
+    internal_grad_matrix = deltas * internal_grad_common[:, :, None]
+    grad += np.reshape(np.sum(internal_grad_matrix.filled(0), axis=1), grad.shape)
+
+    neighbors_grad_common = settings.neighbors_weight * \
+        (neighbors_norms - settings.nominal_dist_neighbors) * (4 / neighbors_norms)
+    neighbors_grad_matrix = deltas * neighbors_grad_common[:, :, None]
+    grad += np.reshape(np.sum(neighbors_grad_matrix.filled(0), axis=1), grad.shape)
+
+    return (cost, grad)
 
 
 def nonneighboring_distance_cost_term(x, g, node_indices, node_component_neighbors, settings):
@@ -48,28 +61,33 @@ def nonneighboring_distance_cost_term(x, g, node_indices, node_component_neighbo
     cost = 0
     grad = np.zeros(x.shape[0])
 
+    nonneighbors_mask = np.identity(xr.shape[0])
     for node in g:
         i = node_indices[node]
 
-        for other in g:
-            if other == node:
-                continue
+        for neighbor in g.neighbors(node):
+            j = node_indices[neighbor]
+            nonneighbors_mask[i, j] = 1
+            nonneighbors_mask[j, i] = 1
 
-            j = node_indices[other]
-            delta = xr[i] - xr[j]
-            dx = delta[0]
-            dy = delta[1]
-            norm = np.linalg.norm(delta)
+    deltas = xr[:, None, :] - xr[None, :, :]
+    norms = np.linalg.norm(deltas, axis=2)
 
-            if other not in g.neighbors(node):
-                if norm < settings.minimum_dist_others:
-                    cost += settings.others_weight * (norm - settings.minimum_dist_others) ** 2
-                    common = settings.others_weight * 2 * \
-                        (norm - settings.minimum_dist_others) * (0.5 / norm) * 2
-                    grad[2*i] += common * delta[0]
-                    grad[2*i+1] += common * delta[1]
-                    grad[2*j] += common * -delta[0]
-                    grad[2*j+1] += common * -delta[1]
+    nodes_to_ignore = (norms >= settings.minimum_dist_others)
+    mask = np.logical_or(nonneighbors_mask, nodes_to_ignore)
+
+    masked_norms = np.ma.masked_array(norms, mask=mask)
+
+    cost_matrix = settings.others_weight * (settings.minimum_dist_others - masked_norms) ** 2
+    cost += np.sum(cost_matrix.filled(0))
+
+    grad_mask = np.repeat(mask, 2, axis=np.newaxis)
+
+    grad_common_term = settings.others_weight * \
+        (masked_norms - settings.minimum_dist_others) * (4 / masked_norms)
+    grad_matrix = deltas * grad_common_term[:, :, None]
+
+    grad += np.reshape(np.sum(grad_matrix.filled(0), axis=1), grad.shape)
 
     return (cost, grad)
 
