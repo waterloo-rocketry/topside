@@ -130,24 +130,26 @@ def right_angle_deviation_cost_term(x, g, node_indices, node_component_neighbors
     cost = 0
     grad = np.zeros(x.shape[0])
 
+    internal_mask = np.ones((xr.shape[0], xr.shape[0], 2))
     for node in g:
         i = node_indices[node]
+        for neighbor in node_component_neighbors[node]:
+            j = node_indices[neighbor]
+            internal_mask[i, j] = 0
+            internal_mask[j, i] = 0
 
-        for other in g:
-            if other == node:
-                continue
+    deltas = xr[:, None, :] - xr[None, :, :]
 
-            j = node_indices[other]
-            delta = xr[i] - xr[j]
-            dx = delta[0]
-            dy = delta[1]
+    internal_deltas = np.ma.masked_array(deltas, mask=internal_mask)
 
-            if other in node_component_neighbors[node]:
-                cost += settings.right_angle_weight * (dx * dy) ** 2
-                grad[2*i] += settings.right_angle_weight * 2 * dy**2 * dx
-                grad[2*i+1] += settings.right_angle_weight * 2 * dy * dx**2
-                grad[2*j] += settings.right_angle_weight * -2 * dy**2 * dx
-                grad[2*j+1] += settings.right_angle_weight * -2 * dy * dx**2
+    dxdy = np.product(internal_deltas, axis=2)
+
+    cost_matrix = settings.right_angle_weight * dxdy ** 2
+    cost += np.sum(cost_matrix.filled(0))
+
+    grad_common = settings.right_angle_weight * 4 * dxdy[:, :, None]
+    grad_matrix = grad_common * np.flip(internal_deltas, axis=2)
+    grad += np.reshape(np.sum(grad_matrix.filled(0), axis=1), grad.shape)
 
     return (cost, grad)
 
@@ -158,21 +160,23 @@ def horizontal_deviation_cost_term(x, g, node_indices, node_component_neighbors,
     cost = 0
     grad = np.zeros(x.shape[0])
 
+    internal_mask = np.ones((xr.shape[0], xr.shape[0]))
     for node in g:
         i = node_indices[node]
+        for neighbor in node_component_neighbors[node]:
+            j = node_indices[neighbor]
+            internal_mask[i, j] = 0
+            internal_mask[j, i] = 0
 
-        for other in g:
-            if other == node:
-                continue
+    delta_y = (xr[:, None, :] - xr[None, :, :])[:, :, 1]
 
-            j = node_indices[other]
-            delta = xr[i] - xr[j]
-            dx = delta[0]
-            dy = delta[1]
+    internal_delta_y = np.ma.masked_array(delta_y, mask=internal_mask)
 
-            if other in node_component_neighbors[node]:
-                cost += settings.horizontal_weight * dy ** 2
-                grad[2*i+1] += settings.horizontal_weight * 2 * dy
-                grad[2*j+1] += settings.horizontal_weight * -2 * dy
+    cost_matrix = settings.horizontal_weight * internal_delta_y ** 2
+    cost += np.sum(cost_matrix.filled(0))
+
+    grad_matrix = np.ma.masked_array(np.zeros((xr.shape[0], xr.shape[0], 2)))
+    grad_matrix[:, :, 1] = settings.horizontal_weight * 4 * internal_delta_y
+    grad += np.reshape(np.sum(grad_matrix.filled(0), axis=1), grad.shape)
 
     return (cost, grad)
