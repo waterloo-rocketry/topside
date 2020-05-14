@@ -391,3 +391,6 @@ class PlumbingEngine:
 
     def edges(self, data=True):
         return list(self.plumbing_graph.edges(keys=True, data=data))
+
+    def step(self, timestep):
+        pass

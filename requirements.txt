@@ -1,4 +1,5 @@
 autopep8
+datatest
 cx-freeze==6.1
 matplotlib
 networkx
