@@ -22,10 +22,9 @@ def make_two_component_engine_data():
     return g, node_indices, neighbors
 
 
-def test_neighboring_distance_cost_internal_zero():
+def test_internal_distance_cost_zero():
     g, node_indices, neighbors = make_one_component_engine_data()
-    settings = top.OptimizerSettings(neighbors_weight=0,
-                                     nominal_dist_internal=7,
+    settings = top.OptimizerSettings(nominal_dist_internal=7,
                                      internal_weight=1)
 
     x = np.array([
@@ -38,17 +37,16 @@ def test_neighboring_distance_cost_internal_zero():
     expected_cost = 0
     expected_grad = np.zeros(8)
 
-    ct = top.NeighboringDistance(g, node_indices, neighbors, settings)
+    ct = top.NeighboringDistance(g, node_indices, neighbors, settings, internal=True)
     cost, grad = ct.evaluate(top.make_costargs(x))
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
 
 
-def test_neighboring_distance_cost_internal_nonzero():
+def test_internal_distance_cost_nonzero():
     g, node_indices, neighbors = make_one_component_engine_data()
-    settings = top.OptimizerSettings(neighbors_weight=0,
-                                     nominal_dist_internal=7,
+    settings = top.OptimizerSettings(nominal_dist_internal=7,
                                      internal_weight=1)
 
     x = np.array([
@@ -68,18 +66,17 @@ def test_neighboring_distance_cost_internal_nonzero():
         [0, 0]
     ]).flatten()
 
-    ct = top.NeighboringDistance(g, node_indices, neighbors, settings)
+    ct = top.NeighboringDistance(g, node_indices, neighbors, settings, internal=True)
     cost, grad = ct.evaluate(top.make_costargs(x))
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
 
 
-def test_neighboring_distance_cost_external_zero():
+def test_neighboring_distance_cost_zero():
     g, node_indices, neighbors = make_one_component_engine_data()
     settings = top.OptimizerSettings(nominal_dist_neighbors=10,
-                                     neighbors_weight=1,
-                                     internal_weight=0)
+                                     neighbors_weight=1)
 
     x = np.array([
         [0, 0],
@@ -91,18 +88,17 @@ def test_neighboring_distance_cost_external_zero():
     expected_cost = 0
     expected_grad = np.zeros(8)
 
-    ct = top.NeighboringDistance(g, node_indices, neighbors, settings)
+    ct = top.NeighboringDistance(g, node_indices, neighbors, settings, internal=False)
     cost, grad = ct.evaluate(top.make_costargs(x))
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
 
 
-def test_neighboring_distance_cost_external_nonzero():
+def test_neighboring_distance_cost_nonzero():
     g, node_indices, neighbors = make_one_component_engine_data()
     settings = top.OptimizerSettings(nominal_dist_neighbors=10,
-                                     neighbors_weight=1,
-                                     internal_weight=0)
+                                     neighbors_weight=1)
 
     x = np.array([
         [0, 0],
@@ -121,7 +117,7 @@ def test_neighboring_distance_cost_external_nonzero():
         [common * 3, common * 4]
     ]).flatten()
 
-    ct = top.NeighboringDistance(g, node_indices, neighbors, settings)
+    ct = top.NeighboringDistance(g, node_indices, neighbors, settings, internal=False)
     cost, grad = ct.evaluate(top.make_costargs(x))
 
     assert cost == expected_cost
