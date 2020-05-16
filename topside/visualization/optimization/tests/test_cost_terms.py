@@ -38,7 +38,8 @@ def test_neighboring_distance_cost_internal_zero():
     expected_cost = 0
     expected_grad = np.zeros(8)
 
-    cost, grad = top.neighboring_distance_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.NeighboringDistance(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -67,7 +68,8 @@ def test_neighboring_distance_cost_internal_nonzero():
         [0, 0]
     ]).flatten()
 
-    cost, grad = top.neighboring_distance_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.NeighboringDistance(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -89,7 +91,8 @@ def test_neighboring_distance_cost_external_zero():
     expected_cost = 0
     expected_grad = np.zeros(8)
 
-    cost, grad = top.neighboring_distance_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.NeighboringDistance(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -118,7 +121,8 @@ def test_neighboring_distance_cost_external_nonzero():
         [common * 3, common * 4]
     ]).flatten()
 
-    cost, grad = top.neighboring_distance_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.NeighboringDistance(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -146,7 +150,8 @@ def test_nonneighboring_distance_cost_close():
         [common * 3, common * 4]
     ]).flatten()
 
-    cost, grad = top.nonneighboring_distance_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.NonNeighboringDistance(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -167,7 +172,8 @@ def test_nonneighboring_distance_cost_right_at_boundary():
     expected_cost = 0
     expected_grad = np.zeros(8)
 
-    cost, grad = top.nonneighboring_distance_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.NonNeighboringDistance(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -188,7 +194,8 @@ def test_nonneighboring_distance_cost_far():
     expected_cost = 0
     expected_grad = np.zeros(8)
 
-    cost, grad = top.nonneighboring_distance_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.NonNeighboringDistance(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -211,7 +218,8 @@ def test_nonneighboring_distance_cost_multiple_nodes_far():
     expected_cost = 0
     expected_grad = np.zeros(12)
 
-    cost, grad = top.nonneighboring_distance_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.NonNeighboringDistance(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -252,7 +260,8 @@ def test_nonneighboring_distance_cost_multiple_nodes_close():
         [0, 0]
     ]).flatten()
 
-    cost, grad = top.nonneighboring_distance_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.NonNeighboringDistance(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -272,7 +281,8 @@ def test_centroid_deviation_cost_term_zero():
     expected_cost = 0
     expected_grad = np.zeros(8)
 
-    cost, grad = top.centroid_deviation_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.CentroidDeviation(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -298,7 +308,8 @@ def test_centroid_deviation_cost_term_nonzero_end_node_x():
         [0, 0]
     ]).flatten()
 
-    cost, grad = top.centroid_deviation_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.CentroidDeviation(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -324,7 +335,8 @@ def test_centroid_deviation_cost_term_nonzero_end_node_y():
         [0, 0]
     ]).flatten()
 
-    cost, grad = top.centroid_deviation_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.CentroidDeviation(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -351,7 +363,8 @@ def test_centroid_deviation_cost_term_nonzero_end_node_xy():
         [0, 0]
     ]).flatten()
 
-    cost, grad = top.centroid_deviation_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.CentroidDeviation(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -378,7 +391,8 @@ def test_centroid_deviation_cost_term_nonzero_interior_node_x():
         [-common_2, 0]
     ]).flatten()
 
-    cost, grad = top.centroid_deviation_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.CentroidDeviation(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -405,7 +419,8 @@ def test_centroid_deviation_cost_term_nonzero_interior_node_y():
         [0, -common_2]
     ]).flatten()
 
-    cost, grad = top.centroid_deviation_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.CentroidDeviation(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -437,7 +452,8 @@ def test_centroid_deviation_cost_term_nonzero_interior_node_xy():
         [-common_x_2, -common_y_2]
     ]).flatten()
 
-    cost, grad = top.centroid_deviation_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.CentroidDeviation(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -462,7 +478,8 @@ def test_right_angle_deviation_cost_zero_horizontal():
         [0, 0]
     ]).flatten()
 
-    cost, grad = top.right_angle_deviation_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.RightAngleDeviation(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -487,7 +504,8 @@ def test_right_angle_deviation_cost_zero_vertical():
         [0, 0]
     ]).flatten()
 
-    cost, grad = top.right_angle_deviation_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.RightAngleDeviation(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -514,7 +532,8 @@ def test_right_angle_deviation_cost_nonzero():
         [0, 0]
     ]).flatten()
 
-    cost, grad = top.right_angle_deviation_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.RightAngleDeviation(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
