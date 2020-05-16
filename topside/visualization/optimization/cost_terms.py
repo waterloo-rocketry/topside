@@ -98,28 +98,41 @@ def centroid_deviation_cost_term(x, g, node_indices, node_component_neighbors, s
     cost = 0
     grad = np.zeros(x.shape[0])
 
+    cost_mask = np.ones((xr.shape[0], xr.shape[0], 2))
+    grad_mask = np.ones((xr.shape[0], xr.shape[0], 2))
+    num_neighbors = np.ones((xr.shape[0], 1))
     for node in g:
         i = node_indices[node]
+        neighbors = list(g.neighbors(node))
+        if len(neighbors) > 1:
+            grad_mask[i, i] = 0
+            num_neighbors[i] = len(neighbors)
+            for neighbor in neighbors:
+                j = node_indices[neighbor]
+                cost_mask[i, j] = 0
+                grad_mask[j, i] = 0
 
-        nb_coords = np.array([xr[node_indices[nb]] for nb in g.neighbors(node)])
-        num_nb = len(nb_coords)
+    deltas = xr[:, None, :] - xr[None, :, :]
+    masked_deltas = np.ma.masked_array(deltas, mask=cost_mask)
+    centroid_deviations = np.sum(masked_deltas, axis=1) / num_neighbors
 
-        if num_nb > 1:
-            nb_centroid = np.sum(nb_coords, axis=0) / num_nb
+    cost_matrix = settings.centroid_deviation_weight * centroid_deviations ** 2
+    cost += np.sum(cost_matrix.filled(0))
 
-            cent_diff_x = xr[i, 0] - nb_centroid[0]
-            cent_diff_y = xr[i, 1] - nb_centroid[1]
+    reshaped = np.reshape(centroid_deviations, (1, xr.shape[0], 2))
+    repeated = np.repeat(reshaped, xr.shape[0], axis=0)
 
-            cost += settings.centroid_deviation_weight * cent_diff_x ** 2
-            grad[2*i] += settings.centroid_deviation_weight * 2 * cent_diff_x
+    grad_deviations = np.ma.masked_array(repeated, mask=grad_mask)
 
-            cost += settings.centroid_deviation_weight * cent_diff_y ** 2
-            grad[2*i+1] += settings.centroid_deviation_weight * 2 * cent_diff_y
+    grad_coefficients_diag = settings.centroid_deviation_weight * 2 * np.identity(xr.shape[0])
+    grad_coefficients_off_diag = settings.centroid_deviation_weight * -2 * np.ones((xr.shape[0], xr.shape[0], 2)) / num_neighbors
+    np.fill_diagonal(grad_coefficients_off_diag[:, :, 0], 0)
+    np.fill_diagonal(grad_coefficients_off_diag[:, :, 1], 0)
 
-            for nb in g.neighbors(node):
-                j = node_indices[nb]
-                grad[2*j] += settings.centroid_deviation_weight * (-2 / num_nb) * cent_diff_x
-                grad[2*j+1] += settings.centroid_deviation_weight * (-2 / num_nb) * cent_diff_y
+    grad_coefficients = grad_coefficients_off_diag + grad_coefficients_diag[:, :, None]
+
+    grad_matrix = grad_coefficients * grad_deviations
+    grad += np.reshape(np.sum(grad_matrix.filled(0), axis=1), grad.shape)
 
     return (cost, grad)
 
