@@ -9,7 +9,7 @@ class NeighboringDistance():
 
         self.internal_mask = np.ones((self.num_nodes, self.num_nodes))
         self.neighbors_mask = np.ones((self.num_nodes, self.num_nodes))
-        
+
         for node in g:
             i = node_indices[node]
             for neighbor in g.neighbors(node):
@@ -59,7 +59,7 @@ class NonNeighboringDistance:
         self.num_nodes = len(node_indices)
 
         self.nonneighbors_mask = np.identity(self.num_nodes)
-        
+
         for node in g:
             i = node_indices[node]
 
@@ -67,7 +67,7 @@ class NonNeighboringDistance:
                 j = node_indices[neighbor]
                 self.nonneighbors_mask[i, j] = 1
                 self.nonneighbors_mask[j, i] = 1
-        
+
         self.others_weight = settings.others_weight
         self.minimum_dist_others = settings.minimum_dist_others
 
@@ -112,15 +112,16 @@ class CentroidDeviation:
                     j = node_indices[neighbor]
                     self.cost_mask[i, j] = 0
                     self.grad_mask[j, i] = 0
-        
+
         self.centroid_deviation_weight = settings.centroid_deviation_weight
-        
+
         grad_coefficients_diag = self.centroid_deviation_weight * 2 * np.identity(self.num_nodes)
-        
-        grad_coefficients_off_diag = self.centroid_deviation_weight * -2 * np.ones((self.num_nodes, self.num_nodes, 2)) / self.num_neighbors
+
+        grad_coefficients_off_diag = self.centroid_deviation_weight * -2 * \
+            np.ones((self.num_nodes, self.num_nodes, 2)) / self.num_neighbors
         np.fill_diagonal(grad_coefficients_off_diag[:, :, 0], 0)
         np.fill_diagonal(grad_coefficients_off_diag[:, :, 1], 0)
-        
+
         self.grad_coefficients = grad_coefficients_off_diag + grad_coefficients_diag[:, :, None]
 
     def evaluate(self, costargs):
@@ -179,7 +180,7 @@ class RightAngleDeviation:
 class HorizontalDeviation:
     def __init__(self, g, node_indices, node_component_neighbors, settings):
         self.num_nodes = len(node_indices)
-    
+
         self.internal_mask = np.ones((self.num_nodes, self.num_nodes))
         for node in g:
             i = node_indices[node]
@@ -187,7 +188,7 @@ class HorizontalDeviation:
                 j = node_indices[neighbor]
                 self.internal_mask[i, j] = 0
                 self.internal_mask[j, i] = 0
-        
+
         self.horizontal_weight = settings.horizontal_weight
 
     def evaluate(self, costargs):
