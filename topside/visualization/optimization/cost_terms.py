@@ -5,10 +5,10 @@ import numpy as np
 # terms for better readability.
 class NeighboringDistance():
     def __init__(self, g, node_indices, node_component_neighbors, settings):
-        num_nodes = len(node_indices)
+        self.num_nodes = len(node_indices)
 
-        self.internal_mask = np.ones((num_nodes, num_nodes))
-        self.neighbors_mask = np.ones((num_nodes, num_nodes))
+        self.internal_mask = np.ones((self.num_nodes, self.num_nodes))
+        self.neighbors_mask = np.ones((self.num_nodes, self.num_nodes))
         
         for node in g:
             i = node_indices[node]
@@ -26,17 +26,12 @@ class NeighboringDistance():
         self.nominal_dist_internal = settings.nominal_dist_internal
         self.nominal_dist_neighbors = settings.nominal_dist_neighbors
 
-    def evaluate(self, x):
-        xr = np.reshape(x, (-1, 2))
-
+    def evaluate(self, costargs):
         cost = 0
-        grad = np.zeros(x.shape[0])
+        grad = np.zeros(self.num_nodes * 2)
 
-        deltas = xr[:, None, :] - xr[None, :, :]
-        norms = np.linalg.norm(deltas, axis=2)
-
-        internal_norms = np.ma.masked_array(norms, mask=self.internal_mask)
-        neighbors_norms = np.ma.masked_array(norms, mask=self.neighbors_mask)
+        internal_norms = np.ma.masked_array(costargs['norms'], mask=self.internal_mask)
+        neighbors_norms = np.ma.masked_array(costargs['norms'], mask=self.neighbors_mask)
 
         internal_matrix = self.internal_weight * \
             (self.nominal_dist_internal - internal_norms) ** 2
@@ -48,12 +43,12 @@ class NeighboringDistance():
 
         internal_grad_common = self.internal_weight * \
             (internal_norms - self.nominal_dist_internal) * (4 / internal_norms)
-        internal_grad_matrix = deltas * internal_grad_common[:, :, None]
+        internal_grad_matrix = costargs['deltas'] * internal_grad_common[:, :, None]
         grad += np.reshape(np.sum(internal_grad_matrix.filled(0), axis=1), grad.shape)
 
         neighbors_grad_common = self.neighbors_weight * \
             (neighbors_norms - self.nominal_dist_neighbors) * (4 / neighbors_norms)
-        neighbors_grad_matrix = deltas * neighbors_grad_common[:, :, None]
+        neighbors_grad_matrix = costargs['deltas'] * neighbors_grad_common[:, :, None]
         grad += np.reshape(np.sum(neighbors_grad_matrix.filled(0), axis=1), grad.shape)
 
         return (cost, grad)
@@ -61,9 +56,9 @@ class NeighboringDistance():
 
 class NonNeighboringDistance:
     def __init__(self, g, node_indices, node_component_neighbors, settings):
-        num_nodes = len(node_indices)
+        self.num_nodes = len(node_indices)
 
-        self.nonneighbors_mask = np.identity(num_nodes)
+        self.nonneighbors_mask = np.identity(self.num_nodes)
         
         for node in g:
             i = node_indices[node]
@@ -76,19 +71,14 @@ class NonNeighboringDistance:
         self.others_weight = settings.others_weight
         self.minimum_dist_others = settings.minimum_dist_others
 
-    def evaluate(self, x):
-        xr = np.reshape(x, (-1, 2))
-
+    def evaluate(self, costargs):
         cost = 0
-        grad = np.zeros(x.shape[0])
+        grad = np.zeros(self.num_nodes * 2)
 
-        deltas = xr[:, None, :] - xr[None, :, :]
-        norms = np.linalg.norm(deltas, axis=2)
-
-        nodes_to_ignore = (norms >= self.minimum_dist_others)
+        nodes_to_ignore = (costargs['norms'] >= self.minimum_dist_others)
         mask = np.logical_or(self.nonneighbors_mask, nodes_to_ignore)
 
-        masked_norms = np.ma.masked_array(norms, mask=mask)
+        masked_norms = np.ma.masked_array(costargs['norms'], mask=mask)
 
         cost_matrix = self.others_weight * (self.minimum_dist_others - masked_norms) ** 2
         cost += np.sum(cost_matrix.filled(0))
@@ -97,7 +87,7 @@ class NonNeighboringDistance:
 
         grad_common_term = self.others_weight * \
             (masked_norms - self.minimum_dist_others) * (4 / masked_norms)
-        grad_matrix = deltas * grad_common_term[:, :, None]
+        grad_matrix = costargs['deltas'] * grad_common_term[:, :, None]
 
         grad += np.reshape(np.sum(grad_matrix.filled(0), axis=1), grad.shape)
 
@@ -106,11 +96,11 @@ class NonNeighboringDistance:
 
 class CentroidDeviation:
     def __init__(self, g, node_indices, node_component_neighbors, settings):
-        num_nodes = len(node_indices)
+        self.num_nodes = len(node_indices)
 
-        self.cost_mask = np.ones((num_nodes, num_nodes, 2))
-        self.grad_mask = np.ones((num_nodes, num_nodes, 2))
-        self.num_neighbors = np.ones((num_nodes, 1))
+        self.cost_mask = np.ones((self.num_nodes, self.num_nodes, 2))
+        self.grad_mask = np.ones((self.num_nodes, self.num_nodes, 2))
+        self.num_neighbors = np.ones((self.num_nodes, 1))
 
         for node in g:
             i = node_indices[node]
@@ -125,29 +115,26 @@ class CentroidDeviation:
         
         self.centroid_deviation_weight = settings.centroid_deviation_weight
         
-        grad_coefficients_diag = self.centroid_deviation_weight * 2 * np.identity(num_nodes)
+        grad_coefficients_diag = self.centroid_deviation_weight * 2 * np.identity(self.num_nodes)
         
-        grad_coefficients_off_diag = self.centroid_deviation_weight * -2 * np.ones((num_nodes, num_nodes, 2)) / self.num_neighbors
+        grad_coefficients_off_diag = self.centroid_deviation_weight * -2 * np.ones((self.num_nodes, self.num_nodes, 2)) / self.num_neighbors
         np.fill_diagonal(grad_coefficients_off_diag[:, :, 0], 0)
         np.fill_diagonal(grad_coefficients_off_diag[:, :, 1], 0)
         
         self.grad_coefficients = grad_coefficients_off_diag + grad_coefficients_diag[:, :, None]
 
-    def evaluate(self, x):
-        xr = np.reshape(x, (-1, 2))
-
+    def evaluate(self, costargs):
         cost = 0
-        grad = np.zeros(x.shape[0])
+        grad = np.zeros(self.num_nodes * 2)
 
-        deltas = xr[:, None, :] - xr[None, :, :]
-        masked_deltas = np.ma.masked_array(deltas, mask=self.cost_mask)
+        masked_deltas = np.ma.masked_array(costargs['deltas'], mask=self.cost_mask)
         centroid_deviations = np.sum(masked_deltas, axis=1) / self.num_neighbors
 
         cost_matrix = self.centroid_deviation_weight * centroid_deviations ** 2
         cost += np.sum(cost_matrix.filled(0))
 
-        reshaped = np.reshape(centroid_deviations, (1, xr.shape[0], 2))
-        repeated = np.repeat(reshaped, xr.shape[0], axis=0)
+        reshaped = np.reshape(centroid_deviations, (1, self.num_nodes, 2))
+        repeated = np.repeat(reshaped, self.num_nodes, axis=0)
 
         grad_deviations = np.ma.masked_array(repeated, mask=self.grad_mask)
 
@@ -159,9 +146,9 @@ class CentroidDeviation:
 
 class RightAngleDeviation:
     def __init__(self, g, node_indices, node_component_neighbors, settings):
-        num_nodes = len(node_indices)
+        self.num_nodes = len(node_indices)
 
-        self.internal_mask = np.ones((num_nodes, num_nodes, 2))
+        self.internal_mask = np.ones((self.num_nodes, self.num_nodes, 2))
         for node in g:
             i = node_indices[node]
             for neighbor in node_component_neighbors[node]:
@@ -171,15 +158,11 @@ class RightAngleDeviation:
 
         self.right_angle_weight = settings.right_angle_weight
 
-    def evaluate(self, x):
-        xr = np.reshape(x, (-1, 2))
-
+    def evaluate(self, costargs):
         cost = 0
-        grad = np.zeros(x.shape[0])
+        grad = np.zeros(self.num_nodes * 2)
 
-        deltas = xr[:, None, :] - xr[None, :, :]
-
-        internal_deltas = np.ma.masked_array(deltas, mask=self.internal_mask)
+        internal_deltas = np.ma.masked_array(costargs['deltas'], mask=self.internal_mask)
 
         dxdy = np.product(internal_deltas, axis=2)
 
@@ -195,9 +178,9 @@ class RightAngleDeviation:
 
 class HorizontalDeviation:
     def __init__(self, g, node_indices, node_component_neighbors, settings):
-        num_nodes = len(node_indices)
+        self.num_nodes = len(node_indices)
     
-        self.internal_mask = np.ones((num_nodes, num_nodes))
+        self.internal_mask = np.ones((self.num_nodes, self.num_nodes))
         for node in g:
             i = node_indices[node]
             for neighbor in node_component_neighbors[node]:
@@ -207,20 +190,18 @@ class HorizontalDeviation:
         
         self.horizontal_weight = settings.horizontal_weight
 
-    def evaluate(self, x):
-        xr = np.reshape(x, (-1, 2))
-
+    def evaluate(self, costargs):
         cost = 0
-        grad = np.zeros(x.shape[0])
+        grad = np.zeros(self.num_nodes * 2)
 
-        delta_y = (xr[:, None, :] - xr[None, :, :])[:, :, 1]
+        delta_y = costargs['deltas'][:, :, 1]
 
         internal_delta_y = np.ma.masked_array(delta_y, mask=self.internal_mask)
 
         cost_matrix = self.horizontal_weight * internal_delta_y ** 2
         cost += np.sum(cost_matrix.filled(0))
 
-        grad_matrix = np.ma.masked_array(np.zeros((xr.shape[0], xr.shape[0], 2)))
+        grad_matrix = np.ma.masked_array(np.zeros((self.num_nodes, self.num_nodes, 2)))
         grad_matrix[:, :, 1] = self.horizontal_weight * 4 * internal_delta_y
         grad += np.reshape(np.sum(grad_matrix.filled(0), axis=1), grad.shape)
 
