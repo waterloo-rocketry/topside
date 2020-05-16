@@ -36,7 +36,7 @@ def make_cost_terms(g, node_indices, node_component_neighbors, settings):
 
 def make_constraints(components, node_indices):
     # TODO(jacob): Reformulate this to only create one constraint that
-    # covers every component instead# of having N constraints for N
+    # covers every component instead of having N constraints for N
     # components.
     constraints = []
     for cnodes in components:
@@ -50,7 +50,7 @@ def make_constraints(components, node_indices):
         cons = NonlinearConstraint(cons_f, 0, 0, jac=cons_j, hess=cons_h)
 
         constraints.append(cons)
-    
+
     return constraints
 
 
@@ -58,10 +58,8 @@ def make_costargs(x):
     xr = np.reshape(x, (-1, 2))
     deltas = xr[:, None, :] - xr[None, :, :]
     norms = np.linalg.norm(deltas, axis=2)
-    
+
     costargs = {
-        'x': x,
-        'xr': xr,
         'deltas': deltas,
         'norms': norms
     }
@@ -126,7 +124,8 @@ def layout_plumbing_engine(plumbing_engine):
     initial_pos = make_initial_pos(t.order())
 
     stage_1_settings = OptimizerSettings(horizontal_weight=0.1)
-    stage_1_cost_terms = make_cost_terms(t, node_indices, node_component_neighbors, stage_1_settings)
+    stage_1_cost_terms = make_cost_terms(
+        t, node_indices, node_component_neighbors, stage_1_settings)
     stage_1_args = (stage_1_cost_terms)
 
     # TODO(jacob): Investigate if BFGS is really the best option.
@@ -137,7 +136,8 @@ def layout_plumbing_engine(plumbing_engine):
     constraints = make_constraints(components, node_indices)
 
     stage_2_settings = OptimizerSettings()
-    stage_2_cost_terms = make_cost_terms(t, node_indices, node_component_neighbors, stage_2_settings)
+    stage_2_cost_terms = make_cost_terms(
+        t, node_indices, node_component_neighbors, stage_2_settings)
     stage_2_args = (stage_2_cost_terms)
 
     fine_tuning_res = minimize(cost_fn, initial_positioning_res.x, jac=True, method='SLSQP',
