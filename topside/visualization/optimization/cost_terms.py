@@ -3,11 +3,6 @@ import numpy as np
 
 # TODO(jacob): Once vectorization is done, split this into two cost
 # terms for better readability.
-def neighboring_distance_cost_term(x, g, node_indices, node_component_neighbors, settings):
-    cost = NeighboringDistance(g, node_indices, node_component_neighbors, settings)
-    return cost.evaluate(x)
-
-
 class NeighboringDistance():
     def __init__(self, g, node_indices, node_component_neighbors, settings):
         num_nodes = len(node_indices)
@@ -64,11 +59,6 @@ class NeighboringDistance():
         return (cost, grad)
 
 
-def nonneighboring_distance_cost_term(x, g, node_indices, node_component_neighbors, settings):
-    cost = NonNeighboringDistance(g, node_indices, node_component_neighbors, settings)
-    return cost.evaluate(x)
-
-
 class NonNeighboringDistance:
     def __init__(self, g, node_indices, node_component_neighbors, settings):
         num_nodes = len(node_indices)
@@ -112,11 +102,6 @@ class NonNeighboringDistance:
         grad += np.reshape(np.sum(grad_matrix.filled(0), axis=1), grad.shape)
 
         return (cost, grad)
-
-
-def centroid_deviation_cost_term(x, g, node_indices, node_component_neighbors, settings):
-    cost = CentroidDeviation(g, node_indices, node_component_neighbors, settings)
-    return cost.evaluate(x)
 
 
 class CentroidDeviation:
@@ -172,11 +157,6 @@ class CentroidDeviation:
         return (cost, grad)
 
 
-def right_angle_deviation_cost_term(x, g, node_indices, node_component_neighbors, settings):
-    cost = RightAngleDeviation(g, node_indices, node_component_neighbors, settings)
-    return cost.evaluate(x)
-
-
 class RightAngleDeviation:
     def __init__(self, g, node_indices, node_component_neighbors, settings):
         num_nodes = len(node_indices)
@@ -211,11 +191,6 @@ class RightAngleDeviation:
         grad += np.reshape(np.sum(grad_matrix.filled(0), axis=1), grad.shape)
 
         return (cost, grad)
-
-
-def horizontal_deviation_cost_term(x, g, node_indices, node_component_neighbors, settings):
-    cost = HorizontalDeviation(g, node_indices, node_component_neighbors, settings)
-    return cost.evaluate(x)
 
 
 class HorizontalDeviation:

@@ -558,7 +558,8 @@ def test_horizontal_deviation_cost_zero():
         [0, 0]
     ]).flatten()
 
-    cost, grad = top.horizontal_deviation_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.HorizontalDeviation(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
@@ -583,7 +584,8 @@ def test_horizontal_deviation_cost_nonzero():
         [0, 0]
     ]).flatten()
 
-    cost, grad = top.horizontal_deviation_cost_term(x, g, node_indices, neighbors, settings)
+    ct = top.HorizontalDeviation(g, node_indices, neighbors, settings)
+    cost, grad = ct.evaluate(x)
 
     assert cost == expected_cost
     np.testing.assert_equal(expected_grad, grad)
