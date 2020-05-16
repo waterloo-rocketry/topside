@@ -54,12 +54,31 @@ def make_constraints(components, node_indices):
     return constraints
 
 
+def make_costargs(x):
+    xr = np.reshape(x, (-1, 2))
+    deltas = xr[:, None, :] - xr[None, :, :]
+    norms = np.linalg.norm(deltas, axis=2)
+    
+    costargs = {
+        'x': x,
+        'xr': xr,
+        'deltas': deltas,
+        'norms': norms
+    }
+
+    return costargs
+
+
 def cost_fn(x, cost_terms):
+    # Pre-calculate deltas and norms to avoid repeated calculation
+    # between cost terms.
+    costargs = make_costargs(x)
+
     costs = []
     grads = []
 
     for ct in cost_terms:
-        cost, grad = ct.evaluate(x)
+        cost, grad = ct.evaluate(costargs)
         costs.append(cost)
         grads.append(grad)
 
