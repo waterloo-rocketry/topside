@@ -24,20 +24,47 @@ class OptimizerSettings:
     centroid_deviation_weight: float = 15
 
 
-def cost_fn(x, g, node_indices, node_component_neighbors, settings):
-    c1, g1 = top.neighboring_distance_cost_term(
-        x, g, node_indices, node_component_neighbors, settings)
-    c2, g2 = top.nonneighboring_distance_cost_term(
-        x, g, node_indices, node_component_neighbors, settings)
-    c3, g3 = top.centroid_deviation_cost_term(
-        x, g, node_indices, node_component_neighbors, settings)
-    c4, g4 = top.right_angle_deviation_cost_term(
-        x, g, node_indices, node_component_neighbors, settings)
-    c5, g5 = top.horizontal_deviation_cost_term(
-        x, g, node_indices, node_component_neighbors, settings)
+def make_cost_terms(g, node_indices, node_component_neighbors, settings):
+    c1 = top.NeighboringDistance(g, node_indices, node_component_neighbors, settings)
+    c2 = top.NonNeighboringDistance(g, node_indices, node_component_neighbors, settings)
+    c3 = top.CentroidDeviation(g, node_indices, node_component_neighbors, settings)
+    c4 = top.RightAngleDeviation(g, node_indices, node_component_neighbors, settings)
+    c5 = top.HorizontalDeviation(g, node_indices, node_component_neighbors, settings)
 
-    cost = sum([c1, c2, c3, c4, c5])
-    grad = sum([g1, g2, g3, g4, g5])
+    return [c1, c2, c3, c4, c5]
+
+
+def make_constraints(components, node_indices):
+    # TODO(jacob): Reformulate this to only create one constraint that
+    # covers every component instead# of having N constraints for N
+    # components.
+    constraints = []
+    for cnodes in components:
+        i = node_indices[cnodes[0]]
+        j = node_indices[cnodes[1]]
+
+        cons_f = partial(top.right_angle_cons_f, i, j)
+        cons_j = partial(top.right_angle_cons_j, i, j)
+        cons_h = partial(top.right_angle_cons_h, i, j)
+
+        cons = NonlinearConstraint(cons_f, 0, 0, jac=cons_j, hess=cons_h)
+
+        constraints.append(cons)
+    
+    return constraints
+
+
+def cost_fn(x, cost_terms):
+    costs = []
+    grads = []
+
+    for ct in cost_terms:
+        cost, grad = ct.evaluate(x)
+        costs.append(cost)
+        grads.append(grad)
+
+    cost = sum(costs)
+    grad = sum(grads)
 
     return (cost, grad)
 
@@ -80,31 +107,19 @@ def layout_plumbing_engine(plumbing_engine):
     initial_pos = make_initial_pos(t.order())
 
     stage_1_settings = OptimizerSettings(horizontal_weight=0.1)
-    stage_1_args = (t, node_indices, node_component_neighbors, stage_1_settings)
+    stage_1_cost_terms = make_cost_terms(t, node_indices, node_component_neighbors, stage_1_settings)
+    stage_1_args = (stage_1_cost_terms)
 
     # TODO(jacob): Investigate if BFGS is really the best option.
     initial_positioning_res = minimize(cost_fn, initial_pos, jac=True, method='BFGS',
                                        args=stage_1_args, options={'maxiter': 400})
     print(initial_positioning_res)
 
-    # TODO(jacob): Reformulate this to only create one constraint that
-    # covers every component instead# of having N constraints for N
-    # components.
-    constraints = []
-    for cnodes in components:
-        i = node_indices[cnodes[0]]
-        j = node_indices[cnodes[1]]
-
-        cons_f = partial(top.right_angle_cons_f, i, j)
-        cons_j = partial(top.right_angle_cons_j, i, j)
-        cons_h = partial(top.right_angle_cons_h, i, j)
-
-        cons = NonlinearConstraint(cons_f, 0, 0, jac=cons_j, hess=cons_h)
-
-        constraints.append(cons)
+    constraints = make_constraints(components, node_indices)
 
     stage_2_settings = OptimizerSettings()
-    stage_2_args = (t, node_indices, node_component_neighbors, stage_2_settings)
+    stage_2_cost_terms = make_cost_terms(t, node_indices, node_component_neighbors, stage_2_settings)
+    stage_2_args = (stage_2_cost_terms)
 
     fine_tuning_res = minimize(cost_fn, initial_positioning_res.x, jac=True, method='SLSQP',
                                constraints=constraints, args=stage_2_args,
