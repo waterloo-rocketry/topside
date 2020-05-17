@@ -3,9 +3,10 @@ cx-freeze==6.1
 matplotlib
 networkx
 numpy
+pyinstaller
 PySide2==5.14.1
 pytest
-scipy
+scipy==1.4.1
 setuptools
 shiboken2==5.14.1
 twine

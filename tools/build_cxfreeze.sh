@@ -5,6 +5,6 @@ set -e
 WORKSPACE_DIR=$(git rev-parse --show-toplevel)
 cd "$WORKSPACE_DIR"
 
-python build_exe.py build
+python build_cxfreeze.py build
 
-echo "Successfully built standalone executable"
+echo "Successfully built standalone executable with cx_Freeze"
