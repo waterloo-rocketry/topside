@@ -2,7 +2,53 @@ import numpy as np
 
 
 class NeighboringDistance():
+    """
+    Encourages a nominal distance between neighboring nodes.
+
+    For two nodes [x1, y1] and [x2, y2] with nominal separation D, the
+    neighboring distance cost C is defined as:
+
+        C = W * (D - sqrt((x2 - x1)^2 + (y2 - y1)^2))^2
+
+    where W is a constant used to scale the relative "importance" of
+    this cost term.
+    """
+
     def __init__(self, g, node_indices, node_component_neighbors, settings, internal):
+        """
+        Initialize the cost term.
+
+        Parameters
+        ----------
+        
+        g: graph
+            The graph for which this cost term will be evaluated.
+            Typically, this is a NetworkX graph, but it can be any type
+            with a .neighbors(n) method returning the neighbors of node
+            n. Calling this directly with a PlumbingEngine graph may
+            lead to unexpected results; it is best to use a terminal
+            graph instead (topside.terminal_graph).
+
+        node_indices: dict
+            Dict where node_indices[n] is the index i of node n in the
+            cost vector.
+        
+        node_component_neighbors: dict
+            Dict where, for a given node n, node_component_neighbors[n]
+            is a list of all nodes in g that are both neighbors of n
+            and in the same component as n.
+
+        settings: OptimizerSettings
+            This can be any type that provides the same attributes as
+            topside.visualization.optimization.OptimizerSettings.
+
+        internal: bool
+            if True, this cost term penalizes only deviation from
+            nominal distance within a component. If False, this cost
+            term instead penalizes deviation from nominal distance
+            between two nodes that are not part of the same component.
+        """
+
         self.num_nodes = len(node_indices)
 
         self.mask = np.ones((self.num_nodes, self.num_nodes))
@@ -23,6 +69,18 @@ class NeighboringDistance():
             self.weight = settings.neighbors_weight
 
     def evaluate(self, costargs):
+        """
+        Evaluate the cost term and return a tuple of (cost, gradient).
+
+        Arguments:
+
+        costargs: dict
+            Expected to contain:
+            - 'deltas': N x N x 2 numpy array, where:
+                deltas[i, j, :] == [xj - xi, yj - yi]
+            - 'norms': N x N numpy array, where:
+                norms[i, j] == sqrt[(xj - xi)^2 + (yj - yi)^2]
+        """
         cost = 0
         grad = np.zeros(self.num_nodes * 2)
 
@@ -39,7 +97,52 @@ class NeighboringDistance():
 
 
 class NonNeighboringDistance:
+    """
+    Encourages a minimum distance between non-neighboring nodes.
+
+    For two nodes [x1, y1] and [x2, y2] with minimum separation D, the
+    non-neighboring distance cost C can be calculated with the following
+    pseudocode algorithm:
+
+        d = sqrt((x2 - x1)^2 + (y2 - y1)^2)
+
+        if d < D:
+            C = W * (D - d)^2
+        else:
+            C = 0
+
+    where W is a constant used to scale the relative "importance" of
+    this cost term.
+    """
+
     def __init__(self, g, node_indices, node_component_neighbors, settings):
+        """
+        Initialize the cost term.
+
+        Parameters
+        ----------
+        
+        g: graph
+            The graph for which this cost term will be evaluated.
+            Typically, this is a NetworkX graph, but it can be any type
+            with a .neighbors(n) method returning the neighbors of node
+            n. Calling this directly with a PlumbingEngine graph may
+            lead to unexpected results; it is best to use a terminal
+            graph instead (topside.terminal_graph).
+
+        node_indices: dict
+            Dict where node_indices[n] is the index i of node n in the
+            cost vector.
+        
+        node_component_neighbors: dict
+            Dict where, for a given node n, node_component_neighbors[n]
+            is a list of all nodes in g that are both neighbors of n
+            and in the same component as n.
+
+        settings: OptimizerSettings
+            This can be any type that provides the same attributes as
+            topside.visualization.optimization.OptimizerSettings.
+        """
         self.num_nodes = len(node_indices)
 
         self.mask = np.identity(self.num_nodes)
@@ -56,6 +159,18 @@ class NonNeighboringDistance:
         self.minimum_dist = settings.minimum_dist_others
 
     def evaluate(self, costargs):
+        """
+        Evaluate the cost term and return a tuple of (cost, gradient).
+
+        Arguments:
+
+        costargs: dict
+            Expected to contain:
+            - 'deltas': N x N x 2 numpy array, where:
+                deltas[i, j, :] == [xj - xi, yj - yi]
+            - 'norms': N x N numpy array, where:
+                norms[i, j] == sqrt[(xj - xi)^2 + (yj - yi)^2]
+        """
         cost = 0
         grad = np.zeros(self.num_nodes * 2)
 
@@ -76,7 +191,50 @@ class NonNeighboringDistance:
 
 
 class CentroidDeviation:
+    """
+    Encourages a node to remain close to the centroid of its neighbors.
+
+    The centroid deviation cost term C can be calculated with the
+    following pseudocode algorithm:
+
+    if num_neighbors(n) < 2:
+        C = 0
+    else:
+        v = centroid(neighbors(n))
+        C = W * ((vx - nx)^2 + (vy - ny)^2)
+
+    where W is a constant used to scale the relative "importance" of
+    this cost term.
+    """
+
     def __init__(self, g, node_indices, node_component_neighbors, settings):
+        """
+        Initialize the cost term.
+
+        Parameters
+        ----------
+        
+        g: graph
+            The graph for which this cost term will be evaluated.
+            Typically, this is a NetworkX graph, but it can be any type
+            with a .neighbors(n) method returning the neighbors of node
+            n. Calling this directly with a PlumbingEngine graph may
+            lead to unexpected results; it is best to use a terminal
+            graph instead (topside.terminal_graph).
+
+        node_indices: dict
+            Dict where node_indices[n] is the index i of node n in the
+            cost vector.
+        
+        node_component_neighbors: dict
+            Dict where, for a given node n, node_component_neighbors[n]
+            is a list of all nodes in g that are both neighbors of n
+            and in the same component as n.
+
+        settings: OptimizerSettings
+            This can be any type that provides the same attributes as
+            topside.visualization.optimization.OptimizerSettings.
+        """
         self.num_nodes = len(node_indices)
 
         self.cost_mask = np.ones((self.num_nodes, self.num_nodes, 2))
@@ -106,6 +264,18 @@ class CentroidDeviation:
         self.grad_coeffs = grad_coeffs_off_diag + grad_coeffs_diag[:, :, None]
 
     def evaluate(self, costargs):
+        """
+        Evaluate the cost term and return a tuple of (cost, gradient).
+
+        Arguments:
+
+        costargs: dict
+            Expected to contain:
+            - 'deltas': N x N x 2 numpy array, where:
+                deltas[i, j, :] == [xj - xi, yj - yi]
+            - 'norms': N x N numpy array, where:
+                norms[i, j] == sqrt[(xj - xi)^2 + (yj - yi)^2]
+        """
         cost = 0
         grad = np.zeros(self.num_nodes * 2)
 
@@ -127,7 +297,45 @@ class CentroidDeviation:
 
 
 class RightAngleDeviation:
+    """
+    Encourages a component to be oriented horizontally or vertically.
+
+    The right angle deviation cost term C is defined as follows:
+
+    C = W * (x2 - x1)^2 * (y2 - y1)^2
+
+    where W is a constant used to scale the relative "importance" of
+    this cost term.
+    """
+
     def __init__(self, g, node_indices, node_component_neighbors, settings):
+        """
+        Initialize the cost term.
+
+        Parameters
+        ----------
+        
+        g: graph
+            The graph for which this cost term will be evaluated.
+            Typically, this is a NetworkX graph, but it can be any type
+            with a .neighbors(n) method returning the neighbors of node
+            n. Calling this directly with a PlumbingEngine graph may
+            lead to unexpected results; it is best to use a terminal
+            graph instead (topside.terminal_graph).
+
+        node_indices: dict
+            Dict where node_indices[n] is the index i of node n in the
+            cost vector.
+        
+        node_component_neighbors: dict
+            Dict where, for a given node n, node_component_neighbors[n]
+            is a list of all nodes in g that are both neighbors of n
+            and in the same component as n.
+
+        settings: OptimizerSettings
+            This can be any type that provides the same attributes as
+            topside.visualization.optimization.OptimizerSettings.
+        """
         self.num_nodes = len(node_indices)
 
         self.mask = np.ones((self.num_nodes, self.num_nodes, 2))
@@ -141,6 +349,18 @@ class RightAngleDeviation:
         self.weight = settings.right_angle_weight
 
     def evaluate(self, costargs):
+        """
+        Evaluate the cost term and return a tuple of (cost, gradient).
+
+        Arguments:
+
+        costargs: dict
+            Expected to contain:
+            - 'deltas': N x N x 2 numpy array, where:
+                deltas[i, j, :] == [xj - xi, yj - yi]
+            - 'norms': N x N numpy array, where:
+                norms[i, j] == sqrt[(xj - xi)^2 + (yj - yi)^2]
+        """
         cost = 0
         grad = np.zeros(self.num_nodes * 2)
 
@@ -159,7 +379,45 @@ class RightAngleDeviation:
 
 
 class HorizontalDeviation:
+    """
+    Encourages a component to be oriented horizontally.
+
+    The right angle deviation cost term C is defined as follows:
+
+    C = W * (y2 - y1)^2
+
+    where W is a constant used to scale the relative "importance" of
+    this cost term.
+    """
+
     def __init__(self, g, node_indices, node_component_neighbors, settings):
+        """
+        Initialize the cost term.
+
+        Parameters
+        ----------
+        
+        g: graph
+            The graph for which this cost term will be evaluated.
+            Typically, this is a NetworkX graph, but it can be any type
+            with a .neighbors(n) method returning the neighbors of node
+            n. Calling this directly with a PlumbingEngine graph may
+            lead to unexpected results; it is best to use a terminal
+            graph instead (topside.terminal_graph).
+
+        node_indices: dict
+            Dict where node_indices[n] is the index i of node n in the
+            cost vector.
+        
+        node_component_neighbors: dict
+            Dict where, for a given node n, node_component_neighbors[n]
+            is a list of all nodes in g that are both neighbors of n
+            and in the same component as n.
+
+        settings: OptimizerSettings
+            This can be any type that provides the same attributes as
+            topside.visualization.optimization.OptimizerSettings.
+        """
         self.num_nodes = len(node_indices)
 
         self.mask = np.ones((self.num_nodes, self.num_nodes))
@@ -173,6 +431,18 @@ class HorizontalDeviation:
         self.weight = settings.horizontal_weight
 
     def evaluate(self, costargs):
+        """
+        Evaluate the cost term and return a tuple of (cost, gradient).
+
+        Arguments:
+
+        costargs: dict
+            Expected to contain:
+            - 'deltas': N x N x 2 numpy array, where:
+                deltas[i, j, :] == [xj - xi, yj - yi]
+            - 'norms': N x N numpy array, where:
+                norms[i, j] == sqrt[(xj - xi)^2 + (yj - yi)^2]
+        """
         cost = 0
         grad = np.zeros(self.num_nodes * 2)
 
