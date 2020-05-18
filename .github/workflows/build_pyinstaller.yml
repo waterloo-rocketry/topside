@@ -1,4 +1,4 @@
-name: Build executable with pyinstaller
+name: Build Executable [PyInstaller]
 
 on:
   push:
