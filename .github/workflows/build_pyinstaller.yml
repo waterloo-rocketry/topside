@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -28,13 +28,10 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Format code
-      run: |
-        ./tools/format.sh
     - name: Test with pytest
       run: |
         pytest
     - name: Build and run application
       run: |
-        ./tools/build_pyinstaller.sh
-        ./dist/topside/topside.exe
+        bash tools/build_pyinstaller.sh
+        ./dist/Topside/Topside.exe
