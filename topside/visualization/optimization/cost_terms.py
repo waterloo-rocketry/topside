@@ -20,7 +20,7 @@ class NeighboringDistance():
 
         Parameters
         ----------
-        
+
         g: graph
             The graph for which this cost term will be evaluated.
             Typically, this is a NetworkX graph, but it can be any type
@@ -32,7 +32,7 @@ class NeighboringDistance():
         node_indices: dict
             Dict where node_indices[n] is the index i of node n in the
             cost vector.
-        
+
         node_component_neighbors: dict
             Dict where, for a given node n, node_component_neighbors[n]
             is a list of all nodes in g that are both neighbors of n
@@ -121,7 +121,7 @@ class NonNeighboringDistance:
 
         Parameters
         ----------
-        
+
         g: graph
             The graph for which this cost term will be evaluated.
             Typically, this is a NetworkX graph, but it can be any type
@@ -133,7 +133,7 @@ class NonNeighboringDistance:
         node_indices: dict
             Dict where node_indices[n] is the index i of node n in the
             cost vector.
-        
+
         node_component_neighbors: dict
             Dict where, for a given node n, node_component_neighbors[n]
             is a list of all nodes in g that are both neighbors of n
@@ -213,7 +213,7 @@ class CentroidDeviation:
 
         Parameters
         ----------
-        
+
         g: graph
             The graph for which this cost term will be evaluated.
             Typically, this is a NetworkX graph, but it can be any type
@@ -225,7 +225,7 @@ class CentroidDeviation:
         node_indices: dict
             Dict where node_indices[n] is the index i of node n in the
             cost vector.
-        
+
         node_component_neighbors: dict
             Dict where, for a given node n, node_component_neighbors[n]
             is a list of all nodes in g that are both neighbors of n
@@ -314,7 +314,7 @@ class RightAngleDeviation:
 
         Parameters
         ----------
-        
+
         g: graph
             The graph for which this cost term will be evaluated.
             Typically, this is a NetworkX graph, but it can be any type
@@ -326,7 +326,7 @@ class RightAngleDeviation:
         node_indices: dict
             Dict where node_indices[n] is the index i of node n in the
             cost vector.
-        
+
         node_component_neighbors: dict
             Dict where, for a given node n, node_component_neighbors[n]
             is a list of all nodes in g that are both neighbors of n
@@ -396,7 +396,7 @@ class HorizontalDeviation:
 
         Parameters
         ----------
-        
+
         g: graph
             The graph for which this cost term will be evaluated.
             Typically, this is a NetworkX graph, but it can be any type
@@ -408,7 +408,7 @@ class HorizontalDeviation:
         node_indices: dict
             Dict where node_indices[n] is the index i of node n in the
             cost vector.
-        
+
         node_component_neighbors: dict
             Dict where, for a given node n, node_component_neighbors[n]
             is a list of all nodes in g that are both neighbors of n

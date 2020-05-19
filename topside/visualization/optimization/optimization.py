@@ -112,6 +112,22 @@ def make_initial_pos(num_nodes):
 
 
 def layout_plumbing_engine(plumbing_engine):
+    """
+    Given a plumbing engine, determine the best placement of components.
+
+    Parameters
+    ----------
+
+    plumbing_engine: topside.PlumbingEngine
+
+    Returns
+    -------
+
+    pos: dict
+        dict with keys corresponding to the nodes in the terminal graph
+        of plumbing_engine and values corresponding to the x-y point
+        that the node should be placed at.
+    """
     t = top.terminal_graph(plumbing_engine)
     components = top.component_nodes(plumbing_engine)
 
