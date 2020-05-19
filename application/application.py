@@ -43,13 +43,18 @@ class Application:
         return len(self.qml_engine.rootObjects()) != 0
 
     def run(self):
+        self.app.aboutToQuit.connect(self.shutdown)
         app_return_code = self.app.exec_()
 
+        return app_return_code
+
+    def shutdown(self):
         # NOTE(jacob): We explicitly `del` this to suppress a TypeError
         # that arises from the Bridge getting destroyed before the
-        # engine, causing QML references to go invalid. This seems to
-        # be a Qt bug that arose relatively recently and has not been
-        # conclusively resolved: https://forum.qt.io/topic/110356
+        # engine, causing QML references to go invalid. We attach this
+        # cleanup to the aboutToQuit signal because app.exec_ is not
+        # guaranteed to return, and therefore placing it immediately
+        # after the app.exec_ call would not guarantee that this cleanup
+        # routine runs.
+        # For reference: https://bugreports.qt.io/browse/QTBUG-81247
         del self.qml_engine
-
-        return app_return_code
