@@ -8,9 +8,37 @@ import topside.plumbing.plumbing_utils as utils
 
 
 class PlumbingEngine:
-    '''Engine that represents a plumbing system'''
+    """Engine that represents a plumbing system."""
 
     def __init__(self, components=None, mapping=None, initial_nodes=None, initial_states=None):
+        """
+        Initialize the plumbing engine.
+
+        The engine can either be initialized with an empty graph, or with the same parameters as
+        load_engine().
+
+        Parameters
+        ----------
+
+        components: dict
+            components is a dict of {component_name: PlumbingComponent} where component_name
+            is a string that matches the name attribute of its corresponding PlumbingComponent.
+
+        mapping: dict
+            mapping is a dict of {component_name: {component_node: main_graph_node}}, which is
+            used to specify connectivity between components on the main graph.
+
+        initial_nodes: dict
+            initial_nodes is a dict of {main_graph_node: initial_pressure}. The dict doesn't have to
+            be exhaustive; if a node isn't specified its pressure will be set to a default of 0.
+
+        initial_states: dict
+            initial_states is a dict of {component_name: state_name}. Every component must
+            have an entry, which will be used to determine its initial state on the main graph.
+
+        Errors from malformed input will be stored in the engine's error_set. The presence of
+        errors renders the engine invalid; invalid engines cannot be solved.
+        """
         if not components:
             components = {}
         if not mapping:
@@ -26,7 +54,32 @@ class PlumbingEngine:
         self.load_graph(components, mapping, initial_nodes, initial_states)
 
     def load_graph(self, components, mapping, initial_nodes, initial_states):
-        '''Load in a graph to the PlumbingEngine'''
+        """
+        Load in a graph to the PlumbingEngine.
+
+        Parameters
+        ----------
+
+        components: dict
+            components is a dict of {component_name: PlumbingComponent} where component_name
+            is a string that matches the name attribute of its corresponding PlumbingComponent.
+
+        mapping: dict
+            mapping is a dict of {component_name: {component_node: main_graph_node}}, which is
+            used to specify connectivity between components on the main graph.
+
+        initial_nodes: dict
+            initial_nodes is a dict of {main_graph_node: initial_pressure}. The dict doesn't have to
+            be exhaustive; if a node isn't specified its pressure will be set to a default of 0.
+
+        initial_states: dict
+            initial_states is a dict of {component_name: state_name}. Every component must
+            have an entry, which will be used to determine its initial state on the main graph.
+
+        Errors from malformed input will be stored in the engine's error_set. The presence of
+        errors renders the engine invalid; invalid engines cannot be solved.
+        """
+
         self.component_dict = copy.deepcopy(components)
         self.mapping = copy.deepcopy(mapping)
         self.plumbing_graph.clear()
@@ -73,7 +126,7 @@ class PlumbingEngine:
                 raise exceptions.BadInputError(f"Node {node} not found in graph.")
 
     def set_component_state(self, component_name, state_id):
-        '''Change a component's state on the main graph'''
+        """Change a component's state on the main graph."""
         if component_name not in self.mapping:
             raise exceptions.BadInputError(
                 f"Component '{component_name}' not found in mapping dict.")
@@ -119,7 +172,7 @@ class PlumbingEngine:
         nx.classes.function.set_edge_attributes(self.plumbing_graph, state_edges_graph, 'FC')
 
     def _set_time_resolution(self, component_name):
-        '''Given a component, set a time resolution based on its lowest teq (highest FC)'''
+        """Given a component, set a time resolution based on its lowest teq (highest FC)."""
         max_fc = utils.teq_to_FC(self.time_resolution * utils.DEFAULT_RESOLUTION_SCALE)
         component_states = (self.component_dict[component_name]).states
         for state in component_states.values():
@@ -131,7 +184,32 @@ class PlumbingEngine:
             self.time_resolution = int(utils.FC_to_teq(max_fc) / utils.DEFAULT_RESOLUTION_SCALE)
 
     def add_component(self, component, mapping, state_id, pressures=None, fail_silently=False):
-        '''Adds a component to the main plumbing graph according to provided specifications'''
+        """
+        Add a component to the main plumbing graph according to provided specifications.
+
+        Specifications are similar to load_graph(), but localized to a single component.
+
+        Parameters
+        ----------
+
+        component: PlumbingComponent
+            component is the PlumbingComponent to be added.
+
+        mapping: dict
+            mapping is a dict of {component_node: main_graph_node} that specifies connectivity
+            between the added component and the rest of the graph.
+
+        state_id: string
+            state_id is the component's initial state.
+
+        pressures: dict
+            pressures is a dict of {main_graph_node: inital_pressure}. It need not be exhaustive;
+            nodes that aren't specified receive a default value of 0.
+
+        fail_silently: bool
+            fail_silently controls whether errors are raised or written to the error set.
+        """
+
         if not fail_silently and not component.is_valid():
             raise exceptions.BadInputError(
                 "Component not valid; all errors must be resolved before loading in.")
@@ -194,11 +272,11 @@ class PlumbingEngine:
                     raise
 
     def is_valid(self):
-        '''Returns whether the plumbing engine is valid'''
+        """Return whether the plumbing engine is valid."""
         return len(self.error_set) == 0
 
     def remove_component(self, input_component_name):
-        '''Removes component and associated errors'''
+        """Remove component and associated errors."""
         # Check validity of provided component name
         if input_component_name not in self.component_dict:
             raise exceptions.BadInputError(
@@ -206,7 +284,6 @@ class PlumbingEngine:
 
         component = self.component_dict[input_component_name]
         component_name = component.name
-        mapping = self.mapping[component_name]
 
         # Remove all edges associated with component
         to_remove = []
@@ -232,7 +309,7 @@ class PlumbingEngine:
             self._set_time_resolution(name)
 
     def _resolve_errors(self, component_name):
-        '''Resolve all errors associated with a certain component'''
+        """Resolve all errors associated with a certain component."""
         # Find all errors associated with a component
         to_remove = []
         for error in self.error_set:
@@ -251,7 +328,7 @@ class PlumbingEngine:
             self.error_set.remove(error)
 
     def reverse_orientation(self, component_name):
-        '''Reverse direction of suitable components, such as check valves'''
+        """Reverse direction of suitable components, such as check valves."""
         if component_name not in self.component_dict:
             raise exceptions.BadInputError(
                 f"Component '{component_name}' not found in component dict.")
@@ -273,7 +350,7 @@ class PlumbingEngine:
         self.plumbing_graph.edges[edge2]['FC'] = temp
 
     def set_pressure(self, node_name, pressure):
-        '''Sets pressure at given node'''
+        """Set pressure at given node."""
         if not isinstance(pressure, (int, float)):
             raise exceptions.BadInputError(f"Pressure {pressure} must be a number.")
         if pressure < 0:
@@ -284,7 +361,13 @@ class PlumbingEngine:
         self.plumbing_graph.nodes[node_name]['pressure'] = pressure
 
     def set_teq(self, component_name, which_edge):
-        '''Sets teq at given dict of edges for one component'''
+        """Set teq at each edge in provided dict for one component.
+
+        which_edge is a dict of {edge: teq}. edge is the standard tuple of the form
+        (source, target, key), where source and target are nodes, and key is a unique
+        identifier.
+        """
+
         if component_name not in self.component_dict:
             raise exceptions.BadInputError(
                 f"Component name '{component_name}' not found in component dict.")
@@ -318,11 +401,17 @@ class PlumbingEngine:
         self._set_time_resolution(component_name)
 
     def list_toggles(self):
-        '''Returns a list of toggleable components (by name)'''
+        """Return a list of toggleable components (by name)."""
         return [c.name for c in self.component_dict.values() if len(c.states) > 1]
 
     def current_state(self, *args):
-        '''Given one or more component_names, returns the state_id of their current states'''
+        """Given one or more component_names, return the state_id of their current states.
+
+        Can accept lists, tuples, series of separate arguments, or any combination of the above.
+        If given a single argument, returns a single value. Otherwise, returns a dict of
+        {component_name: state}.
+        """
+
         if len(args) == 0:
             return {component.name: component.current_state
                     for component in self.component_dict.values()}
@@ -341,7 +430,13 @@ class PlumbingEngine:
                 f"Component '{err.args[0]}' not found in component dict.")
 
     def current_pressures(self, *args):
-        '''Given one or more nodes, returns their current pressure'''
+        """Given one or more nodes, return their current pressure.
+
+        Can accept lists, tuples, series of separate arguments, or any combination of the above.
+        If given a single argument, returns a single value. Otherwise, returns a dict of
+        {node: pressure}.
+        """
+
         if len(args) == 0:
             return {n: self.plumbing_graph.nodes[n]['pressure']
                     for n in self.plumbing_graph.nodes()}
@@ -358,7 +453,13 @@ class PlumbingEngine:
             raise exceptions.BadInputError(f"Node {err.args[0]} not found in graph.")
 
     def current_FC(self, *args):
-        '''Given a component name or edge id, return a dict of corresponding FCs'''
+        """Given a component_name or edge_id, return a dict of corresponding FCs.
+
+        Passing in a component_name will yield a dict of all associated edges and FCs, while
+        passing in a single edge_ID will simply yield a single value.
+        Accepts lists, arguments, or some combination thereof, but **not tuples**.
+        """
+
         if len(args) == 0:
             return {edge: self.plumbing_graph.edges[edge]['FC']
                     for edge in self.plumbing_graph.edges(keys=True)}

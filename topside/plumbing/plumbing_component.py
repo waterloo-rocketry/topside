@@ -7,9 +7,34 @@ import topside.plumbing.plumbing_utils as utils
 
 
 class PlumbingComponent:
-    '''Represents a discrete plumbing component, such as a tank or valve'''
+    """Represents a discrete plumbing component, such as a tank or valve."""
 
     def __init__(self, name, states, edge_list):
+        """
+        Initialize plumbing component.
+
+        Unlike the engine, a component cannot be created empty.
+
+        Parameters
+        ----------
+
+        name: string
+            name is the name of the component.
+
+        states: dict
+            states is a dict of dicts of form {state_name: {edge: teq}}. state_name
+            is the state's string name, and its value is a dict of each edge with its
+            corresponding teq in the given state.
+
+        edge_list:
+            edge_list is a list of edges in the form (source, target, key), where
+            source and target are nodes and key should be distinct from that of other
+            edges between the same nodes.
+
+        Errors from malformed input are written to the component's error set. A non-empty
+        error set renders a component invalid; invalid components cannot be added to a
+        plumbing engine.
+        """
         self.name = name
         self.component_graph = nx.MultiDiGraph(edge_list)
         self.states = copy.deepcopy(states)
