@@ -193,14 +193,14 @@ class PlumbingEngine:
         ----------
 
         component: PlumbingComponent
-            component is the PlumbingComponent to be added
+            component is the PlumbingComponent to be added.
 
         mapping: dict
             mapping is a dict of {component_node: main_graph_node} that specifies connectivity
-            between the added component and the rest of the graph
+            between the added component and the rest of the graph.
 
         state_id: string
-            state_id is the component's initial state
+            state_id is the component's initial state.
 
         pressures: dict
             pressures is a dict of {main_graph_node: inital_pressure}. It need not be exhaustive;

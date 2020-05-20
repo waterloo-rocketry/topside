@@ -19,7 +19,7 @@ class PlumbingComponent:
         ----------
 
         name: string
-            name is the name of the component
+            name is the name of the component.
 
         states: dict
             states is a dict of dicts of form {state_name: {edge: teq}}. state_name
