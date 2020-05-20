@@ -14,7 +14,7 @@ class PlumbingEngine:
         """
         Initialize the plumbing engine.
 
-        The engine can either be initialized with an empty graph, or with the same parameters as 
+        The engine can either be initialized with an empty graph, or with the same parameters as
         load_engine().
 
         Parameters
@@ -185,7 +185,7 @@ class PlumbingEngine:
 
     def add_component(self, component, mapping, state_id, pressures=None, fail_silently=False):
         """
-        Adds a component to the main plumbing graph according to provided specifications.
+        Add a component to the main plumbing graph according to provided specifications.
 
         Specifications are similar to load_graph(), but localized to a single component.
 
@@ -272,11 +272,11 @@ class PlumbingEngine:
                     raise
 
     def is_valid(self):
-        """Returns whether the plumbing engine is valid."""
+        """Return whether the plumbing engine is valid."""
         return len(self.error_set) == 0
 
     def remove_component(self, input_component_name):
-        """Removes component and associated errors."""
+        """Remove component and associated errors."""
         # Check validity of provided component name
         if input_component_name not in self.component_dict:
             raise exceptions.BadInputError(
@@ -350,7 +350,7 @@ class PlumbingEngine:
         self.plumbing_graph.edges[edge2]['FC'] = temp
 
     def set_pressure(self, node_name, pressure):
-        """Sets pressure at given node."""
+        """Set pressure at given node."""
         if not isinstance(pressure, (int, float)):
             raise exceptions.BadInputError(f"Pressure {pressure} must be a number.")
         if pressure < 0:
@@ -361,7 +361,7 @@ class PlumbingEngine:
         self.plumbing_graph.nodes[node_name]['pressure'] = pressure
 
     def set_teq(self, component_name, which_edge):
-        """Sets teq at each edge in provided dict for one component.
+        """Set teq at each edge in provided dict for one component.
 
         which_edge is a dict of {edge: teq}. edge is the standard tuple of the form
         (source, target, key), where source and target are nodes, and key is a unique
@@ -401,11 +401,11 @@ class PlumbingEngine:
         self._set_time_resolution(component_name)
 
     def list_toggles(self):
-        """Returns a list of toggleable components (by name)."""
+        """Return a list of toggleable components (by name)."""
         return [c.name for c in self.component_dict.values() if len(c.states) > 1]
 
     def current_state(self, *args):
-        """Given one or more component_names, returns the state_id of their current states.
+        """Given one or more component_names, return the state_id of their current states.
 
         Can accept lists, tuples, series of separate arguments, or any combination of the above.
         If given a single argument, returns a single value. Otherwise, returns a dict of
@@ -430,7 +430,7 @@ class PlumbingEngine:
                 f"Component '{err.args[0]}' not found in component dict.")
 
     def current_pressures(self, *args):
-        """Given one or more nodes, returns their current pressure.
+        """Given one or more nodes, return their current pressure.
 
         Can accept lists, tuples, series of separate arguments, or any combination of the above.
         If given a single argument, returns a single value. Otherwise, returns a dict of

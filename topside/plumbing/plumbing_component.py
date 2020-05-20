@@ -11,7 +11,7 @@ class PlumbingComponent:
 
     def __init__(self, name, states, edge_list):
         """
-        Initializes plumbing component.
+        Initialize plumbing component.
 
         Unlike the engine, a component cannot be created empty.
 
