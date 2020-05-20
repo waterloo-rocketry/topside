@@ -7,12 +7,16 @@ def terminal_graph(plumbing_engine):
 
     The terminal graph T is created by the following process, for a
     plumbing engine P with graph G:
-        1. All non-atm nodes from G are placed in T.
+        1. For each non-atm node in G:
+            a) Create a node of the same name in T.
         2. For each component C in P:
             a) For each node n in C:
                 i. Create a node C_n in T, where the node name of C_n is
                    <name of C>.<name of n>.
-                ii. Create an edge in T from C_n to C.mapping[n].
+                ii. Find the node v in G to which n is mapped. This is
+                    defined as P.mapping[C][n].
+                iii. Create an edge in T from C_n to the node in T with
+                     the same name as v.
 
     Parameters
     ----------
