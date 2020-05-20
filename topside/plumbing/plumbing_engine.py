@@ -11,7 +11,34 @@ class PlumbingEngine:
     """Engine that represents a plumbing system."""
 
     def __init__(self, components=None, mapping=None, initial_nodes=None, initial_states=None):
-        """The PlumbingEngine can either be initialized as empty or with graph arguments."""
+        """
+        Initialize the plumbing engine.
+
+        The engine can either be initialized with an empty graph, or with the same parameters as 
+        load_engine().
+
+        Parameters
+        ----------
+
+        components: dict
+            components is a dict of {component_name: PlumbingComponent} where component_name
+            is a string that matches the name attribute of its corresponding PlumbingComponent.
+
+        mapping: dict
+            mapping is a dict of {component_name: {component_node: main_graph_node}}, which is
+            used to specify connectivity between components on the main graph.
+
+        initial_nodes: dict
+            initial_nodes is a dict of {main_graph_node: initial_pressure}. The dict doesn't have to
+            be exhaustive; if a node isn't specified its pressure will be set to a default of 0.
+
+        initial_states: dict
+            initial_states is a dict of {component_name: state_name}. Every component must
+            have an entry, which will be used to determine its initial state on the main graph.
+
+        Errors from malformed input will be stored in the engine's error_set. The presence of
+        errors renders the engine invalid; invalid engines cannot be solved.
+        """
         if not components:
             components = {}
         if not mapping:
@@ -27,18 +54,29 @@ class PlumbingEngine:
         self.load_graph(components, mapping, initial_nodes, initial_states)
 
     def load_graph(self, components, mapping, initial_nodes, initial_states):
-        """Load in a graph to the PlumbingEngine.
+        """
+        Load in a graph to the PlumbingEngine.
 
-        Its arguments are as follows:
-            - `components` is a dict of `{component_name: PlumbingComponent}` where `component_name`
-              is a string that matches the `name` attribute of its corresponding PlumbingComponent
-            - `mapping` is a dict of `{component_name: {component_node: main_graph_node}}`
-            - `initial_nodes` is a dict of `{main_graph_node: initial_pressure}`. If a node is not
-              specified in the dict, its initial pressure will be set to a default of 0.
-            - `initial_states` is a dict of `{component_name: state_name}`. Every component must
-              have an entry - this will be used to determine its initial state on the main graph.
+        Parameters
+        ----------
 
-        Errors from malformed input will be stored in the engine's `error_set`. The presence of 
+        components: dict
+            components is a dict of {component_name: PlumbingComponent} where component_name
+            is a string that matches the name attribute of its corresponding PlumbingComponent.
+
+        mapping: dict
+            mapping is a dict of {component_name: {component_node: main_graph_node}}, which is
+            used to specify connectivity between components on the main graph.
+
+        initial_nodes: dict
+            initial_nodes is a dict of {main_graph_node: initial_pressure}. The dict doesn't have to
+            be exhaustive; if a node isn't specified its pressure will be set to a default of 0.
+
+        initial_states: dict
+            initial_states is a dict of {component_name: state_name}. Every component must
+            have an entry, which will be used to determine its initial state on the main graph.
+
+        Errors from malformed input will be stored in the engine's error_set. The presence of
         errors renders the engine invalid; invalid engines cannot be solved.
         """
 
@@ -146,15 +184,30 @@ class PlumbingEngine:
             self.time_resolution = int(utils.FC_to_teq(max_fc) / utils.DEFAULT_RESOLUTION_SCALE)
 
     def add_component(self, component, mapping, state_id, pressures=None, fail_silently=False):
-        """Adds a component to the main plumbing graph according to provided specifications.
+        """
+        Adds a component to the main plumbing graph according to provided specifications.
 
-        Specifications are similar to `load_graph()`, but localized to a single component.
-            - `component` is the `PlumbingComponent` to be added
-            - `mapping` is a dict of `{component_node: main_graph_node}` that specifies
-              connectivity between this component and the rest of the graph
-            - `state_id` is its initial state
-            - `pressures` is a dict of `{main_graph_node: inital_pressure}`
-            - `fail_silently` controls whether errors are raised or written to the error set
+        Specifications are similar to load_graph(), but localized to a single component.
+
+        Parameters
+        ----------
+
+        component: PlumbingComponent
+            component is the PlumbingComponent to be added
+
+        mapping: dict
+            mapping is a dict of {component_node: main_graph_node} that specifies connectivity
+            between the added component and the rest of the graph
+
+        state_id: string
+            state_id is the component's initial state
+
+        pressures: dict
+            pressures is a dict of {main_graph_node: inital_pressure}. It need not be exhaustive;
+            nodes that aren't specified receive a default value of 0.
+
+        fail_silently: bool
+            fail_silently controls whether errors are raised or written to the error set.
         """
 
         if not fail_silently and not component.is_valid():
@@ -231,7 +284,6 @@ class PlumbingEngine:
 
         component = self.component_dict[input_component_name]
         component_name = component.name
-        mapping = self.mapping[component_name]
 
         # Remove all edges associated with component
         to_remove = []
@@ -309,10 +361,10 @@ class PlumbingEngine:
         self.plumbing_graph.nodes[node_name]['pressure'] = pressure
 
     def set_teq(self, component_name, which_edge):
-        """Sets teq at given dict of edges for one component.
+        """Sets teq at each edge in provided dict for one component.
 
-        `which_edge` is a dict of `{edge: teq}`. `edge` is the standard tuple of the
-        form `(source, target, key)`, where source and target are nodes, and key is a unique
+        which_edge is a dict of {edge: teq}. edge is the standard tuple of the form
+        (source, target, key), where source and target are nodes, and key is a unique
         identifier.
         """
 
@@ -353,11 +405,11 @@ class PlumbingEngine:
         return [c.name for c in self.component_dict.values() if len(c.states) > 1]
 
     def current_state(self, *args):
-        """Given one or more `component_names`, returns the `state_id` of their current states.
+        """Given one or more component_names, returns the state_id of their current states.
 
         Can accept lists, tuples, series of separate arguments, or any combination of the above.
         If given a single argument, returns a single value. Otherwise, returns a dict of
-        `{component_name: state}`.
+        {component_name: state}.
         """
 
         if len(args) == 0:
@@ -382,7 +434,7 @@ class PlumbingEngine:
 
         Can accept lists, tuples, series of separate arguments, or any combination of the above.
         If given a single argument, returns a single value. Otherwise, returns a dict of
-        `{node: pressure}`.
+        {node: pressure}.
         """
 
         if len(args) == 0:
@@ -401,10 +453,10 @@ class PlumbingEngine:
             raise exceptions.BadInputError(f"Node {err.args[0]} not found in graph.")
 
     def current_FC(self, *args):
-        """Given a `component_name` or `edge_id`, return a dict of corresponding FCs.
+        """Given a component_name or edge_id, return a dict of corresponding FCs.
 
-        Passing in a `component_name` will yield a dict of all associated edges and FCs, while
-        passing in a single `edge_ID` will simply yield a single value.
+        Passing in a component_name will yield a dict of all associated edges and FCs, while
+        passing in a single edge_ID will simply yield a single value.
         Accepts lists, arguments, or some combination thereof, but **not tuples**.
         """
 
