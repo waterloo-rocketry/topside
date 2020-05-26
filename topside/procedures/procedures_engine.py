@@ -13,9 +13,13 @@ class Action:
 
     component: str
         The identifier of the component whose state will be changed.
+        If part of a procedure that will be executed, this must refer to
+        a valid component in the managed PlumbingEngine.
 
     state: str
-        The state that the component will be set to.
+        The state that the component will be set to. If part of a
+        procedure that will be executed, this must refer to a valid
+        state of `component`.
     """
     component: str
     state: str

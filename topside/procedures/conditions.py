@@ -20,7 +20,9 @@ class WaitUntil:
 
         t: int
             The reference time for this condition. Once t is reached,
-            this condition will be satisfied.
+            this condition will be satisfied. t should be in the same
+            units and use the same timebase as the PlumbingEngine
+            (integer microseconds from simulation start).
         """
         self.target_t = t
         self.current_t = None
@@ -95,10 +97,9 @@ class Comparison:
         ----------
 
         state: dict
-            state is expected to have the key 'pressures', where
-            state['pressures'] is a dict. In turn, state['pressures'] is
-            expected to have the key self.node, where the corresponding
-            value is the plumbing engine pressure at self.node.
+            state is expected to be a dict of the form:
+              {'pressures': {self.node: P}}
+            where P is the current pressure at node self.node.
         """
         self.current_pressure = state['pressures'][self.node]
 
