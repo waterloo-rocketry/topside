@@ -5,6 +5,8 @@ TEQ_MIN = MIN_TIME_RES_MICROS * DEFAULT_RESOLUTION_SCALE
 FC_MAX = 4.5 / TEQ_MIN
 CLOSED_KEYWORD = 'closed'
 
+#TODO(wendi): provide functions for querying these min/max values
+
 
 def teq_to_FC(teq):
     if teq == 0:

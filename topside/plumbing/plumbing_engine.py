@@ -494,6 +494,23 @@ class PlumbingEngine:
         return list(self.plumbing_graph.edges(keys=True, data=data))
 
     def step(self, timestep=None):
+        """ Return node pressures in the engine after timestep has elapsed.
+
+        Step cannot be called on an empty or invalid plumbing engine.
+
+        Parameters
+        ----------
+
+        timestep: int
+            timestep is the time, in microseconds, that we allow to elapse before
+            returning the new state of node pressures in the graph. If unspecified, it defaults
+            to the engine's current automatic time_resolution. If timestep is lower than the current
+            time_resolution, time_resolution will be set to timestep and timestep will be used for
+            calculations; however timestep must still be greater than MIN_TIME_RES. If not, an error
+            will be raised.
+
+        Returns a dict of {node: pressure}, much like current_pressures().
+        """
         if not self.plumbing_graph:
             raise exceptions.InvalidEngineError(
                 "Step() cannot be called on an empty engine.")
@@ -504,34 +521,69 @@ class PlumbingEngine:
         if timestep is None:
             timestep = self.time_resolution
         if timestep < utils.MIN_TIME_RES_MICROS:
-            timestep = utils.MIN_TIME_RES_MICROS
+            raise exceptions.BadInputError(
+                f"timestep ({timestep}) too low, must be greater than"
+                "{utils.MIN_TIME_RES_MICROS} us.")
+        if timestep < self.time_resolution:
+            self.time_resolution = timestep
 
         new_pressures = {}
-        for node in self.nodes():
-            dp = 0
-            pressure = self.current_pressures(node)
-            for edge in self.plumbing_graph.out_edges(node, keys=True):
-                _, neighbor, _ = edge
-                npressure = self.current_pressures(neighbor)
-                if pressure > npressure:
-                    fc = self.current_FC(edge)
-                    dp -= fc * (pressure - npressure)
-            for edge in self.plumbing_graph.in_edges(node, keys=True):
-                _, neighbor, _ = edge
-                npressure = self.current_pressures(neighbor)
-                if pressure < npressure:
-                    fc = self.current_FC(edge)
-                    dp += fc * (npressure - pressure)
-            new_pressures[node] = pressure + dp*timestep
+        time = 0
+        while time < timestep:
+            for node in self.nodes():
+                dp = 0
+                pressure = self.current_pressures(node)
+                for edge in self.plumbing_graph.out_edges(node, keys=True):
+                    _, neighbor, _ = edge
+                    npressure = self.current_pressures(neighbor)
+                    if pressure > npressure:
+                        fc = self.current_FC(edge)
+                        dp -= fc * (pressure - npressure)
+                for edge in self.plumbing_graph.in_edges(node, keys=True):
+                    _, neighbor, _ = edge
+                    npressure = self.current_pressures(neighbor)
+                    if pressure < npressure:
+                        fc = self.current_FC(edge)
+                        dp += fc * (npressure - pressure)
+                new_pressures[node] = pressure + dp*self.time_resolution
 
-        for node, pressure in new_pressures.items():
-            self.set_pressure(node, pressure)
+            for node, pressure in new_pressures.items():
+                self.set_pressure(node, pressure)
+            time += self.time_resolution
 
         return new_pressures
 
-    def solve(self, min_delta=0.5, max_time=utils.s_to_micros(60), return_resolution=None):
+    def solve(self, min_delta=0.5, max_time=60, return_resolution=None):
+        """Simulate time passing in the engine until node pressures reach steady state.
+
+        The simulation proceeds until either all node pressures are no longer changing (within
+        a certain tolerance), or until it times out. Depending on the value of return_resolution,
+        it returns either a map of {node: pressure} for each node in the graph at the end of the
+        simulation, or a list of maps at intervals of return_resolution.
+
+        Parameters
+        ----------
+
+        min_delta: float
+            min_delta is the minimum delta pressure over time (pa/s) for the simulation to keep
+            going. If after any step all nodes have had a lower dp/t, then the engine is considered
+            to be in steady state and the simulation will end.
+
+        max_time: int
+            max_time is the maximum time in seconds that the simulation will run before timing out
+            and ending.
+
+        return_resolution: int
+            return_resolution specifies (in microseconds) the intervals at which snapshots of engine
+            pressures will be taken (and returned). If set to None, only a {node: pressure} dict of
+            the final state will be returned. return_resolution must be greater than
+            MIN_TIME_RESOLUTION, otherwise an error will be raised. If less than
+            self.time_resolution, time_resolution will be set to return_resolution.
+        """
+        max_time = utils.s_to_micros(max_time)
+
         timestep = self.time_resolution
-        if return_resolution is not None and return_resolution < self.time_resolution:
+        if return_resolution is not None:
             timestep = return_resolution
 
         all_states = []
