@@ -42,3 +42,19 @@ def flatten(args, unpack_tuples=True):
             flattened_args.append(arg)
 
     return flattened_args
+
+
+def converged(p1, p2, d_t, eps):
+    return abs(p2 - p1) / d_t < eps
+
+
+def all_converged(all_states, d_t, eps):
+    if len(all_states) < 2:
+        return False
+    for node in all_states[0].keys():
+        p1 = all_states[-1][node]
+        p2 = all_states[-2][node]
+        if not converged(p1, p2, d_t, eps):
+            return False
+
+    return True
