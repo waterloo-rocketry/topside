@@ -13,10 +13,10 @@ def test_step():
     }
     ret = test.step(conn, utils.micros_to_s(utils.DEFAULT_TIME_RESOLUTION_MICROS))
 
-    '''assert ret == {
-        1: 100 * utils.FC_MAX * utils.DEFAULT_RESOLUTION_SCALE,
-        2: 100 - 100 * utils.FC_MAX * utils.DEFAULT_RESOLUTION_SCALE
-    }'''
+    assert ret == {
+        1: 100 * utils.FC_MAX * utils.micros_to_s(utils.DEFAULT_TIME_RESOLUTION_MICROS),
+        2: 100 - 100 * utils.FC_MAX * utils.micros_to_s(utils.DEFAULT_TIME_RESOLUTION_MICROS)
+    }
     print(utils.FC_MAX)
     print(ret)
 

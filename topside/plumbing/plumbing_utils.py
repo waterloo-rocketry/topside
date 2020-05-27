@@ -4,7 +4,6 @@ MIN_TIME_RES_MICROS = 1
 TEQ_MIN = MIN_TIME_RES_MICROS * DEFAULT_RESOLUTION_SCALE
 FC_MAX = 4.5 / TEQ_MIN
 CLOSED_KEYWORD = 'closed'
-EPS = 0.1
 
 
 def teq_to_FC(teq):
@@ -45,15 +44,17 @@ def flatten(args, unpack_tuples=True):
     return flattened_args
 
 
-def converged(node_pressures, d_t):
-    if len(node_pressures) < 2:
+def converged(p1, p2, d_t, eps):
+    return abs(p2 - p1) / d_t < eps
+
+
+def all_converged(all_states, d_t, eps):
+    if len(all_states) < 2:
         return False
-    else:
-        return abs(node_pressures[-1] - node_pressures[-2]) / d_t < EPS
-
-
-def all_converged(all_nodes, d_t):
-    for node in all_nodes:
-        if not converged(node, d_t):
+    for node in all_states[0].keys():
+        p1 = all_states[-1][node]
+        p2 = all_states[-2][node]
+        if not converged(p1, p2, d_t, eps):
             return False
+
     return True

@@ -206,7 +206,6 @@ class PlumbingEngine:
 
         component = self.component_dict[input_component_name]
         component_name = component.name
-        mapping = self.mapping[component_name]
 
         # Remove all edges associated with component
         to_remove = []
@@ -392,5 +391,54 @@ class PlumbingEngine:
     def edges(self, data=True):
         return list(self.plumbing_graph.edges(keys=True, data=data))
 
-    def step(self, timestep):
-        pass
+    def step(self, timestep=None):
+        if not self.plumbing_graph:
+            raise exceptions.InvalidEngineError(
+                "Step() cannot be called on an empty engine.")
+        if not self.is_valid():
+            raise exceptions.InvalidEngineError(
+                "Step() cannot be called on an invalid engine. Check for errors.")
+
+        if timestep is None:
+            timestep = self.time_resolution
+        if timestep < utils.MIN_TIME_RES_MICROS:
+            timestep = utils.MIN_TIME_RES_MICROS
+
+        new_pressures = {}
+        for node in self.nodes():
+            dp = 0
+            pressure = self.current_pressures(node)
+            for edge in self.plumbing_graph.out_edges(node, keys=True):
+                _, neighbor, _ = edge
+                npressure = self.current_pressures(neighbor)
+                if pressure > npressure:
+                    fc = self.current_FC(edge)
+                    dp -= fc * (pressure - npressure)
+            for edge in self.plumbing_graph.in_edges(node, keys=True):
+                _, neighbor, _ = edge
+                npressure = self.current_pressures(neighbor)
+                if pressure < npressure:
+                    fc = self.current_FC(edge)
+                    dp += fc * (npressure - pressure)
+            new_pressures[node] = pressure + dp*timestep
+
+        for node, pressure in new_pressures.items():
+            self.set_pressure(node, pressure)
+
+        return new_pressures
+
+    def solve(self, min_delta=0.5, max_time=utils.s_to_micros(60), return_resolution=None):
+        timestep = self.time_resolution
+        if return_resolution is not None and return_resolution < self.time_resolution:
+            timestep = return_resolution
+
+        all_states = []
+        time = 0
+        while not utils.all_converged(all_states, timestep, min_delta) and time < max_time:
+            all_states.append(self.step(timestep))
+            time += timestep
+
+        if return_resolution is None:
+            return all_states[-1]
+
+        return all_states
