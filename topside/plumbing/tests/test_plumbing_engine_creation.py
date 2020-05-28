@@ -3,7 +3,7 @@ import pytest
 import topside as top
 import topside.plumbing.invalid_reasons as invalid
 import topside.plumbing.exceptions as exceptions
-import topside.plumbing.tests.testing_utils as test_utils
+import topside.plumbing.tests.testing_utils as test
 import topside.plumbing.plumbing_utils as utils
 
 
@@ -16,9 +16,9 @@ def test_empty_graph():
 
 
 def test_open_closed_valves():
-    plumb = test_utils.two_valve_setup(
-        0, 0, utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD,
-        0, 0, utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD)
+    plumb = test.two_valve_setup(
+        0, 0, utils.CLOSED, utils.CLOSED,
+        0, 0, utils.CLOSED, utils.CLOSED)
 
     assert plumb.time_resolution == utils.DEFAULT_TIME_RESOLUTION_MICROS
     assert plumb.edges() == [
@@ -37,8 +37,8 @@ def test_open_closed_valves():
 
 
 def test_arbitrary_states():
-    plumb = test_utils.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+    plumb = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert plumb.edges() == [
@@ -57,8 +57,8 @@ def test_arbitrary_states():
 
 
 def test_load_graph_to_empty():
-    plumb0 = test_utils.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+    plumb0 = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
 
@@ -82,11 +82,11 @@ def test_load_graph_to_empty():
 
 
 def test_replace_graph():
-    plumb0 = test_utils.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
-    plumb = test_utils.two_valve_setup(
-        0, 0, utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD,
-        0, 0, utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD)
+    plumb0 = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+    plumb = test.two_valve_setup(
+        0, 0, utils.CLOSED, utils.CLOSED,
+        0, 0, utils.CLOSED, utils.CLOSED)
 
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
@@ -109,8 +109,8 @@ def test_replace_graph():
 
 
 def test_new_component_state():
-    plumb = test_utils.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+    plumb = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
     plumb.set_component_state('valve1', 'open')
 
     assert plumb.edges() == [
@@ -157,8 +157,8 @@ def test_invalid_component():
 
 def test_missing_component():
     wrong_component_name = 'potato'
-    pc1 = test_utils.create_component(0, 0, 0, 0, 'valve1', 'A')
-    pc2 = test_utils.create_component(0, 0, 0, 0, 'valve2', 'B')
+    pc1 = test.create_component(0, 0, 0, 0, 'valve1', 'A')
+    pc2 = test.create_component(0, 0, 0, 0, 'valve2', 'B')
 
     component_mapping = {
         'valve1': {
@@ -194,8 +194,8 @@ def test_missing_component():
 def test_wrong_node_mapping():
     proper_node_name = 1
     wrong_node_name = 5
-    pc1 = test_utils.create_component(0, 0, 0, 0, 'valve1', 'A')
-    pc2 = test_utils.create_component(0, 0, 0, 0, 'valve2', 'B')
+    pc1 = test.create_component(0, 0, 0, 0, 'valve1', 'A')
+    pc2 = test.create_component(0, 0, 0, 0, 'valve2', 'B')
 
     component_mapping = {
         'valve1': {
@@ -237,8 +237,8 @@ def test_wrong_node_mapping():
 
 def test_missing_node_pressure():
     wrong_node_name = 4
-    pc1 = test_utils.create_component(0, 0, 0, 0, 'valve1', 'A')
-    pc2 = test_utils.create_component(0, 0, 0, 0, 'valve2', 'B')
+    pc1 = test.create_component(0, 0, 0, 0, 'valve1', 'A')
+    pc2 = test.create_component(0, 0, 0, 0, 'valve2', 'B')
 
     component_mapping = {
         'valve1': {
@@ -262,8 +262,8 @@ def test_missing_node_pressure():
 def test_missing_initial_state():
     wrong_component_name = 'potato'
     proper_component_name = 'valve1'
-    pc1 = test_utils.create_component(0, 0, 0, 0, 'valve1', 'A')
-    pc2 = test_utils.create_component(0, 0, 0, 0, 'valve2', 'B')
+    pc1 = test.create_component(0, 0, 0, 0, 'valve1', 'A')
+    pc2 = test.create_component(0, 0, 0, 0, 'valve2', 'B')
 
     component_mapping = {
         'valve1': {
@@ -293,8 +293,8 @@ def test_missing_initial_state():
 
 def test_error_reset():
     wrong_component_name = 'potato'
-    pc1 = test_utils.create_component(0, 0, 0, 0, 'valve1', 'A')
-    pc2 = test_utils.create_component(0, 0, 0, 0, 'valve2', 'B')
+    pc1 = test.create_component(0, 0, 0, 0, 'valve1', 'A')
+    pc2 = test.create_component(0, 0, 0, 0, 'valve2', 'B')
 
     component_mapping = {
         'valve1': {
@@ -321,8 +321,8 @@ def test_error_reset():
 
 def test_set_component_wrong_state_name():
     wrong_state_name = 'potato'
-    plumb = test_utils.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+    plumb = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
     with pytest.raises(exceptions.BadInputError) as err:
         plumb.set_component_state('valve1', wrong_state_name)
     assert str(err.value) == f"State '{wrong_state_name}' not found in valve1 states dict."
@@ -330,8 +330,8 @@ def test_set_component_wrong_state_name():
 
 def test_set_component_wrong_component_name():
     wrong_component_name = 'potato'
-    plumb = test_utils.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+    plumb = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
     with pytest.raises(exceptions.BadInputError) as err:
         plumb.set_component_state(wrong_component_name, 'open')
     assert str(err.value) == f"Component '{wrong_component_name}' not found in mapping dict."
@@ -353,8 +353,8 @@ def test_plumbing_engines_independent():
 
 
 def test_engine_dicts_remain_unchanged():
-    pc1 = test_utils.create_component(0, 0, 0, 0, 'valve1', 'A')
-    pc2 = test_utils.create_component(0, 0, 0, 0, 'valve2', 'B')
+    pc1 = test.create_component(0, 0, 0, 0, 'valve1', 'A')
+    pc2 = test.create_component(0, 0, 0, 0, 'valve2', 'B')
 
     component_mapping = {
         'valve1': {
@@ -389,8 +389,8 @@ def test_engine_dicts_remain_unchanged():
 
 def test_load_errorless_graph():
     wrong_component_name = 'potato'
-    pc1 = test_utils.create_component(0, 0, 0, 0, 'valve1', 'A')
-    pc2 = test_utils.create_component(0, 0, 0, 0, 'valve2', 'B')
+    pc1 = test.create_component(0, 0, 0, 0, 'valve1', 'A')
+    pc2 = test.create_component(0, 0, 0, 0, 'valve2', 'B')
 
     component_mapping = {
         'valve1': {
@@ -422,8 +422,8 @@ def test_load_errorless_graph():
     assert error1 in plumb.errors()
     assert error2 in plumb.errors()
 
-    plumb0 = test_utils.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+    plumb0 = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
 

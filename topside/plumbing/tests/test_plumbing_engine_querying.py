@@ -3,13 +3,13 @@ import pytest
 import topside as top
 import topside.plumbing.invalid_reasons as invalid
 import topside.plumbing.exceptions as exceptions
-import topside.plumbing.tests.testing_utils as test_utils
+import topside.plumbing.tests.testing_utils as test
 import topside.plumbing.plumbing_utils as utils
 
 
 def test_current_state():
-    plumb = test_utils.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+    plumb = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
     wrong_name = 'potato'
 
     assert plumb.current_state('valve1') == 'closed'
@@ -57,8 +57,8 @@ def test_current_state():
 
 
 def test_current_pressures():
-    plumb = test_utils.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+    plumb = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     plumb.set_pressure(2, 50)
     plumb.set_pressure(1, 100)
@@ -101,8 +101,8 @@ def test_current_pressures():
 
 
 def test_current_FC():
-    plumb = test_utils.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+    plumb = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     assert plumb.current_FC() == {
         (1, 2, 'valve1.A1'): utils.teq_to_FC(utils.s_to_micros(10)),
@@ -143,8 +143,8 @@ def test_current_FC():
 
 
 def test_FC_name_overlap():
-    pc1 = test_utils.create_component(0, 0, 0, 0, 'fill_valve', 'A')
-    pc2 = test_utils.create_component(1, 1, 1, 1, 'remote_fill_valve', 'B')
+    pc1 = test.create_component(0, 0, 0, 0, 'fill_valve', 'A')
+    pc2 = test.create_component(1, 1, 1, 1, 'remote_fill_valve', 'B')
 
     component_mapping = {
         'fill_valve': {
@@ -178,8 +178,8 @@ def test_FC_name_overlap():
 
 
 def test_list_functions():
-    pc1 = test_utils.create_component(0.5, 0.2, 10, utils.CLOSED_KEYWORD, 'valve1', 'A')
-    pc2 = test_utils.create_component(0.5, 0.2, 10, utils.CLOSED_KEYWORD, 'valve2', 'B')
+    pc1 = test.create_component(0.5, 0.2, 10, utils.CLOSED, 'valve1', 'A')
+    pc2 = test.create_component(0.5, 0.2, 10, utils.CLOSED, 'valve2', 'B')
 
     component_mapping = {
         'valve1': {
