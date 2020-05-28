@@ -531,7 +531,6 @@ class PlumbingEngine:
 
         new_pressures = {}
         time = 0
-        # print(timestep)
         while time < timestep:
             for node, data in self.nodes():
                 if node == utils.ATM:
@@ -541,27 +540,20 @@ class PlumbingEngine:
                 for edge in self.plumbing_graph.out_edges(node, keys=True):
                     neighbor = edge[1]
                     npressure = self.current_pressures(neighbor)
-                    #print(f"out: {edge} [{pressure}, {npressure}]")
                     if pressure > npressure:
                         fc = self.current_FC(edge)
                         dp -= fc * (pressure - npressure)
-                        #print(f"{dp} = dp - {fc} * ({pressure} - {npressure})")
                 for edge in self.plumbing_graph.in_edges(node, keys=True):
                     neighbor = edge[0]
                     npressure = self.current_pressures(neighbor)
-                    #print(f"in: {edge} [{npressure}, {pressure}]")
                     if pressure < npressure:
                         fc = self.current_FC(edge)
                         dp += fc * (npressure - pressure)
-                        #print(f"{dp} = dp + {fc} * ({npressure} - {pressure})")
                 new_pressures[node] = pressure + dp*self.time_resolution
-                #print(f"{node}: {pressure}")
 
             for node, pressure in new_pressures.items():
                 self.set_pressure(node, pressure)
             time += self.time_resolution
-            # print(new_pressures)
-            # print(time)
 
         return new_pressures
 
@@ -595,14 +587,12 @@ class PlumbingEngine:
         max_time = utils.s_to_micros(max_time)
 
         timestep = self.time_resolution
-        # print(self.time_resolution)
         if return_resolution is not None:
             timestep = return_resolution
 
         all_states = []
         time = 0
         while not utils.all_converged(all_states, timestep, min_delta) and time < max_time:
-            #print(f"time: {time}")
             all_states.append(self.step(timestep))
             time += timestep
 
