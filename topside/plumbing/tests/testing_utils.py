@@ -40,23 +40,3 @@ def two_valve_setup(vAs1_1, vAs1_2, vAs2_1, vAs2_2, vBs1_1, vBs1_2, vBs2_1, vBs2
         {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
     return plumb
-
-
-# conn is a dict of {(node, pressure): [(neighbor, pressure, FC)]}
-def step(conn, dt):
-    ret = {}
-    for node, neighbors in conn.items():
-        name = node[0]
-        p0 = node[1]
-        dp = 0
-
-        for neighbor in neighbors:
-            p1 = neighbor[1]
-            fc = neighbor[2]
-
-            dp += (p1 - p0) * fc
-
-        p0 += dp * dt
-        ret[name] = p0
-
-    return ret
