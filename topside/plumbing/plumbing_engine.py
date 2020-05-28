@@ -529,31 +529,39 @@ class PlumbingEngine:
 
         new_pressures = {}
         time = 0
+        #print(timestep)
         while time < timestep:
-            for node in self.nodes():
+            for node, data in self.nodes():
                 dp = 0
-                pressure = self.current_pressures(node)
+                pressure = data['pressure']
                 for edge in self.plumbing_graph.out_edges(node, keys=True):
-                    _, neighbor, _ = edge
+                    neighbor = edge[1]
                     npressure = self.current_pressures(neighbor)
+                    #print(f"out: {edge} [{pressure}, {npressure}]")
                     if pressure > npressure:
                         fc = self.current_FC(edge)
                         dp -= fc * (pressure - npressure)
+                        #print(f"{dp} = dp - {fc} * ({pressure} - {npressure})")
                 for edge in self.plumbing_graph.in_edges(node, keys=True):
-                    _, neighbor, _ = edge
+                    neighbor = edge[0]
                     npressure = self.current_pressures(neighbor)
+                    #print(f"in: {edge} [{npressure}, {pressure}]")
                     if pressure < npressure:
                         fc = self.current_FC(edge)
                         dp += fc * (npressure - pressure)
+                        #print(f"{dp} = dp + {fc} * ({npressure} - {pressure})")
                 new_pressures[node] = pressure + dp*self.time_resolution
+                #print(f"{node}: {pressure}")
 
             for node, pressure in new_pressures.items():
                 self.set_pressure(node, pressure)
             time += self.time_resolution
+            #print(new_pressures)
+            #print(time)
 
         return new_pressures
 
-    def solve(self, min_delta=0.5, max_time=60, return_resolution=None):
+    def solve(self, min_delta=0.01, max_time=30, return_resolution=None):
         """Simulate time passing in the engine until node pressures reach steady state.
 
         The simulation proceeds until either all node pressures are no longer changing (within
@@ -574,7 +582,7 @@ class PlumbingEngine:
             and ending.
 
         return_resolution: int
-            return_resolution specifies (in microseconds) the intervals at which snapshots of engine
+            return_resolution specifies (in microseconds) the intervals at which dicts of engine
             pressures will be taken (and returned). If set to None, only a {node: pressure} dict of
             the final state will be returned. return_resolution must be greater than
             MIN_TIME_RESOLUTION, otherwise an error will be raised. If less than
@@ -583,12 +591,14 @@ class PlumbingEngine:
         max_time = utils.s_to_micros(max_time)
 
         timestep = self.time_resolution
+        #print(self.time_resolution)
         if return_resolution is not None:
             timestep = return_resolution
 
         all_states = []
         time = 0
         while not utils.all_converged(all_states, timestep, min_delta) and time < max_time:
+            #print(f"time: {time}")
             all_states.append(self.step(timestep))
             time += timestep
 

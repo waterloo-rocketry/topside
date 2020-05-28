@@ -42,11 +42,35 @@ def test_invalid_engine():
         plumb.step(5)
     assert str(err.value) == "Step() cannot be called on an invalid engine. Check for errors."
 
+def test_closed_engine():
+    plumb = test.two_valve_setup(utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD,
+                                 utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD,
+                                 utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD)
+    state = plumb.step()
+    assert state == {1: 0, 2: 0, 3: 100}
+    state = plumb.solve()
+    assert state == {1: 0, 2: 0, 3: 100}
 
-# Scneario based tests - these are meaty. Abbreviated descriptions come before the tests, but
+
+# Scenario based tests - these are meaty. Abbreviated descriptions come before the tests, but
 # for an in depth description match the test number to what's on this doc:
 # https://docs.google.com/document/d/1LwhcKiIn0qAECpmaBOFtkG4EBmUxXTU9uzSczCwrvpo/edit?usp=sharing
-# This is the hackiest comment I've ever written
+# Each solve test has a value, steady_by, which indicates the point at which it should be steady. 
+# To test solve(), its result is compared against that of plumb.step(steady_by).
+
+
+def test_misc_engine():
+    steady_by = utils.s_to_micros(1)
+
+    plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
+    solve_state = plumb.solve()
+    step_state = plumb.step(steady_by)
+    with dt.accepted.tolerance(test.SOLVE_TOL):
+        dt.validate(solve_state, step_state)
+
+    plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
+    solve_len = plumb.solve(return_resolution=plumb.time_resolution)
+    assert len(solve_len) == steady_by / plumb.time_resolution
 
 
 # A valve between a pressurized container and atmosphere is opened

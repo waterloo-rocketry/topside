@@ -47,7 +47,7 @@ def flatten(args, unpack_tuples=True):
 
 
 def converged(p1, p2, d_t, eps):
-    return abs(p2 - p1) / d_t < eps
+    return abs(p2 - p1) / micros_to_s(d_t) < eps
 
 
 def all_converged(all_states, d_t, eps):
