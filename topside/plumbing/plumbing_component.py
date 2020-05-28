@@ -61,12 +61,12 @@ class PlumbingComponent:
                 if isinstance(state[edge], (float, int)):
                     state[edge] = int(utils.s_to_micros(state[edge]))
                 elif isinstance(state[edge], str):
-                    if state[edge] != utils.CLOSED_KEYWORD:
+                    if state[edge] != utils.CLOSED:
                         error = invalid.InvalidTeq(
                             f"Invalid provided teq value ('{state[edge]}'), accepted keyword is: "
-                            f"'{utils.CLOSED_KEYWORD}'", self.name, state_id, edge, og_teq)
+                            f"'{utils.CLOSED}'", self.name, state_id, edge, og_teq)
                         invalid.add_error(error, self.error_set)
-                        state[edge] = utils.CLOSED_KEYWORD
+                        state[edge] = utils.CLOSED
 
                 # TODO(jacob/wendi): Look into eventually implementing this with datetime.timedelta.
                 state[edge] = utils.teq_to_FC(state[edge])

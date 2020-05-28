@@ -3,7 +3,8 @@ DEFAULT_RESOLUTION_SCALE = 20
 MIN_TIME_RES_MICROS = 1
 TEQ_MIN = MIN_TIME_RES_MICROS * DEFAULT_RESOLUTION_SCALE
 FC_MAX = 4.5 / TEQ_MIN
-CLOSED_KEYWORD = 'closed'
+CLOSED = 'closed'
+ATM = 'atm'
 
 #TODO(wendi): provide functions for querying these min/max values
 
@@ -11,7 +12,7 @@ CLOSED_KEYWORD = 'closed'
 def teq_to_FC(teq):
     if teq == 0:
         fc = FC_MAX
-    elif teq == CLOSED_KEYWORD:
+    elif teq == CLOSED:
         fc = 0
     else:
         fc = 4.5 / teq
@@ -20,7 +21,7 @@ def teq_to_FC(teq):
 
 def FC_to_teq(FC):
     if FC == 0:
-        return CLOSED_KEYWORD
+        return CLOSED
     else:
         return 4.5 / FC
 

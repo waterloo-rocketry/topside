@@ -9,7 +9,7 @@ import topside.plumbing.plumbing_utils as utils
 
 def test_current_state():
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
     wrong_name = 'potato'
 
     assert plumb.current_state('valve1') == 'closed'
@@ -58,7 +58,7 @@ def test_current_state():
 
 def test_current_pressures():
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     plumb.set_pressure(2, 50)
     plumb.set_pressure(1, 100)
@@ -102,7 +102,7 @@ def test_current_pressures():
 
 def test_current_FC():
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     assert plumb.current_FC() == {
         (1, 2, 'valve1.A1'): utils.teq_to_FC(utils.s_to_micros(10)),
@@ -178,8 +178,8 @@ def test_FC_name_overlap():
 
 
 def test_list_functions():
-    pc1 = test.create_component(0.5, 0.2, 10, utils.CLOSED_KEYWORD, 'valve1', 'A')
-    pc2 = test.create_component(0.5, 0.2, 10, utils.CLOSED_KEYWORD, 'valve2', 'B')
+    pc1 = test.create_component(0.5, 0.2, 10, utils.CLOSED, 'valve1', 'A')
+    pc2 = test.create_component(0.5, 0.2, 10, utils.CLOSED, 'valve2', 'B')
 
     component_mapping = {
         'valve1': {

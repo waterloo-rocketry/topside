@@ -9,7 +9,7 @@ import topside.plumbing.plumbing_utils as utils
 
 def test_add_to_empty():
     plumb = top.PlumbingEngine()
-    pc = test.create_component(2, utils.CLOSED_KEYWORD, 0, 0, 'valve', 'A')
+    pc = test.create_component(2, utils.CLOSED, 0, 0, 'valve', 'A')
 
     mapping = {
         1: 1,
@@ -33,7 +33,7 @@ def test_add_to_empty():
 
 def test_add_component():
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     pc = test.create_component(0, 0, 0, 1, 'valve3', 'C')
     mapping = {
@@ -66,7 +66,7 @@ def test_add_component():
 
 def test_add_component_errors():
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     name = 'valve3'
     wrong_node = 3
@@ -85,7 +85,7 @@ def test_add_component_errors():
 
 def test_add_invalid_component():
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     wrong_node = 5
     pc_states = {
@@ -110,7 +110,7 @@ def test_add_invalid_component():
 
 def test_remove_component():
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
     plumb.remove_component('valve2')
 
     assert plumb.is_valid()
@@ -129,8 +129,8 @@ def test_remove_component():
 def test_add_remove():
     old_lowest_teq = 0.2
     plumb = test.two_valve_setup(
-        0.5, old_lowest_teq, 10, utils.CLOSED_KEYWORD, 0.5, old_lowest_teq, 10,
-        utils.CLOSED_KEYWORD)
+        0.5, old_lowest_teq, 10, utils.CLOSED, 0.5, old_lowest_teq, 10,
+        utils.CLOSED)
 
     new_lowest_teq = 0.1
     pc = test.create_component(0, 0, 0, new_lowest_teq, 'valve3', 'C')
@@ -166,7 +166,7 @@ def test_add_remove():
 
 def test_remove_nonexistent_component():
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
     nonexistent_component = 'potato'
 
     with pytest.raises(exceptions.BadInputError) as err:
@@ -177,7 +177,7 @@ def test_remove_nonexistent_component():
 
 def test_remove_add_errors():
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     name = 'valve3'
     wrong_node = 3
@@ -264,7 +264,7 @@ def test_remove_errors_wrong_component_name():
 
 def test_reverse_orientation():
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
     plumb.reverse_orientation('valve1')
 
     assert plumb.is_valid()
@@ -287,7 +287,7 @@ def test_reverse_orientation():
 def test_reverse_orientation_wrong_component():
     wrong_name = 'potato'
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     with pytest.raises(exceptions.BadInputError) as err:
         plumb.reverse_orientation(wrong_name)
@@ -309,7 +309,7 @@ def test_reverse_orientation_three_edges():
     pc = top.PlumbingComponent('threeway', pc_states, pc_edges)
 
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     mapping = {
         1: 3,
@@ -326,7 +326,7 @@ def test_reverse_orientation_three_edges():
 
 def test_set_pressure():
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
     pc = test.create_component(0, 0, 0, 1, 'valve3', 'C')
     mapping = {
         1: 3,
@@ -357,13 +357,19 @@ def test_set_pressure():
 
 def test_set_pressure_errors():
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
     pc = test.create_component(0, 0, 0, 1, 'valve3', 'C')
     mapping = {
         1: 3,
         2: 4
     }
     plumb.add_component(pc, mapping, 'closed', {4: 50})
+    pc_vent = test.create_component(0, 0, 0, 0, 'vent', 'D')
+    mapping_vent = {
+        1: 4,
+        2: utils.ATM
+    }
+    plumb.add_component(pc_vent, mapping_vent, 'closed')
 
     negative_pressure = -20
     not_a_number = 'potato'
@@ -379,7 +385,8 @@ def test_set_pressure_errors():
         (1, {'pressure': 0}),
         (2, {'pressure': 0}),
         (3, {'pressure': 100}),
-        (4, {'pressure': 50})
+        (4, {'pressure': 50}),
+        (utils.ATM, {'pressure': 0})
     ]
 
     nonexistent_node = 5
@@ -392,15 +399,20 @@ def test_set_pressure_errors():
         (1, {'pressure': 0}),
         (2, {'pressure': 0}),
         (3, {'pressure': 100}),
-        (4, {'pressure': 100})
+        (4, {'pressure': 100}),
+        (utils.ATM, {'pressure': 0})
     ]
+
+    with pytest.raises(exceptions.BadInputError) as err:
+        plumb.set_pressure(utils.ATM, 100)
+    assert str(err.value) == f"Pressure for atmosphere node ({utils.ATM}) must be 0."
 
 
 def test_set_teq():
     old_lowest_teq = 0.2
     plumb = test.two_valve_setup(
-        0.5, old_lowest_teq, 10, utils.CLOSED_KEYWORD, 0.5, old_lowest_teq, 10,
-        utils.CLOSED_KEYWORD)
+        0.5, old_lowest_teq, 10, utils.CLOSED, 0.5, old_lowest_teq, 10,
+        utils.CLOSED)
 
     new_lowest_teq = 0.1
     which_edge = {
@@ -437,7 +449,7 @@ def test_set_teq():
 
 def test_set_teq_errors():
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     which_edge = {
         'closed': {
@@ -502,7 +514,7 @@ def test_set_teq_errors():
 
 def test_toggle_listing():
     plumb = test.two_valve_setup(
-        0.5, 0.2, 10, utils.CLOSED_KEYWORD, 0.5, 0.2, 10, utils.CLOSED_KEYWORD)
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     pc_states = {
         'open': {

@@ -19,5 +19,3 @@ def test_step():
     }
     print(utils.FC_MAX)
     print(ret)
-
-test_step()

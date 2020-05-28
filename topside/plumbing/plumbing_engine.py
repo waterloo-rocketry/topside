@@ -357,6 +357,8 @@ class PlumbingEngine:
             raise exceptions.BadInputError(f"Negative pressure {pressure} not allowed.")
         if node_name not in self.plumbing_graph:
             raise exceptions.BadInputError(f"Node {node_name} not found in graph.")
+        if node_name == utils.ATM and pressure != 0:
+            raise exceptions.BadInputError(f"Pressure for atmosphere node ({utils.ATM}) must be 0.")
 
         self.plumbing_graph.nodes[node_name]['pressure'] = pressure
 
@@ -532,6 +534,8 @@ class PlumbingEngine:
         #print(timestep)
         while time < timestep:
             for node, data in self.nodes():
+                if node == utils.ATM:
+                    continue
                 dp = 0
                 pressure = data['pressure']
                 for edge in self.plumbing_graph.out_edges(node, keys=True):
@@ -561,7 +565,7 @@ class PlumbingEngine:
 
         return new_pressures
 
-    def solve(self, min_delta=0.01, max_time=30, return_resolution=None):
+    def solve(self, min_delta=0.1, max_time=30, return_resolution=None):
         """Simulate time passing in the engine until node pressures reach steady state.
 
         The simulation proceeds until either all node pressures are no longer changing (within
