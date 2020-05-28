@@ -531,7 +531,7 @@ class PlumbingEngine:
 
         new_pressures = {}
         time = 0
-        #print(timestep)
+        # print(timestep)
         while time < timestep:
             for node, data in self.nodes():
                 if node == utils.ATM:
@@ -560,8 +560,8 @@ class PlumbingEngine:
             for node, pressure in new_pressures.items():
                 self.set_pressure(node, pressure)
             time += self.time_resolution
-            #print(new_pressures)
-            #print(time)
+            # print(new_pressures)
+            # print(time)
 
         return new_pressures
 
@@ -595,7 +595,7 @@ class PlumbingEngine:
         max_time = utils.s_to_micros(max_time)
 
         timestep = self.time_resolution
-        #print(self.time_resolution)
+        # print(self.time_resolution)
         if return_resolution is not None:
             timestep = return_resolution
 

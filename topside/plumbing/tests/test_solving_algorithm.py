@@ -42,6 +42,7 @@ def test_invalid_engine():
         plumb.step(5)
     assert str(err.value) == "Step() cannot be called on an invalid engine. Check for errors."
 
+
 def test_closed_engine():
     plumb = test.two_valve_setup(utils.CLOSED, utils.CLOSED, utils.CLOSED,
                                  utils.CLOSED, utils.CLOSED, utils.CLOSED,
@@ -76,7 +77,7 @@ def test_misc_engine():
 
     plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
     solve_len = plumb.solve(return_resolution=plumb.time_resolution)
-    assert len(solve_len) < 2* steady_by / plumb.time_resolution
+    assert len(solve_len) < 2 * steady_by / plumb.time_resolution
 
 
 # A valve between a pressurized container and atmosphere is opened
@@ -108,9 +109,11 @@ def test_1():
 
     plumb.set_pressure(1, 100)
     solve_len = plumb.solve(return_resolution=plumb.time_resolution)
-    assert len(solve_len) < 2* steady_by / plumb.time_resolution
+    assert len(solve_len) < 2 * steady_by / plumb.time_resolution
 
 # The valve between two pressure vessels at different pressures is opened
+
+
 def test_2():
     pc = test.create_component(1, 1, utils.CLOSED, utils.CLOSED, 'valve', 'A')
     mapping = {

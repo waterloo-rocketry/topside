@@ -6,6 +6,7 @@ import topside.plumbing.exceptions as exceptions
 import topside.plumbing.tests.testing_utils as test
 import topside.plumbing.plumbing_utils as utils
 
+
 def test_step():
     conn = {
         (1, 0): [(2, 100, utils.FC_MAX)],
