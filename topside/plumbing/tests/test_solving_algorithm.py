@@ -1,5 +1,4 @@
 import pytest
-
 import datatest as dt
 
 import topside as top
@@ -43,6 +42,21 @@ def test_invalid_engine():
     assert str(err.value) == "Step() cannot be called on an invalid engine. Check for errors."
 
 
+def test_step_errors():
+    plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
+
+    fl = 102482.2
+    with pytest.raises(exceptions.BadInputError) as err:
+        plumb.step(fl)
+    assert str(err.value) == f"timestep ({fl}) must be integer."
+
+    too_low = 1
+    with pytest.raises(exceptions.BadInputError) as err:
+        plumb.step(too_low)
+    assert str(err.value) ==\
+        f"timestep ({too_low}) too low, must be greater than {utils.MIN_TIME_RES_MICROS} us."
+
+
 def test_closed_engine():
     plumb = test.two_valve_setup(utils.CLOSED, utils.CLOSED, utils.CLOSED,
                                  utils.CLOSED, utils.CLOSED, utils.CLOSED,
@@ -65,19 +79,30 @@ def test_misc_engine():
     steady_by = utils.s_to_micros(1)
     converged = {1: 33, 2: 33, 3: 33}
 
-    plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
-    solve_state = plumb.solve()
-    plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
-    step_state = plumb.step(steady_by)
-    with dt.accepted.tolerance(test.SOLVE_TOL):
-        dt.validate(solve_state, step_state)
+    solve_plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
+    solve_state = solve_plumb.solve()
+    step_plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
+    step_state = step_plumb.step(steady_by)
+    len_plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
+    solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
+    test.validate_plumbing_engine(
+        steady_by, converged, solve_state, step_state, solve_len, len_plumb.time_res)
 
-    with dt.accepted.tolerance(5):
-        dt.validate(solve_state, converged)
 
-    plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
-    solve_len = plumb.solve(return_resolution=plumb.time_resolution)
-    assert len(solve_len) < 2 * steady_by / plumb.time_resolution
+def test_timeout():
+    converged = {1: 33, 2: 33, 3: 33}
+
+    big_teq = 100
+    plumb = test.two_valve_setup(
+        big_teq, big_teq, big_teq, big_teq, big_teq, big_teq, big_teq, big_teq)
+
+    solve_state = plumb.solve(max_time=1)
+    assert solve_state != converged
+
+    plumb_long = test.two_valve_setup(
+        big_teq, big_teq, big_teq, big_teq, big_teq, big_teq, big_teq, big_teq)
+    solve_len = len(plumb_long.solve(max_time=1, return_resolution=plumb_long.time_res))
+    assert solve_len == utils.s_to_micros(1)/plumb_long.time_res
 
 
 # A valve between a pressurized container and atmosphere is opened
@@ -91,29 +116,23 @@ def test_1():
     }
     pressures = {1: 100}
     default_states = {'vent': 'open'}
-    plumb = top.PlumbingEngine({'vent': pc}, mapping, pressures, default_states)
 
     steady_by = utils.s_to_micros(1)
     converged = {1: 0, utils.ATM: 0}
 
-    step_state = plumb.step(1000000)
+    step_plumb = top.PlumbingEngine({'vent': pc}, mapping, pressures, default_states)
+    step_state = step_plumb.step(int(1e6))
 
-    plumb.set_pressure(1, 100)
-    solve_state = plumb.solve()
+    solve_plumb = top.PlumbingEngine({'vent': pc}, mapping, pressures, default_states)
+    solve_state = solve_plumb.solve()
 
-    with dt.accepted.tolerance(test.SOLVE_TOL):
-        dt.validate(solve_state, step_state)
+    len_plumb = top.PlumbingEngine({'vent': pc}, mapping, pressures, default_states)
+    solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
+    test.validate_plumbing_engine(
+        steady_by, converged, solve_state, step_state, solve_len, len_plumb.time_res)
 
-    with dt.accepted.tolerance(5):
-        dt.validate(solve_state, converged)
-
-    plumb.set_pressure(1, 100)
-    solve_len = plumb.solve(return_resolution=plumb.time_resolution)
-    assert len(solve_len) < 2 * steady_by / plumb.time_resolution
 
 # The valve between two pressure vessels at different pressures is opened
-
-
 def test_2():
     pc = test.create_component(1, 1, utils.CLOSED, utils.CLOSED, 'valve', 'A')
     mapping = {
@@ -123,32 +142,26 @@ def test_2():
         }
     }
     pressures = {1: 100}
-    default_states = {'valve': 'closed'}
-    plumb = top.PlumbingEngine({'valve': pc}, mapping, pressures, default_states)
-    curr_nodes = plumb.nodes()
-    plumb.step()
-    assert curr_nodes == plumb.nodes()
+    default_states = {'valve': 'open'}
+    step_plumb = top.PlumbingEngine({'valve': pc}, mapping, pressures, default_states)
+    step_plumb.set_component_state('valve', 'closed')
+    curr_nodes = step_plumb.nodes()
+    step_plumb.step()
+    assert curr_nodes == step_plumb.nodes()
 
     steady_by = utils.s_to_micros(1)
     converged = {1: 50, 2: 50}
 
-    plumb.set_component_state('valve', 'open')
-    step_state = plumb.step(1000000)
+    step_plumb.set_component_state('valve', 'open')
+    step_state = step_plumb.step(int(1e6))
 
-    plumb.set_pressure(1, 100)
-    plumb.set_pressure(2, 0)
-    solve_state = plumb.solve()
+    solve_plumb = top.PlumbingEngine({'valve': pc}, mapping, pressures, default_states)
+    solve_state = solve_plumb.solve()
 
-    with dt.accepted.tolerance(test.SOLVE_TOL):
-        dt.validate(solve_state, step_state)
-
-    with dt.accepted.tolerance(5):
-        dt.validate(solve_state, converged)
-
-    plumb.set_pressure(1, 100)
-    plumb.set_pressure(2, 0)
-    solve_len = plumb.solve(return_resolution=plumb.time_resolution)
-    assert len(solve_len) < 2 * steady_by / plumb.time_resolution
+    len_plumb = top.PlumbingEngine({'valve': pc}, mapping, pressures, default_states)
+    solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
+    test.validate_plumbing_engine(
+        steady_by, converged, solve_state, step_state, solve_len, len_plumb.time_res)
 
 
 # The valve between a pressure vessel and atmosphere is closed
@@ -163,15 +176,7 @@ def test_3():
     pressures = {1: 100}
     default_states = {'vent': 'closed'}
     plumb = top.PlumbingEngine({'vent': pc}, mapping, pressures, default_states)
-    curr_nodes = plumb.nodes()
-    plumb.step()
-    assert curr_nodes == plumb.nodes()
-    plumb.solve()
-    assert curr_nodes == plumb.nodes()
-
-    min_iter = 2
-    solve_state = plumb.solve(return_resolution=plumb.time_resolution)
-    assert len(solve_state) == min_iter
+    test.no_change(plumb)
 
 
 # A pressure vessel is connected to the closed direction of a check valve
@@ -186,15 +191,7 @@ def test_4():
     pressures = {1: 100}
     default_states = {'check': 'closed'}
     plumb = top.PlumbingEngine({'check': pc}, mapping, pressures, default_states)
-    curr_nodes = plumb.nodes()
-    plumb.step()
-    assert curr_nodes == plumb.nodes()
-    plumb.solve()
-    assert curr_nodes == plumb.nodes()
-
-    min_iter = 2
-    solve_state = plumb.solve(return_resolution=plumb.time_resolution)
-    assert len(solve_state) == min_iter
+    test.no_change(plumb)
 
 
 # A pressure vessel is connected to the open direction of a check valve
@@ -208,27 +205,20 @@ def test_5():
     }
     pressures = {1: 100}
     default_states = {'check': 'open'}
-    plumb = top.PlumbingEngine({'check': pc}, mapping, pressures, default_states)
 
     steady_by = utils.s_to_micros(1)
     converged = {1: 50, 2: 50}
 
-    step_state = plumb.step(1000000)
+    step_plumb = top.PlumbingEngine({'check': pc}, mapping, pressures, default_states)
+    step_state = step_plumb.step(int(1e6))
 
-    plumb.set_pressure(1, 100)
-    plumb.set_pressure(2, 0)
-    solve_state = plumb.solve()
+    solve_plumb = top.PlumbingEngine({'check': pc}, mapping, pressures, default_states)
+    solve_state = solve_plumb.solve()
 
-    with dt.accepted.tolerance(test.SOLVE_TOL):
-        dt.validate(solve_state, step_state)
-
-    with dt.accepted.tolerance(5):
-        dt.validate(solve_state, converged)
-
-    plumb.set_pressure(1, 100)
-    plumb.set_pressure(2, 0)
-    solve_len = plumb.solve(return_resolution=plumb.time_resolution)
-    assert len(solve_len) < 2 * steady_by / plumb.time_resolution
+    len_plumb = top.PlumbingEngine({'check': pc}, mapping, pressures, default_states)
+    solve_len = len_plumb.solve(return_resolution=len_plumb.time_res)
+    test.validate_plumbing_engine(
+        steady_by, converged, solve_state, step_state, solve_len, len_plumb.time_res)
 
 
 # Fluid flows through a three-way valve (one way open, one way closed)
@@ -255,24 +245,17 @@ def test_6():
         2: 0,
         3: 0
     }
-    plumb = top.PlumbingEngine({'three': pc}, mapping, pressures, {'three': 'open'})
 
     steady_by = utils.s_to_micros(1)
     converged = {1: 50, 2: 50, 3: 0}
 
-    step_state = plumb.step(1000000)
+    step_plumb = top.PlumbingEngine({'three': pc}, mapping, pressures, {'three': 'open'})
+    step_state = step_plumb.step(int(1e6))
 
-    plumb.set_pressure(1, 100)
-    plumb.set_pressure(2, 0)
-    solve_state = plumb.solve()
+    solve_plumb = top.PlumbingEngine({'three': pc}, mapping, pressures, {'three': 'open'})
+    solve_state = solve_plumb.solve()
 
-    with dt.accepted.tolerance(test.SOLVE_TOL):
-        dt.validate(solve_state, step_state)
-
-    with dt.accepted.tolerance(5):
-        dt.validate(solve_state, converged)
-
-    plumb.set_pressure(1, 100)
-    plumb.set_pressure(2, 0)
-    solve_len = plumb.solve(return_resolution=plumb.time_resolution)
-    assert len(solve_len) < 2 * steady_by / plumb.time_resolution
+    len_plumb = top.PlumbingEngine({'three': pc}, mapping, pressures, {'three': 'open'})
+    solve_len = len_plumb.solve(return_resolution=len_plumb.time_res)
+    test.validate_plumbing_engine(
+        steady_by, converged, solve_state, step_state, solve_len, len_plumb.time_res)

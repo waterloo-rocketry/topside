@@ -1,6 +1,6 @@
 DEFAULT_TIME_RESOLUTION_MICROS = 10000
 DEFAULT_RESOLUTION_SCALE = 20
-MIN_TIME_RES_MICROS = 1
+MIN_TIME_RES_MICROS = 100
 TEQ_MIN = MIN_TIME_RES_MICROS * DEFAULT_RESOLUTION_SCALE
 FC_MAX = 4.5 / TEQ_MIN
 CLOSED = 'closed'
@@ -31,7 +31,7 @@ def micros_to_s(micros):
 
 
 def s_to_micros(sec):
-    return sec * 1e6
+    return int(sec * 1e6)
 
 
 def flatten(args, unpack_tuples=True):

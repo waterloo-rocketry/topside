@@ -10,7 +10,7 @@ import topside.plumbing.plumbing_utils as utils
 def test_empty_graph():
     plumb = top.PlumbingEngine()
 
-    assert plumb.time_resolution == utils.DEFAULT_TIME_RESOLUTION_MICROS
+    assert plumb.time_res == utils.DEFAULT_TIME_RESOLUTION_MICROS
     assert not plumb.edges()
     assert not plumb.nodes()
 
@@ -20,7 +20,7 @@ def test_open_closed_valves():
         0, 0, utils.CLOSED, utils.CLOSED,
         0, 0, utils.CLOSED, utils.CLOSED)
 
-    assert plumb.time_resolution == utils.DEFAULT_TIME_RESOLUTION_MICROS
+    assert plumb.time_res == utils.DEFAULT_TIME_RESOLUTION_MICROS
     assert plumb.edges() == [
         (1, 2, 'valve1.A1', {'FC': 0}),
         (2, 1, 'valve1.A2', {'FC': 0}),
@@ -40,7 +40,7 @@ def test_arbitrary_states():
     plumb = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
-    assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
+    assert plumb.time_res == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert plumb.edges() == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
         (2, 1, 'valve1.A2', {'FC': 0}),
@@ -65,7 +65,7 @@ def test_load_graph_to_empty():
     plumb = top.PlumbingEngine()
     plumb.load_graph(plumb0.component_dict, plumb0.mapping, pressures, default_states)
 
-    assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
+    assert plumb.time_res == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert plumb.edges() == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
         (2, 1, 'valve1.A2', {'FC': 0}),
@@ -92,7 +92,7 @@ def test_replace_graph():
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     plumb.load_graph(plumb0.component_dict, plumb0.mapping, pressures, default_states)
 
-    assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
+    assert plumb.time_res == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert plumb.edges() == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
         (2, 1, 'valve1.A2', {'FC': 0}),

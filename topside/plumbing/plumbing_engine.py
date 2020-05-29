@@ -48,7 +48,7 @@ class PlumbingEngine:
         if not initial_states:
             initial_states = {}
 
-        self.time_resolution = utils.DEFAULT_TIME_RESOLUTION_MICROS
+        self.time_res = utils.DEFAULT_TIME_RESOLUTION_MICROS
         self.plumbing_graph = nx.MultiDiGraph()
         self.error_set = set()
         self.load_graph(components, mapping, initial_nodes, initial_states)
@@ -84,6 +84,7 @@ class PlumbingEngine:
         self.mapping = copy.deepcopy(mapping)
         self.plumbing_graph.clear()
         self.error_set.clear()
+        self.time = 0
         initial_nodes = copy.deepcopy(initial_nodes)
         initial_states = copy.deepcopy(initial_states)
 
@@ -171,9 +172,9 @@ class PlumbingEngine:
         # Set FC on main graph according to new dict
         nx.classes.function.set_edge_attributes(self.plumbing_graph, state_edges_graph, 'FC')
 
-    def _set_time_resolution(self, component_name):
+    def _set_time_res(self, component_name):
         """Given a component, set a time resolution based on its lowest teq (highest FC)."""
-        max_fc = utils.teq_to_FC(self.time_resolution * utils.DEFAULT_RESOLUTION_SCALE)
+        max_fc = utils.teq_to_FC(self.time_res * utils.DEFAULT_RESOLUTION_SCALE)
         component_states = (self.component_dict[component_name]).states
         for state in component_states.values():
             for fc in state.values():
@@ -181,7 +182,7 @@ class PlumbingEngine:
                 if fc != utils.FC_MAX and fc > max_fc:
                     max_fc = fc
         if max_fc:
-            self.time_resolution = int(utils.FC_to_teq(max_fc) / utils.DEFAULT_RESOLUTION_SCALE)
+            self.time_res = int(utils.FC_to_teq(max_fc) / utils.DEFAULT_RESOLUTION_SCALE)
 
     def add_component(self, component, mapping, state_id, pressures=None, fail_silently=False):
         """
@@ -223,7 +224,7 @@ class PlumbingEngine:
         # Updating the plumbing engine's records about itself with new component
         self.component_dict[name] = component
         self.mapping[name] = copy.deepcopy(mapping)
-        self._set_time_resolution(name)
+        self._set_time_res(name)
 
         # Adding and connecting new nodes to main graph as necessary
         for start_node, end_node, edge_key in component_graph.edges(keys=True):
@@ -304,9 +305,9 @@ class PlumbingEngine:
         if component_name in self.mapping:
             del self.mapping[component_name]
         del self.component_dict[input_component_name]
-        self.time_resolution = utils.DEFAULT_TIME_RESOLUTION_MICROS
+        self.time_res = utils.DEFAULT_TIME_RESOLUTION_MICROS
         for name in self.component_dict.keys():
-            self._set_time_resolution(name)
+            self._set_time_res(name)
 
     def _resolve_errors(self, component_name):
         """Resolve all errors associated with a certain component."""
@@ -400,7 +401,7 @@ class PlumbingEngine:
         if component.current_state in which_edge.keys():
             self.set_component_state(component_name, component.current_state)
 
-        self._set_time_resolution(component_name)
+        self._set_time_res(component_name)
 
     def list_toggles(self):
         """Return a list of toggleable components (by name)."""
@@ -506,8 +507,8 @@ class PlumbingEngine:
         timestep: int
             timestep is the time, in microseconds, that we allow to elapse before
             returning the new state of node pressures in the graph. If unspecified, it defaults
-            to the engine's current automatic time_resolution. If timestep is lower than the current
-            time_resolution, time_resolution will be set to timestep and timestep will be used for
+            to the engine's current automatic time_res. If timestep is lower than the current
+            time_res, time_res will be set to timestep and timestep will be used for
             calculations; however timestep must still be greater than MIN_TIME_RES. If not, an error
             will be raised.
 
@@ -521,17 +522,19 @@ class PlumbingEngine:
                 "Step() cannot be called on an invalid engine. Check for errors.")
 
         if timestep is None:
-            timestep = self.time_resolution
+            timestep = self.time_res
         if timestep < utils.MIN_TIME_RES_MICROS:
             raise exceptions.BadInputError(
-                f"timestep ({timestep}) too low, must be greater than"
-                "{utils.MIN_TIME_RES_MICROS} us.")
-        if timestep < self.time_resolution:
-            self.time_resolution = timestep
+                f"timestep ({timestep}) too low, must be greater than "
+                f"{utils.MIN_TIME_RES_MICROS} us.")
+        if timestep < self.time_res:
+            self.time_res = timestep
+        if not isinstance(timestep, int):
+            raise exceptions.BadInputError(f"timestep ({timestep}) must be integer.")
 
         new_pressures = {}
-        time = 0
-        while time < timestep:
+        max_time = self.time + timestep
+        while self.time < max_time:
             for node, data in self.nodes():
                 if node == utils.ATM:
                     continue
@@ -549,12 +552,13 @@ class PlumbingEngine:
                     if pressure < npressure:
                         fc = self.current_FC(edge)
                         dp += fc * (npressure - pressure)
-                new_pressures[node] = pressure + dp*self.time_resolution
+                new_pressures[node] = pressure + dp*self.time_res
 
             for node, pressure in new_pressures.items():
                 self.set_pressure(node, pressure)
-            time += self.time_resolution
+            self.time += self.time_res
 
+        self.time = max_time
         return new_pressures
 
     def solve(self, min_delta=0.1, max_time=30, return_resolution=None):
@@ -569,7 +573,7 @@ class PlumbingEngine:
         ----------
 
         min_delta: float
-            min_delta is the minimum delta pressure over time (pa/s) for the simulation to keep
+            min_delta is the minimum delta pressure over time (Pa/s) for the simulation to keep
             going. If after any step all nodes have had a lower dp/t, then the engine is considered
             to be in steady state and the simulation will end.
 
@@ -582,19 +586,19 @@ class PlumbingEngine:
             pressures will be taken (and returned). If set to None, only a {node: pressure} dict of
             the final state will be returned. return_resolution must be greater than
             MIN_TIME_RESOLUTION, otherwise an error will be raised. If less than
-            self.time_resolution, time_resolution will be set to return_resolution.
+            self.time_res, time_res will be set to return_resolution.
         """
-        max_time = utils.s_to_micros(max_time)
+        max_time = self.time + utils.s_to_micros(max_time)
 
-        timestep = self.time_resolution
+        timestep = self.time_res
         if return_resolution is not None:
             timestep = return_resolution
 
         all_states = []
-        time = 0
-        while not utils.all_converged(all_states, timestep, min_delta) and time < max_time:
+        while not utils.all_converged(all_states, timestep, min_delta) and self.time < max_time:
             all_states.append(self.step(timestep))
-            time += timestep
+
+        self.time = max_time
 
         if return_resolution is None:
             return all_states[-1]

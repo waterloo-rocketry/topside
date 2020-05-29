@@ -19,7 +19,7 @@ def test_add_to_empty():
     plumb.add_component(pc, mapping, 'open', {1: 20})
 
     assert plumb.is_valid()
-    assert plumb.time_resolution == utils.DEFAULT_TIME_RESOLUTION_MICROS
+    assert plumb.time_res == utils.DEFAULT_TIME_RESOLUTION_MICROS
     assert plumb.edges() == [
         (1, 2, 'valve.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(2))}),
         (2, 1, 'valve.A2', {'FC': 0})
@@ -44,7 +44,7 @@ def test_add_component():
     plumb.add_component(pc, mapping, 'closed', {4: 50})
 
     assert plumb.is_valid()
-    assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
+    assert plumb.time_res == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert plumb.edges() == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
         (2, 1, 'valve1.A2', {'FC': 0}),
@@ -114,7 +114,7 @@ def test_remove_component():
     plumb.remove_component('valve2')
 
     assert plumb.is_valid()
-    assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
+    assert plumb.time_res == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert plumb.edges() == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
         (2, 1, 'valve1.A2', {'FC': 0}),
@@ -141,13 +141,13 @@ def test_add_remove():
 
     plumb.add_component(pc, mapping, 'closed', {4: 50})
 
-    assert plumb.time_resolution ==\
+    assert plumb.time_res ==\
         int(utils.s_to_micros(new_lowest_teq) / utils.DEFAULT_RESOLUTION_SCALE)
 
     plumb.remove_component('valve3')
 
     assert plumb.is_valid()
-    assert plumb.time_resolution ==\
+    assert plumb.time_res ==\
         int(utils.s_to_micros(old_lowest_teq) / utils.DEFAULT_RESOLUTION_SCALE)
     assert plumb.edges() == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
@@ -196,7 +196,7 @@ def test_remove_add_errors():
     plumb.remove_component(name)
 
     assert plumb.is_valid()
-    assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
+    assert plumb.time_res == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert plumb.edges() == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
         (2, 1, 'valve1.A2', {'FC': 0}),
@@ -250,7 +250,7 @@ def test_remove_errors_wrong_component_name():
     plumb.remove_component(wrong_component_name)
 
     assert plumb.is_valid()
-    assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
+    assert plumb.time_res == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert plumb.edges() == [
         (2, 3, 'valve2.B1', {'FC': utils.teq_to_FC(utils.s_to_micros(0))}),
         (3, 2, 'valve2.B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0))}),
@@ -268,7 +268,7 @@ def test_reverse_orientation():
     plumb.reverse_orientation('valve1')
 
     assert plumb.is_valid()
-    assert plumb.time_resolution == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
+    assert plumb.time_res == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert plumb.edges() == [
         (1, 2, 'valve1.A1', {'FC': 0}),
         (2, 1, 'valve1.A2', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
@@ -427,7 +427,7 @@ def test_set_teq():
 
     plumb.set_teq('valve1', which_edge)
 
-    assert plumb.time_resolution ==\
+    assert plumb.time_res ==\
         int(utils.s_to_micros(new_lowest_teq) / utils.DEFAULT_RESOLUTION_SCALE)
     assert plumb.edges() == [
         (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(7))}),
