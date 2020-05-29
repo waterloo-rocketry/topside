@@ -55,7 +55,7 @@ def validate_plumbing_engine(steady_by, converged, solve_state, step_state, solv
     assert solve_len < 2 * steady_by / time_res
 
 
-def no_change(plumb):
+def assert_no_change(plumb):
     curr_nodes = plumb.nodes()
     plumb.step()
     assert curr_nodes == plumb.nodes()

@@ -49,6 +49,7 @@ class PlumbingEngine:
             initial_states = {}
 
         self.time_res = utils.DEFAULT_TIME_RESOLUTION_MICROS
+        self.time = 0
         self.plumbing_graph = nx.MultiDiGraph()
         self.error_set = set()
         self.load_graph(components, mapping, initial_nodes, initial_states)
@@ -84,7 +85,6 @@ class PlumbingEngine:
         self.mapping = copy.deepcopy(mapping)
         self.plumbing_graph.clear()
         self.error_set.clear()
-        self.time = 0
         initial_nodes = copy.deepcopy(initial_nodes)
         initial_states = copy.deepcopy(initial_states)
 
@@ -529,12 +529,15 @@ class PlumbingEngine:
                 f"{utils.MIN_TIME_RES_MICROS} us.")
         if timestep < self.time_res:
             self.time_res = timestep
-        if not isinstance(timestep, int):
+        if int(timestep) != timestep:
             raise exceptions.BadInputError(f"timestep ({timestep}) must be integer.")
 
         new_pressures = {}
         max_time = self.time + timestep
         while self.time < max_time:
+            time_res = self.time_res
+            if self.time + self.time_res > max_time:
+                time_res = max_time - self.time
             for node, data in self.nodes():
                 if node == utils.ATM:
                     continue
@@ -552,13 +555,12 @@ class PlumbingEngine:
                     if pressure < npressure:
                         fc = self.current_FC(edge)
                         dp += fc * (npressure - pressure)
-                new_pressures[node] = pressure + dp*self.time_res
+                new_pressures[node] = pressure + dp*time_res
 
             for node, pressure in new_pressures.items():
                 self.set_pressure(node, pressure)
-            self.time += self.time_res
+            self.time += time_res
 
-        self.time = max_time
         return new_pressures
 
     def solve(self, min_delta=0.1, max_time=30, return_resolution=None):
@@ -597,8 +599,6 @@ class PlumbingEngine:
         all_states = []
         while not utils.all_converged(all_states, timestep, min_delta) and self.time < max_time:
             all_states.append(self.step(timestep))
-
-        self.time = max_time
 
         if return_resolution is None:
             return all_states[-1]

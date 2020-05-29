@@ -92,7 +92,7 @@ def test_flatten_mixed():
 def test_converged():
     p1 = 100
     p2 = 101
-    dt = 1000000
+    dt = 1e6
     eps = 2
     assert utils.converged(p1, p2, dt, eps)
     assert utils.converged(p2, p1, dt, eps)
@@ -112,7 +112,7 @@ def test_all_converged():
             2: -1
         }
     ]
-    assert utils.all_converged(converged, 1000000, 2)
+    assert utils.all_converged(converged, 1e6, 2)
 
     not_converged = [
         {
@@ -123,7 +123,7 @@ def test_all_converged():
             2: 50
         }
     ]
-    assert not utils.all_converged(not_converged, 1000000, 2)
+    assert not utils.all_converged(not_converged, 1e6, 2)
 
     too_short = [
         {
@@ -131,4 +131,4 @@ def test_all_converged():
             2: 0
         }
     ]
-    assert not utils.all_converged(too_short, 1000000, 2)
+    assert not utils.all_converged(too_short, 1e6, 2)

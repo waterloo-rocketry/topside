@@ -6,8 +6,6 @@ FC_MAX = 4.5 / TEQ_MIN
 CLOSED = 'closed'
 ATM = 'atm'
 
-# TODO(wendi): provide functions for querying these min/max values
-
 
 def teq_to_FC(teq):
     if teq == 0:

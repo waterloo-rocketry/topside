@@ -121,7 +121,7 @@ def test_1():
     converged = {1: 0, utils.ATM: 0}
 
     step_plumb = top.PlumbingEngine({'vent': pc}, mapping, pressures, default_states)
-    step_state = step_plumb.step(int(1e6))
+    step_state = step_plumb.step(1e6)
 
     solve_plumb = top.PlumbingEngine({'vent': pc}, mapping, pressures, default_states)
     solve_state = solve_plumb.solve()
@@ -153,7 +153,7 @@ def test_2():
     converged = {1: 50, 2: 50}
 
     step_plumb.set_component_state('valve', 'open')
-    step_state = step_plumb.step(int(1e6))
+    step_state = step_plumb.step(1e6)
 
     solve_plumb = top.PlumbingEngine({'valve': pc}, mapping, pressures, default_states)
     solve_state = solve_plumb.solve()
@@ -176,7 +176,7 @@ def test_3():
     pressures = {1: 100}
     default_states = {'vent': 'closed'}
     plumb = top.PlumbingEngine({'vent': pc}, mapping, pressures, default_states)
-    test.no_change(plumb)
+    test.assert_no_change(plumb)
 
 
 # A pressure vessel is connected to the closed direction of a check valve
@@ -191,7 +191,7 @@ def test_4():
     pressures = {1: 100}
     default_states = {'check': 'closed'}
     plumb = top.PlumbingEngine({'check': pc}, mapping, pressures, default_states)
-    test.no_change(plumb)
+    test.assert_no_change(plumb)
 
 
 # A pressure vessel is connected to the open direction of a check valve
@@ -210,13 +210,13 @@ def test_5():
     converged = {1: 50, 2: 50}
 
     step_plumb = top.PlumbingEngine({'check': pc}, mapping, pressures, default_states)
-    step_state = step_plumb.step(int(1e6))
+    step_state = step_plumb.step(1e6)
 
     solve_plumb = top.PlumbingEngine({'check': pc}, mapping, pressures, default_states)
     solve_state = solve_plumb.solve()
 
     len_plumb = top.PlumbingEngine({'check': pc}, mapping, pressures, default_states)
-    solve_len = len_plumb.solve(return_resolution=len_plumb.time_res)
+    solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
     test.validate_plumbing_engine(
         steady_by, converged, solve_state, step_state, solve_len, len_plumb.time_res)
 
@@ -250,12 +250,12 @@ def test_6():
     converged = {1: 50, 2: 50, 3: 0}
 
     step_plumb = top.PlumbingEngine({'three': pc}, mapping, pressures, {'three': 'open'})
-    step_state = step_plumb.step(int(1e6))
+    step_state = step_plumb.step(1e6)
 
     solve_plumb = top.PlumbingEngine({'three': pc}, mapping, pressures, {'three': 'open'})
     solve_state = solve_plumb.solve()
 
     len_plumb = top.PlumbingEngine({'three': pc}, mapping, pressures, {'three': 'open'})
-    solve_len = len_plumb.solve(return_resolution=len_plumb.time_res)
+    solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
     test.validate_plumbing_engine(
         steady_by, converged, solve_state, step_state, solve_len, len_plumb.time_res)
