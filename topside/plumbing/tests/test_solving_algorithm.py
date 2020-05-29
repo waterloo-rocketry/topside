@@ -50,7 +50,7 @@ def test_step_errors():
         plumb.step(fl)
     assert str(err.value) == f"timestep ({fl}) must be integer."
 
-    too_low = 1
+    too_low = 0
     with pytest.raises(exceptions.BadInputError) as err:
         plumb.step(too_low)
     assert str(err.value) ==\
