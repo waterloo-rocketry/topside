@@ -56,6 +56,9 @@ def test_step_errors():
     assert str(err.value) ==\
         f"timestep ({too_low}) too low, must be greater than {utils.MIN_TIME_RES_MICROS} us."
 
+    # This shouldn't raise an error, even though 10.0 is a float
+    plumb.step(1000.0)
+
 
 def test_closed_engine():
     plumb = test.two_valve_setup(utils.CLOSED, utils.CLOSED, utils.CLOSED,
