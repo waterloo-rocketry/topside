@@ -1,5 +1,4 @@
 import datatest as dt
-import pytest
 
 import topside as top
 
@@ -45,7 +44,8 @@ def two_valve_setup(vAs1_1, vAs1_2, vAs2_1, vAs2_2, vBs1_1, vBs1_2, vBs2_1, vBs2
     return plumb
 
 
-def validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged, solve_state, step_state, solve_len, time_res):
+def validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged, solve_state, step_state,
+                             solve_len, time_res):
     with dt.accepted.tolerance(SOLVE_TOL):
         dt.validate(solve_state, step_state, converged)
 

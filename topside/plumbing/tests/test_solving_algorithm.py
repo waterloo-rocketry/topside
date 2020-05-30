@@ -1,5 +1,4 @@
 import pytest
-import datatest as dt
 
 import topside as top
 import topside.plumbing.exceptions as exceptions
