@@ -88,8 +88,8 @@ def test_misc_engine():
     step_state = step_plumb.step(steady_by)
     len_plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
     solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
-    test.validate_plumbing_engine(
-        steady_by, converged, solve_state, step_state, solve_len, len_plumb.time_res)
+    test.validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged, 
+                                  solve_state, step_state, solve_len, len_plumb.time_res)
 
 
 def test_timeout():
@@ -131,8 +131,8 @@ def test_1():
 
     len_plumb = top.PlumbingEngine({'vent': pc}, mapping, pressures, default_states)
     solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
-    test.validate_plumbing_engine(
-        steady_by, converged, solve_state, step_state, solve_len, len_plumb.time_res)
+    test.validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged,
+                                  solve_state, step_state, solve_len, len_plumb.time_res)
 
 
 # The valve between two pressure vessels at different pressures is opened
@@ -163,8 +163,8 @@ def test_2():
 
     len_plumb = top.PlumbingEngine({'valve': pc}, mapping, pressures, default_states)
     solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
-    test.validate_plumbing_engine(
-        steady_by, converged, solve_state, step_state, solve_len, len_plumb.time_res)
+    test.validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged, 
+                                  solve_state, step_state, solve_len, len_plumb.time_res)
 
 
 # The valve between a pressure vessel and atmosphere is closed
@@ -220,8 +220,8 @@ def test_5():
 
     len_plumb = top.PlumbingEngine({'check': pc}, mapping, pressures, default_states)
     solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
-    test.validate_plumbing_engine(
-        steady_by, converged, solve_state, step_state, solve_len, len_plumb.time_res)
+    test.validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged, 
+                                  solve_state, step_state, solve_len, len_plumb.time_res)
 
 
 # Fluid flows through a three-way valve (one way open, one way closed)
@@ -260,5 +260,5 @@ def test_6():
 
     len_plumb = top.PlumbingEngine({'three': pc}, mapping, pressures, {'three': 'open'})
     solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
-    test.validate_plumbing_engine(
-        steady_by, converged, solve_state, step_state, solve_len, len_plumb.time_res)
+    test.validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged, 
+                                  solve_state, step_state, solve_len, len_plumb.time_res)

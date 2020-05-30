@@ -561,7 +561,7 @@ class PlumbingEngine:
                 self.set_pressure(node, pressure)
             self.time += time_res
 
-        return new_pressures
+        return self.current_pressures()
 
     def solve(self, min_delta=0.1, max_time=30, return_resolution=None):
         """Simulate time passing in the engine until node pressures reach steady state.
