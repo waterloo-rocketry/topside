@@ -18,8 +18,8 @@ def one_component_engine():
             (2, 1, 'A2'): 1
         },
         'closed': {
-            (1, 2, 'A1'): top.CLOSED_KEYWORD,
-            (2, 1, 'A2'): top.CLOSED_KEYWORD
+            (1, 2, 'A1'): top.CLOSED,
+            (2, 1, 'A2'): top.CLOSED
         },
         'halfway_open': {
             (1, 2, 'A1'): 100,

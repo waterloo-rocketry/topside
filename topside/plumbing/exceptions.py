@@ -4,3 +4,7 @@ class BadInputError(Exception):
 
 class InvalidComponentError(Exception):
     pass
+
+
+class InvalidEngineError(Exception):
+    pass

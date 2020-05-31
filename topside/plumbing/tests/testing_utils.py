@@ -1,4 +1,8 @@
+import datatest as dt
+
 import topside as top
+
+SOLVE_TOL = 1
 
 
 def create_component(s1v1, s1v2, s2v1, s2v2, name, key):
@@ -38,3 +42,26 @@ def two_valve_setup(vAs1_1, vAs1_2, vAs2_1, vAs2_2, vBs1_1, vBs1_2, vBs2_1, vBs2
         {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
 
     return plumb
+
+
+def validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged, solve_state, step_state,
+                             solve_len, time_res):
+    with dt.accepted.tolerance(SOLVE_TOL):
+        dt.validate(solve_state, step_state, converged)
+
+    assert step_plumb.current_pressures() == step_state
+    assert solve_plumb.current_pressures() == solve_state
+
+    assert solve_len < 2 * steady_by / time_res
+
+
+def assert_no_change(plumb):
+    curr_nodes = plumb.nodes()
+    plumb.step()
+    assert curr_nodes == plumb.nodes()
+    plumb.solve()
+    assert curr_nodes == plumb.nodes()
+
+    min_iter = 2
+    solve_state = plumb.solve(return_resolution=plumb.time_res)
+    assert len(solve_state) == min_iter

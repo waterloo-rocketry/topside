@@ -21,7 +21,7 @@ def two_edge_states_edges(s1e1, s1e2, s2e1, s2e2):
 
 def test_plumbing_component_setup():
     pc1_states, pc1_edges = two_edge_states_edges(
-        0, 0, utils.CLOSED_KEYWORD, utils.CLOSED_KEYWORD)
+        0, 0, utils.CLOSED, utils.CLOSED)
     pc1 = top.PlumbingComponent('valve1', pc1_states, pc1_edges)
 
     assert pc1.current_state is None
@@ -69,7 +69,7 @@ def test_invalid_keyword():
     assert len(pc.errors()) == 1
 
     error = invalid.InvalidTeq(
-        f"Invalid provided teq value ('potato'), accepted keyword is: '{utils.CLOSED_KEYWORD}'",
+        f"Invalid provided teq value ('potato'), accepted keyword is: '{utils.CLOSED}'",
         'valve', 'closed', (2, 1, 'A2'), wrong_keyword_teq)
 
     assert error in pc.errors()
@@ -136,7 +136,7 @@ def test_multiple_errors():
 
     error2 = invalid.InvalidTeq(
         f"Invalid provided teq value ('{wrong_keyword_teq}'),"
-        f" accepted keyword is: '{utils.CLOSED_KEYWORD}'",
+        f" accepted keyword is: '{utils.CLOSED}'",
         'valve', 'closed', (2, 1, 'A2'), wrong_keyword_teq)
 
     assert error1 in pc.errors()
