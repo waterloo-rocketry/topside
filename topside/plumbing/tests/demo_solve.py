@@ -5,12 +5,12 @@ import topside.plumbing.tests.testing_utils as test
 import topside.plumbing.plumbing_utils as utils
 
 def make_plumb():
-    '''
+    """
     The engine that's been set up looks like this:
     +-----+           +-----+           +-----+           +-----+
-    |     |  --C-->   |     |  --50->   |     |  --5-->   |     |
+    |     |  --C-->   |     |  --40->   |     |  --5-->   |     |
     |  1  |           |  2  |           |  3  |           | atm |
-    |     |  <-10--   |     |  <--55--  |     |  <--5--   |     |
+    |     |  <-10--   |     |  <-45--   |     |  <-5---   |     |
     +-----+           +-----+           +-----+           +-----+
     100               100                100                 0
 
@@ -24,9 +24,9 @@ def make_plumb():
 
     - pressure at atm stays at 0, because pressure at atm is always 0.
 
-    '''
+    """
 
-    ret = test.two_valve_setup(1, 1, utils.CLOSED, 10, 50, 55, 1, 1)
+    ret = test.two_valve_setup(1, 1, utils.CLOSED, 10, 40, 45, 1, 1)
     comp = test.create_component(5, 5, utils.CLOSED, utils.CLOSED, 'vent', 'A')
     mapping = {
         1: 3,
@@ -38,9 +38,7 @@ def make_plumb():
     return ret
 
 def make_plot(states, time_res, nodes):
-    node_pressures = {}
-    for node in nodes:
-        node_pressures[node] = []
+    node_pressures = {node: [] for node in nodes}
 
     t = []
     time = 0
@@ -58,16 +56,16 @@ def make_plot(states, time_res, nodes):
 
 plumb = make_plumb()
 
-solve_states = plumb.solve(return_resolution=plumb.time_res)
+solve_states = plumb.solve(max_time=60, return_resolution=plumb.time_res)
 
 tlist, node_p = make_plot(solve_states, plumb.time_res, plumb.nodes(data=False))
 
 for name, pressures in node_p.items():
-    plt.plot(tlist, pressures, label="node " + str(name))
+    plt.plot(tlist, pressures, label='node ' + str(name))
 
-plt.xlabel("Time (s)")
-plt.ylabel("Pressure (Pa)")
-plt.suptitle("Pressure Simulation")
+plt.xlabel('Time (s)')
+plt.ylabel('Pressure (Pa)')
+plt.suptitle('Pressure Simulation')
 plt.grid(color='lightgrey')
 plt.xlim(0, tlist[-1])
 plt.ylim(-1, 101)
