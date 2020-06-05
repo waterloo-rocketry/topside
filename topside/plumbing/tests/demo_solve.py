@@ -4,6 +4,7 @@ import topside as top
 import topside.plumbing.tests.testing_utils as test
 import topside.plumbing.plumbing_utils as utils
 
+
 def make_plumb():
     """
     The engine that's been set up looks like this:
@@ -37,6 +38,7 @@ def make_plumb():
     ret.set_pressure(2, 100)
     return ret
 
+
 def make_plot(states, time_res, nodes):
     node_pressures = {node: [] for node in nodes}
 
@@ -51,7 +53,6 @@ def make_plot(states, time_res, nodes):
             node_pressures[node].append(pres)
 
     return t, node_pressures
-
 
 
 plumb = make_plumb()
