@@ -60,6 +60,7 @@ class ProceduresEngine:
     A Procedure is a graph where nodes are ProcedureSteps and edges
     represent transitions between these steps.
     """
+
     def __init__(self, plumbing_engine=None, procedure=None, initial_step=None):
         """
         Initialize the ProceduresEngine.
@@ -92,7 +93,19 @@ class ProceduresEngine:
 
     def execute(self, action):
         """Execute an action on the managed PlumbingEngine."""
-        self._plumb.set_component_state(action.component, action.state)
+        if action is not None:
+            self._plumb.set_component_state(action.component, action.state)
+
+    def update_conditions(self):
+        """
+        Update all current conditions by querying the managed plumbing engine.
+        """
+        time = self._plumb.time
+        pressures = self._plumb.current_pressures()
+        state = {'time': time, 'pressures': pressures}
+
+        for condition in self.current_step.conditions.keys():
+            condition.update(state)
 
     def ready_to_advance(self):
         """
@@ -118,3 +131,17 @@ class ProceduresEngine:
                 self.current_step = self._procedure[next_step_id]
                 self.execute(self.current_step.action)
                 break
+
+    def step(self, timestep=None):
+        """
+        Step the managed plumbing engine in time and update conditions.
+
+        Parameters
+        ==========
+
+        timestep: int
+            The number of microseconds that the managed plumbing engine
+            should be stepped in time by.
+        """
+        self._plumb.step(timestep)
+        self.update_conditions()
