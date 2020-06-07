@@ -39,7 +39,7 @@ def one_component_engine():
     return top.PlumbingEngine({'c1': c1}, mapping, pressures, initial_states)
 
 
-def linear_procedure_immediate():
+def linear_procedure():
     open_action = top.Action('c1', 'open')
     close_action = top.Action('c1', 'closed')
 
@@ -107,7 +107,7 @@ def test_execute_custom_action():
 
 
 def test_ready_to_advance_if_condition_satisfied():
-    proc_eng = top.ProceduresEngine(None, linear_procedure_immediate(), 's1')
+    proc_eng = top.ProceduresEngine(None, linear_procedure(), 's1')
 
     assert proc_eng.ready_to_advance() is True
 
@@ -126,7 +126,7 @@ def test_ready_to_advance_no_options():
 
 def test_next_step_immediate():
     plumb_eng = one_component_engine()
-    proc_eng = top.ProceduresEngine(plumb_eng, linear_procedure_immediate(), 's1')
+    proc_eng = top.ProceduresEngine(plumb_eng, linear_procedure(), 's1')
 
     assert proc_eng.current_step.step_id == 's1'
     assert plumb_eng.current_state('c1') == 'closed'
@@ -216,7 +216,7 @@ def test_step_advances_time_equally():
 
     unmanaged_eng = copy.deepcopy(managed_eng)
 
-    proc_eng = top.ProceduresEngine(managed_eng, linear_procedure_immediate(), 's1')
+    proc_eng = top.ProceduresEngine(managed_eng, linear_procedure(), 's1')
 
     assert managed_eng.current_pressures() == unmanaged_eng.current_pressures()
 
