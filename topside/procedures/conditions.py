@@ -9,6 +9,92 @@ class Immediate:
         return True
 
 
+class And:
+    """
+    Condition representing a logical AND of multiple other conditions.
+    """
+    
+    def __init__(self, conditions):
+        """
+        Initialize the condition.
+
+        Parameters
+        ----------
+
+        conditions: list
+            A list of conditions that must all be satisfied for this
+            condition to be satisfied.
+        """
+        self._conditions = conditions
+
+    def update(self, state):
+        """
+        Update all conditions with the latest state.
+
+        Parameters
+        ==========
+
+        state: dict
+            state is expected to contain all information necessary for
+            each condition to properly update. In most cases, this will
+            mean either a `time` item or a `pressures` item.
+        """
+        for cond in self._conditions:
+            cond.update(state)
+
+    def satisfied(self):
+        """
+        Return True if all conditions are satisfied and False otherwise.
+        """
+        for cond in self._conditions:
+            if not cond.satisfied():
+                return False
+        return True
+
+
+class Or:
+    """
+    Condition representing a logical OR of multiple other conditions.
+    """
+
+    def __init__(self, conditions):
+        """
+        Initialize the condition.
+
+        Parameters
+        ----------
+
+        conditions: list
+            A list of conditions that must all be satisfied for this
+            condition to be satisfied.
+        """
+        self._conditions = conditions
+
+    def update(self, state):
+        """
+        Update all conditions with the latest state.
+
+        Parameters
+        ==========
+
+        state: dict
+            state is expected to contain all information necessary for
+            each condition to properly update. In most cases, this will
+            mean either a `time` item or a `pressures` item.
+        """
+        for cond in self._conditions:
+            cond.update(state)
+
+    def satisfied(self):
+        """
+        Return True if any condition is satisfied and False otherwise.
+        """
+        for cond in self._conditions:
+            if cond.satisfied():
+                return True
+        return False
+
+
 class WaitUntil:
     """Condition that is satisfied once a certain time is reached."""
     def __init__(self, t):
