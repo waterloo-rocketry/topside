@@ -1,14 +1,7 @@
 import pytest
 
 import topside as top
-
-
-class NeverSatisfied:
-    def update(self, state):
-        pass
-
-    def satisfied(self):
-        return False
+from topside.procedures.tests.testing_utils import NeverSatisfied
 
 
 def one_component_engine():
