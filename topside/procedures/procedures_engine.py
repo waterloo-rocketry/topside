@@ -93,8 +93,7 @@ class ProceduresEngine:
 
     def execute(self, action):
         """Execute an action on the managed PlumbingEngine."""
-        if action is not None:
-            self._plumb.set_component_state(action.component, action.state)
+        self._plumb.set_component_state(action.component, action.state)
 
     def update_conditions(self):
         """
@@ -145,3 +144,7 @@ class ProceduresEngine:
         """
         self._plumb.step(timestep)
         self.update_conditions()
+
+        # TODO(jacob): Consider if this function should return anything
+        # about the state of the system: plumbing engine state, current
+        # time, etc.

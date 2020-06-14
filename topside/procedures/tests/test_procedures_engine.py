@@ -86,15 +86,6 @@ def branching_procedure_two_options():
     return {'s1': s1, 's2': s2, 's3': s3}
 
 
-def test_execute_none():
-    plumb_eng = one_component_engine()
-    proc_eng = top.ProceduresEngine(plumb_eng)
-
-    assert plumb_eng.current_state('c1') == 'closed'
-    proc_eng.execute(None)
-    assert plumb_eng.current_state('c1') == 'closed'
-
-
 def test_execute_custom_action():
     plumb_eng = one_component_engine()
     proc_eng = top.ProceduresEngine(plumb_eng)
