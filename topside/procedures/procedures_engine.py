@@ -3,56 +3,6 @@ from dataclasses import dataclass
 import topside as top
 
 
-@dataclass
-class Action:
-    """
-    A state change for a single component in the plumbing engine.
-
-    Members
-    =======
-
-    component: str
-        The identifier of the component whose state will be changed.
-        If part of a procedure that will be executed, this must refer to
-        a valid component in the managed PlumbingEngine.
-
-    state: str
-        The state that the component will be set to. If part of a
-        procedure that will be executed, this must refer to a valid
-        state of `component`.
-    """
-    component: str
-    state: str
-
-
-@dataclass
-class ProcedureStep:
-    """
-    A discrete state in the procedure graph.
-
-    Members
-    =======
-
-    step_id: str
-        An identifier for this procedure step. Expected to be unique
-        within the same procedure.
-
-    action: topside.Action
-        The action that should be executed when this step is performed.
-
-    conditions: dict
-        A dict mapping topside.Condition objects to step IDs as strings.
-        Each entry in `conditions` represents a conditional transition
-        from this ProcedureStep to another step with the given ID. This
-        dict is expected to be ordered in terms of condition priority;
-        if multiple conditions are satisfied, the first one will be
-        selected.
-    """
-    step_id: str
-    action: Action
-    conditions: dict
-
-
 class ProceduresEngine:
     """
     An interface for managing Procedure-PlumbingEngine interactions.
@@ -61,7 +11,7 @@ class ProceduresEngine:
     represent transitions between these steps.
     """
 
-    def __init__(self, plumbing_engine=None, procedure=None, initial_step=None):
+    def __init__(self, plumbing_engine=None, suite=None, initial_procedure=None, initial_step=None):
         """
         Initialize the ProceduresEngine.
 
@@ -71,9 +21,9 @@ class ProceduresEngine:
         plumbing_engine: topside.PlumbingEngine
             The PlumbingEngine that this ProceduresEngine should manage.
 
-        procedure: dict
-            A procedure is represented as a dict mapping step_id strings
-            to ProcedureSteps.
+        procedure_suite: dict
+            A procedure suite is represented as a dict mapping
+            procedure_id strings to Procedure objects.
 
         initial_step: str
             The initial procedure step that this ProceduresEngine should
@@ -84,10 +34,11 @@ class ProceduresEngine:
             actual "first step" of the procedure.
         """
         self._plumb = plumbing_engine
-        self._procedure = procedure
+        self._procedure_suite = suite
+        self.current_procedure_id = initial_procedure
 
-        if procedure is not None and initial_step is not None:
-            self.current_step = self._procedure[initial_step]
+        if suite is not None and initial_procedure is not None and initial_step is not None:
+            self.current_step = self._procedure_suite[initial_procedure].steps[initial_step]
         else:
             self.current_step = None
 
@@ -125,9 +76,11 @@ class ProceduresEngine:
         first one (the highest priority one). If no conditions are
         satisfied, this function does nothing.
         """
-        for condition, next_step_id in self.current_step.conditions.items():
+        for condition, transition in self.current_step.conditions.items():
             if condition.satisfied():
-                self.current_step = self._procedure[next_step_id]
+                new_proc = transition.procedure
+                self.current_procedure_id = new_proc
+                self.current_step = self._procedure_suite[new_proc].steps[transition.step]
                 self.execute(self.current_step.action)
                 break
 
