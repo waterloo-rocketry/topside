@@ -15,7 +15,7 @@ def one_component_engine():
     c1 = top.PlumbingComponent('c1', states, edges)
 
     mapping = {'c1': {1: 1, 2: 2}}
-    pressures = {1: 0, 2: 0}
+    pressures = {1: (0, False), 2: (0, False)}
     initial_states = {'c1': 'static'}
 
     return top.PlumbingEngine({'c1': c1}, mapping, pressures, initial_states)
@@ -34,7 +34,7 @@ def series_component_engine():
     c2 = top.PlumbingComponent('c2', states, edges)
 
     mapping = {'c1': {1: 1, 2: 2}, 'c2': {1: 2, 2: 3}}
-    pressures = {1: 0, 2: 0, 3: 0}
+    pressures = {1: (0, False), 2: (0, False), 3: (0, False)}
     initial_states = {'c1': 'static', 'c2': 'static'}
 
     return top.PlumbingEngine({'c1': c1, 'c2': c2}, mapping, pressures, initial_states)
@@ -53,7 +53,7 @@ def parallel_component_engine():
     c2 = top.PlumbingComponent('c2', states, edges)
 
     mapping = {'c1': {1: 1, 2: 2}, 'c2': {1: 1, 2: 2}}
-    pressures = {1: 0, 2: 0}
+    pressures = {1: (0, False), 2: (0, False)}
     initial_states = {'c1': 'static', 'c2': 'static'}
 
     return top.PlumbingEngine({'c1': c1, 'c2': c2}, mapping, pressures, initial_states)

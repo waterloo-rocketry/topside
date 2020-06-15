@@ -157,7 +157,7 @@ def test_FC_name_overlap():
         }
     }
 
-    pressures = {3: 100}
+    pressures = {3: (100, False)}
     default_states = {'fill_valve': 'closed', 'remote_fill_valve': 'open'}
     plumb = top.PlumbingEngine(
         {'fill_valve': pc1, 'remote_fill_valve': pc2}, component_mapping, pressures, default_states)
@@ -193,7 +193,7 @@ def test_list_functions():
     }
 
     negative_pressure = -50
-    pressures = {3: negative_pressure}
+    pressures = {3: (negative_pressure, False)}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     plumb = top.PlumbingEngine(
         {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)

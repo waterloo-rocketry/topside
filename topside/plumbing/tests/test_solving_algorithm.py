@@ -30,7 +30,7 @@ def test_invalid_engine():
         }
     }
 
-    pressures = {3: 100}
+    pressures = {3: (100, False)}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     plumb = top.PlumbingEngine(
         {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
@@ -87,7 +87,40 @@ def test_misc_engine():
     step_state = step_plumb.step(steady_by)
     len_plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
     solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
-    test.validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged, 
+    test.validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged,
+                                  solve_state, step_state, solve_len, len_plumb.time_res)
+
+
+def test_set_fixed_pressure():
+    # steady_by needs to be a bit longer for this one since having the
+    # fixed pressure makes equalization take longer than the teq.
+    steady_by = utils.s_to_micros(3)
+    converged = {1: 100, 2: 100, 3: 100}
+
+    solve_plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
+    solve_plumb.set_pressure(3, 100, fixed=True)
+    solve_state = solve_plumb.solve()
+    step_plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
+    step_plumb.set_pressure(3, 100, fixed=True)
+    step_state = step_plumb.step(steady_by)
+    len_plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
+    len_plumb.set_pressure(3, 100, fixed=True)
+    solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
+    test.validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged,
+                                  solve_state, step_state, solve_len, len_plumb.time_res)
+
+
+def test_create_fixed_pressure():
+    steady_by = utils.s_to_micros(3)
+    converged = {1: 100, 2: 100, 3: 100}
+
+    solve_plumb = test.two_valve_setup_fixed(1, 1, 1, 1, 1, 1, 1, 1)
+    solve_state = solve_plumb.solve()
+    step_plumb = test.two_valve_setup_fixed(1, 1, 1, 1, 1, 1, 1, 1)
+    step_state = step_plumb.step(steady_by)
+    len_plumb = test.two_valve_setup_fixed(1, 1, 1, 1, 1, 1, 1, 1)
+    solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
+    test.validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged,
                                   solve_state, step_state, solve_len, len_plumb.time_res)
 
 
@@ -116,7 +149,7 @@ def test_1():
             2: utils.ATM
         }
     }
-    pressures = {1: 100}
+    pressures = {1: (100, False)}
     default_states = {'vent': 'open'}
 
     steady_by = utils.s_to_micros(1)
@@ -143,7 +176,7 @@ def test_2():
             2: 2
         }
     }
-    pressures = {1: 100}
+    pressures = {1: (100, False)}
     default_states = {'valve': 'open'}
     step_plumb = top.PlumbingEngine({'valve': pc}, mapping, pressures, default_states)
     step_plumb.set_component_state('valve', 'closed')
@@ -162,7 +195,7 @@ def test_2():
 
     len_plumb = top.PlumbingEngine({'valve': pc}, mapping, pressures, default_states)
     solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
-    test.validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged, 
+    test.validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged,
                                   solve_state, step_state, solve_len, len_plumb.time_res)
 
 
@@ -175,7 +208,7 @@ def test_3():
             2: utils.ATM
         }
     }
-    pressures = {1: 100}
+    pressures = {1: (100, False)}
     default_states = {'vent': 'closed'}
     plumb = top.PlumbingEngine({'vent': pc}, mapping, pressures, default_states)
     test.assert_no_change(plumb)
@@ -190,7 +223,7 @@ def test_4():
             2: 2
         }
     }
-    pressures = {1: 100}
+    pressures = {1: (100, False)}
     default_states = {'check': 'closed'}
     plumb = top.PlumbingEngine({'check': pc}, mapping, pressures, default_states)
     test.assert_no_change(plumb)
@@ -205,7 +238,7 @@ def test_5():
             2: 2
         }
     }
-    pressures = {1: 100}
+    pressures = {1: (100, False)}
     default_states = {'check': 'open'}
 
     steady_by = utils.s_to_micros(1)
@@ -219,7 +252,7 @@ def test_5():
 
     len_plumb = top.PlumbingEngine({'check': pc}, mapping, pressures, default_states)
     solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
-    test.validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged, 
+    test.validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged,
                                   solve_state, step_state, solve_len, len_plumb.time_res)
 
 
@@ -243,9 +276,9 @@ def test_6():
         }
     }
     pressures = {
-        1: 100,
-        2: 0,
-        3: 0
+        1: (100, False),
+        2: (0, False),
+        3: (0, False)
     }
 
     steady_by = utils.s_to_micros(1)
@@ -259,5 +292,5 @@ def test_6():
 
     len_plumb = top.PlumbingEngine({'three': pc}, mapping, pressures, {'three': 'open'})
     solve_len = len(len_plumb.solve(return_resolution=len_plumb.time_res))
-    test.validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged, 
+    test.validate_plumbing_engine(step_plumb, solve_plumb, steady_by, converged,
                                   solve_state, step_state, solve_len, len_plumb.time_res)

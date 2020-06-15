@@ -16,7 +16,7 @@ def test_add_to_empty():
         2: 2
     }
 
-    plumb.add_component(pc, mapping, 'open', {1: 20})
+    plumb.add_component(pc, mapping, 'open', {1: (20, False)})
 
     assert plumb.is_valid()
     assert plumb.time_res == utils.DEFAULT_TIME_RESOLUTION_MICROS
@@ -41,7 +41,7 @@ def test_add_component():
         2: 4
     }
 
-    plumb.add_component(pc, mapping, 'closed', {4: 50})
+    plumb.add_component(pc, mapping, 'closed', {4: (50, False)})
 
     assert plumb.is_valid()
     assert plumb.time_res == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
@@ -78,7 +78,7 @@ def test_add_component_errors():
     }
 
     with pytest.raises(exceptions.BadInputError) as err:
-        plumb.add_component(pc, mapping, 'closed', {4: 50})
+        plumb.add_component(pc, mapping, 'closed', {4: (50, False)})
     assert str(err.value) ==\
         f"Component '{name}', node {right_node} not found in mapping dict."
 
@@ -139,7 +139,7 @@ def test_add_remove():
         2: 4
     }
 
-    plumb.add_component(pc, mapping, 'closed', {4: 50})
+    plumb.add_component(pc, mapping, 'closed', {4: (50, False)})
 
     assert plumb.time_res ==\
         int(utils.s_to_micros(new_lowest_teq) / utils.DEFAULT_RESOLUTION_SCALE)
@@ -189,7 +189,7 @@ def test_remove_add_errors():
     }
 
     with pytest.raises(exceptions.BadInputError) as err:
-        plumb.add_component(pc, mapping, 'closed', {4: 50})
+        plumb.add_component(pc, mapping, 'closed', {4: (50, False)})
     assert str(err.value) ==\
         f"Component '{name}', node {right_node} not found in mapping dict."
 
@@ -228,7 +228,7 @@ def test_remove_errors_wrong_component_name():
         }
     }
 
-    pressures = {3: 100}
+    pressures = {3: (100, False)}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     plumb = top.PlumbingEngine(
         {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
@@ -332,7 +332,7 @@ def test_set_pressure():
         1: 3,
         2: 4
     }
-    plumb.add_component(pc, mapping, 'closed', {4: 50})
+    plumb.add_component(pc, mapping, 'closed', {4: (50, False)})
 
     plumb.set_pressure(1, 200)
     plumb.set_pressure(2, 7000)
@@ -363,7 +363,7 @@ def test_set_pressure_errors():
         1: 3,
         2: 4
     }
-    plumb.add_component(pc, mapping, 'closed', {4: 50})
+    plumb.add_component(pc, mapping, 'closed', {4: (50, False)})
     pc_vent = test.create_component(0, 0, 0, 0, 'vent', 'D')
     mapping_vent = {
         1: 4,
@@ -535,3 +535,23 @@ def test_toggle_listing():
     assert 'valve1' in toggles
     assert 'valve2' in toggles
     assert 'tank' not in toggles
+
+
+def test_unfix_node():
+    plumb = test.two_valve_setup_fixed(1, 1, 1, 1, 1, 1, 1, 1)
+
+    assert plumb.fixed_pressures == {3: 100}
+
+    plumb.set_pressure(3, 100, False)
+
+    assert plumb.fixed_pressures == {}
+
+
+def test_fix_node():
+    plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
+
+    assert plumb.fixed_pressures == {}
+
+    plumb.set_pressure(3, 100, True)
+
+    assert plumb.fixed_pressures == {3: 100}
