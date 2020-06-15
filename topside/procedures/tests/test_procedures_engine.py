@@ -1,14 +1,9 @@
+import copy
+
 import pytest
 
 import topside as top
-
-
-class NeverSatisfied:
-    def update(self, state):
-        pass
-
-    def satisfied(self):
-        return False
+from topside.procedures.tests.testing_utils import NeverSatisfied
 
 
 def one_component_engine():
@@ -31,7 +26,9 @@ def one_component_engine():
     c1 = top.PlumbingComponent('c1', states, edges)
 
     mapping = {'c1': {1: 1, 2: 2}}
-    pressures = {1: (0, False), 2: (0, False)}
+
+    pressures = {1: (100, False), 2: (0, False)}
+
     initial_states = {'c1': 'closed'}
 
     return top.PlumbingEngine({'c1': c1}, mapping, pressures, initial_states)
@@ -158,3 +155,74 @@ def test_next_step_follows_highest_priority_condition():
     proc_eng.next_step()
     assert proc_eng.current_step.step_id == 's2'
     assert plumb_eng.current_state('c1') == 'halfway_open'
+
+
+def test_update_conditions_updates_pressures():
+    plumb_eng = one_component_engine()
+    plumb_eng.set_component_state('c1', 'open')
+
+    s1 = top.ProcedureStep('s1', None, {top.Less(1, 75): 's2'})
+    proc = {'s1': s1}
+
+    proc_eng = top.ProceduresEngine(plumb_eng, proc, 's1')
+
+    assert proc_eng.ready_to_advance() is False
+
+    plumb_eng.solve()
+    proc_eng.update_conditions()
+
+    assert proc_eng.ready_to_advance() is True
+
+
+def test_update_conditions_updates_time():
+    plumb_eng = one_component_engine()
+    plumb_eng.set_component_state('c1', 'open')
+
+    s1 = top.ProcedureStep('s1', None, {top.WaitUntil(1e6): 's2'})
+    proc = {'s1': s1}
+
+    proc_eng = top.ProceduresEngine(plumb_eng, proc, 's1')
+
+    assert proc_eng.ready_to_advance() is False
+
+    plumb_eng.step(1e6 - 1)
+    proc_eng.update_conditions()
+
+    assert proc_eng.ready_to_advance() is False
+
+    plumb_eng.step(1)
+    proc_eng.update_conditions()
+
+    assert proc_eng.ready_to_advance() is True
+
+
+def test_step_advances_time_equally():
+    managed_eng = one_component_engine()
+    managed_eng.set_component_state('c1', 'open')
+
+    unmanaged_eng = copy.deepcopy(managed_eng)
+
+    proc_eng = top.ProceduresEngine(managed_eng, linear_procedure(), 's1')
+
+    assert managed_eng.current_pressures() == unmanaged_eng.current_pressures()
+
+    proc_eng.step(1e6)
+    unmanaged_eng.step(1e6)
+
+    assert managed_eng.current_pressures() == unmanaged_eng.current_pressures()
+
+
+def test_step_updates_conditions():
+    plumb_eng = one_component_engine()
+    plumb_eng.set_component_state('c1', 'open')
+
+    s1 = top.ProcedureStep('s1', None, {top.Less(1, 75): 's2'})
+    proc = {'s1': s1}
+
+    proc_eng = top.ProceduresEngine(plumb_eng, proc, 's1')
+
+    assert proc_eng.ready_to_advance() is False
+
+    proc_eng.step(1e6)
+
+    assert proc_eng.ready_to_advance() is True
