@@ -36,7 +36,30 @@ def two_valve_setup(vAs1_1, vAs1_2, vAs2_1, vAs2_2, vBs1_1, vBs1_2, vBs2_1, vBs2
         }
     }
 
-    pressures = {3: 100}
+    pressures = {3: (100, False)}
+    default_states = {'valve1': 'closed', 'valve2': 'open'}
+    plumb = top.PlumbingEngine(
+        {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
+
+    return plumb
+
+
+def two_valve_setup_fixed(vAs1_1, vAs1_2, vAs2_1, vAs2_2, vBs1_1, vBs1_2, vBs2_1, vBs2_2):
+    pc1 = create_component(vAs1_1, vAs1_2, vAs2_1, vAs2_2, 'valve1', 'A')
+    pc2 = create_component(vBs1_1, vBs1_2, vBs2_1, vBs2_2, 'valve2', 'B')
+
+    component_mapping = {
+        'valve1': {
+            1: 1,
+            2: 2
+        },
+        'valve2': {
+            1: 2,
+            2: 3
+        }
+    }
+
+    pressures = {3: (100, True)}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     plumb = top.PlumbingEngine(
         {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)

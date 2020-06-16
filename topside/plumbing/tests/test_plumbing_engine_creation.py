@@ -59,7 +59,7 @@ def test_arbitrary_states():
 def test_load_graph_to_empty():
     plumb0 = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
-    pressures = {3: 100}
+    pressures = {3: (100, False)}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
 
     plumb = top.PlumbingEngine()
@@ -88,7 +88,7 @@ def test_replace_graph():
         0, 0, utils.CLOSED, utils.CLOSED,
         0, 0, utils.CLOSED, utils.CLOSED)
 
-    pressures = {3: 100}
+    pressures = {3: (100, False)}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     plumb.load_graph(plumb0.component_dict, plumb0.mapping, pressures, default_states)
 
@@ -171,7 +171,7 @@ def test_missing_component():
         }
     }
 
-    pressures = {3: 100}
+    pressures = {3: (100, False)}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     plumb = top.PlumbingEngine(
         {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
@@ -208,7 +208,7 @@ def test_wrong_node_mapping():
         }
     }
 
-    pressures = {3: 100}
+    pressures = {3: (100, False)}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     plumb = top.PlumbingEngine(
         {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
@@ -251,7 +251,7 @@ def test_missing_node_pressure():
         }
     }
 
-    pressures = {wrong_node_name: 100, 2: 100}
+    pressures = {wrong_node_name: (100, False), 2: (100, False)}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     with pytest.raises(exceptions.BadInputError) as err:
         plumb = top.PlumbingEngine(
@@ -276,7 +276,7 @@ def test_missing_initial_state():
         }
     }
 
-    pressures = {3: 100}
+    pressures = {3: (100, False)}
     default_states = {wrong_component_name: 'closed', 'valve2': 'open'}
     plumb = top.PlumbingEngine(
         {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
@@ -307,7 +307,7 @@ def test_error_reset():
         }
     }
 
-    pressures = {3: 100}
+    pressures = {3: (100, False)}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     plumb = top.PlumbingEngine(
         {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
@@ -366,7 +366,7 @@ def test_engine_dicts_remain_unchanged():
             2: 3
         }
     }
-    pressures = {3: 100}
+    pressures = {3: (100, False)}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     component_dict = {'valve1': pc1, 'valve2': pc2}
     plumb = top.PlumbingEngine(
@@ -382,7 +382,7 @@ def test_engine_dicts_remain_unchanged():
             2: 3
         }
     }
-    assert pressures == {3: 100}
+    assert pressures == {3: (100, False)}
     assert default_states == {'valve1': 'closed', 'valve2': 'open'}
     assert component_dict == {'valve1': pc1, 'valve2': pc2}
 
@@ -403,7 +403,7 @@ def test_load_errorless_graph():
         }
     }
 
-    pressures = {3: 100}
+    pressures = {3: (100, False)}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     plumb = top.PlumbingEngine(
         {wrong_component_name: pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
@@ -424,9 +424,14 @@ def test_load_errorless_graph():
 
     plumb0 = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
-    pressures = {3: 100}
+    pressures = {3: (100, False)}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
 
     plumb.load_graph(plumb0.component_dict, plumb0.mapping, pressures, default_states)
 
     assert plumb.is_valid()
+
+
+def test_fixed_state():
+    plumb = test.two_valve_setup_fixed(1, 1, 1, 1, 1, 1, 1, 1)
+    assert plumb.fixed_pressures == {3: 100}

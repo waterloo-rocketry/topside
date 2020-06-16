@@ -10,7 +10,7 @@ import topside.plumbing.plumbing_utils as utils
 class PlumbingEngine:
     """Engine that represents a plumbing system."""
 
-    def __init__(self, components=None, mapping=None, initial_nodes=None, initial_states=None):
+    def __init__(self, components=None, mapping=None, initial_pressures=None, initial_states=None):
         """
         Initialize the plumbing engine.
 
@@ -28,9 +28,11 @@ class PlumbingEngine:
             mapping is a dict of {component_name: {component_node: main_graph_node}}, which is
             used to specify connectivity between components on the main graph.
 
-        initial_nodes: dict
-            initial_nodes is a dict of {main_graph_node: initial_pressure}. The dict doesn't have to
-            be exhaustive; if a node isn't specified its pressure will be set to a default of 0.
+        initial_pressures: dict
+            initial_pressures is a dict of {main_graph_node: (initial_pressure, fixed)} where fixed
+            is a bool indicating whether the pressure must remain fixed or not. The dict doesn't
+            have to be exhaustive; if a node isn't specified its pressure will be set to a default
+            of 0.
 
         initial_states: dict
             initial_states is a dict of {component_name: state_name}. Every component must
@@ -43,8 +45,8 @@ class PlumbingEngine:
             components = {}
         if not mapping:
             mapping = {}
-        if not initial_nodes:
-            initial_nodes = {}
+        if not initial_pressures:
+            initial_pressures = {}
         if not initial_states:
             initial_states = {}
 
@@ -52,9 +54,10 @@ class PlumbingEngine:
         self.time = 0
         self.plumbing_graph = nx.MultiDiGraph()
         self.error_set = set()
-        self.load_graph(components, mapping, initial_nodes, initial_states)
+        self.fixed_pressures = {}
+        self.load_graph(components, mapping, initial_pressures, initial_states)
 
-    def load_graph(self, components, mapping, initial_nodes, initial_states):
+    def load_graph(self, components, mapping, initial_pressures, initial_states):
         """
         Load in a graph to the PlumbingEngine.
 
@@ -69,9 +72,11 @@ class PlumbingEngine:
             mapping is a dict of {component_name: {component_node: main_graph_node}}, which is
             used to specify connectivity between components on the main graph.
 
-        initial_nodes: dict
-            initial_nodes is a dict of {main_graph_node: initial_pressure}. The dict doesn't have to
-            be exhaustive; if a node isn't specified its pressure will be set to a default of 0.
+        initial_pressures: dict
+            initial_pressures is a dict of {main_graph_node: (initial_pressure, fixed)} where fixed
+            is a bool indicating whether the pressure must remain fixed or not. The dict doesn't
+            have to be exhaustive; if a node isn't specified its pressure will be set to a default
+            of 0.
 
         initial_states: dict
             initial_states is a dict of {component_name: state_name}. Every component must
@@ -81,12 +86,14 @@ class PlumbingEngine:
         errors renders the engine invalid; invalid engines cannot be solved.
         """
 
+        initial_pressures = copy.deepcopy(initial_pressures)
+        initial_states = copy.deepcopy(initial_states)
+
         self.component_dict = copy.deepcopy(components)
         self.mapping = copy.deepcopy(mapping)
+
         self.plumbing_graph.clear()
         self.error_set.clear()
-        initial_nodes = copy.deepcopy(initial_nodes)
-        initial_states = copy.deepcopy(initial_states)
 
         for name, component in self.component_dict.items():
             if not component.is_valid():
@@ -112,7 +119,7 @@ class PlumbingEngine:
 
             # Only pass in those pressures that are relevant to the current component
             node_pressures = {}
-            for node, pressure in initial_nodes.items():
+            for node, pressure in initial_pressures.items():
                 if node in self.mapping[name].values():
                     node_pressures[node] = pressure
 
@@ -122,7 +129,7 @@ class PlumbingEngine:
         # Raise this error (instead of writing to the error set) because there's no intuitive
         # point to remove afterwards. Won't interfere with any engine setup, since it's at the very
         # end of the function call
-        for node in initial_nodes.keys():
+        for node in initial_pressures.keys():
             if node not in self.plumbing_graph.nodes():
                 raise exceptions.BadInputError(f"Node {node} not found in graph.")
 
@@ -204,8 +211,10 @@ class PlumbingEngine:
             state_id is the component's initial state.
 
         pressures: dict
-            pressures is a dict of {main_graph_node: inital_pressure}. It need not be exhaustive;
-            nodes that aren't specified receive a default value of 0.
+            pressures is a dict of {main_graph_node: (initial_pressure, fixed)} where fixed
+            is a bool indicating whether the pressure must remain fixed or not. The dict doesn't
+            have to be exhaustive; if a node isn't specified its pressure will be set to a default
+            of 0.
 
         fail_silently: bool
             fail_silently controls whether errors are raised or written to the error set.
@@ -262,7 +271,7 @@ class PlumbingEngine:
         pressures = copy.deepcopy(pressures)
         for node_name, node_pressure in pressures.items():
             try:
-                self.set_pressure(node_name, node_pressure)
+                self.set_pressure(node_name, node_pressure[0], fixed=node_pressure[1])
             except exceptions.BadInputError as err:
                 if fail_silently:
                     if err.args[0] == f"Node {node_name} not found in graph.":
@@ -350,7 +359,7 @@ class PlumbingEngine:
         self.plumbing_graph.edges[edge1]['FC'] = self.plumbing_graph.edges[edge2]['FC']
         self.plumbing_graph.edges[edge2]['FC'] = temp
 
-    def set_pressure(self, node_name, pressure):
+    def set_pressure(self, node_name, pressure, fixed=False):
         """Set pressure at given node."""
         if not isinstance(pressure, (int, float)):
             raise exceptions.BadInputError(f"Pressure {pressure} must be a number.")
@@ -362,6 +371,11 @@ class PlumbingEngine:
             raise exceptions.BadInputError(f"Pressure for atmosphere node ({utils.ATM}) must be 0.")
 
         self.plumbing_graph.nodes[node_name]['pressure'] = pressure
+        if fixed:
+            self.fixed_pressures[node_name] = pressure
+
+        if not fixed and node_name in self.fixed_pressures:
+            del self.fixed_pressures[node_name]
 
     def set_teq(self, component_name, which_edge):
         """Set teq at each edge in provided dict for one component.
@@ -539,7 +553,7 @@ class PlumbingEngine:
             if self.time + self.time_res > max_time:
                 time_res = max_time - self.time
             for node, data in self.nodes():
-                if node == utils.ATM:
+                if node in self.fixed_pressures or node == utils.ATM:
                     continue
                 dp = 0
                 pressure = data['pressure']

@@ -26,7 +26,9 @@ def one_component_engine():
     c1 = top.PlumbingComponent('c1', states, edges)
 
     mapping = {'c1': {1: 1, 2: 2}}
-    pressures = {1: 100, 2: 0}
+
+    pressures = {1: (100, False), 2: (0, False)}
+
     initial_states = {'c1': 'closed'}
 
     return top.PlumbingEngine({'c1': c1}, mapping, pressures, initial_states)
