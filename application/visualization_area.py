@@ -42,13 +42,13 @@ def make_engine():
 
 class VisualizationArea(QQuickPaintedItem):
     """
-    A QML-acessible item that will draw the state of the engine. 
+    A QML-acessible item that will draw the state of the engine.
 
-    It is a subclass of QQuickPaintedItem, which means it imperatively handles all of 
-    its own events and graphics. 
+    It is a subclass of QQuickPaintedItem, which means it imperatively handles all of
+    its own events and graphics
     """
 
-    DEBUG_MODE = False  # Flipping this to positive turns on print statments in parts of the code
+    DEBUG_MODE = False  # Flipping this to True turns on print statments in parts of the code
 
     def __init__(self, parent=None):
         QQuickPaintedItem.__init__(self, parent)
@@ -110,7 +110,7 @@ class VisualizationArea(QQuickPaintedItem):
                 if self.DEBUG_MODE:
                     print('node: ' + str(pt[0]) + str(pt[1]))
 
-                if (not self.scaled):
+                if not self.scaled:
                     # Adjusts the coordinates so they fall onto the draw surface
                     pt[0] += self.scaling_factor*8
                     pt[0] *= self.scaling_factor/2
@@ -131,14 +131,15 @@ class VisualizationArea(QQuickPaintedItem):
 
                 painter.drawLine(p1[0], p1[1], p2[0], p2[1])
 
-            if (not self.scaled):
+            # Scaling is done on the first draw while nodes are being accessed for the first time
+            if not self.scaled:
                 self.scaled = True
 
             if self.DEBUG_MODE:
                 print('engine print complete')
 
     def mouseMoveEvent(self, event):
-        """     
+        """
         Handle the mouse event for a mouse dragging action.
 
         Is called automatically by the object whenever a mouse move (or drag) is registered on the
@@ -147,8 +148,8 @@ class VisualizationArea(QQuickPaintedItem):
         Parameters
         ----------
 
-        event: QMouseEvent 
-            The event which contains all of the data about where the move occured.        
+        event: QMouseEvent
+            The event which contains all of the data about where the move occured.
         """
 
         if self.DEBUG_MODE:
@@ -166,7 +167,7 @@ class VisualizationArea(QQuickPaintedItem):
         ----------
 
         event: QMouseEvent 
-            The event which contains all of the data about where the press occured        
+            The event which contains all of the data about where the press occured
         """
         if self.DEBUG_MODE:
             print('Press: ' + str(event.x()) + ' ' + str(event.y()))
@@ -183,8 +184,8 @@ class VisualizationArea(QQuickPaintedItem):
         Parameters
         ----------
 
-        event: QHoverEvent 
-            The event which contains all of the data about where the hover move occurred.        
+        event: QHoverEvent
+            The event which contains all of the data about where the hover move occurred.
         """
         if self.DEBUG_MODE:
             print('Hover track: ' + str(event.pos().x()) + ' ' + str(event.pos().y()))
@@ -195,13 +196,13 @@ class VisualizationArea(QQuickPaintedItem):
         Sets the local engine to the input variable and initilizes associated local objects.
 
         Setter and initializer for uploading an engine to be displayed. After an engine is set,
-        the according layout and terminal graph is generated from the engine data 
+        the according layout and terminal graph is generated from the engine data
 
         Parameters
         ----------
 
-        engine: topside.plumbing_engine 
-            An instance of the topside engine to be displayed.   
+        engine: topside.plumbing_engine
+            An instance of the topside engine to be displayed.
         """
 
         self.engine_instance = engine
@@ -212,14 +213,14 @@ class VisualizationArea(QQuickPaintedItem):
         """
         Return the local color.
 
-        Getter for the qml-acessible color property 'color', which is registered by
+        Getter for the QML-acessible color property 'color', which is registered by
         a 'Property' call at the end of the file.
 
         Returns
         -------
 
         QColor: 
-            The local graphics QColor.   
+            The local graphics QColor.
         """
         return self.color_property
 
@@ -227,14 +228,14 @@ class VisualizationArea(QQuickPaintedItem):
         """
         Set the local color to the given color.
 
-        Setter for the qml-acessible color property 'color', which is registered by
+        Setter for the QML-acessible color property 'color', which is registered by
         a 'Property' call at the end of the file.
 
         Parameters
         ----------
 
         input: QColor 
-            The local graphics QColor.   
+            The local graphics QColor.
         """
         self.color_property = input
 
