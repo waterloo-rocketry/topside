@@ -2,8 +2,8 @@
 
 .idea/
 .vscode/
-.pydevproject/
-.project/
+.pydevproject
+.project
 
 # Python
 

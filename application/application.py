@@ -5,7 +5,7 @@ from PySide2.QtGui import QGuiApplication, QIcon
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 
 import topside as top
-from .VisualizationArea import VisualizationArea
+from .visualization_area import VisualizationArea
 from .procedures_bridge import ProceduresBridge
 
 
@@ -27,8 +27,8 @@ class Application:
         self.procedures_bridge = ProceduresBridge()
 
         self.app = QGuiApplication(argv)
-        
-        # ALL custom built QQuickItems have to be registed as qml objects in this way:
+
+        # ALL custom built QQuickItems have to be registed as QML objects in this way:
         qmlRegisterType(VisualizationArea, 'VisualizationArea', 1, 0, 'VisualizationArea')
 
         self.app.setWindowIcon(QIcon(find_resource('icon.ico')))
