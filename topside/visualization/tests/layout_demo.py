@@ -28,7 +28,7 @@ def make_engine():
     pressures = {}
     for k1, v1 in mapping.items():
         for k2, v2 in v1.items():
-            pressures[v2] = 0
+            pressures[v2] = (0, False)
 
     component_dict = {k: top.PlumbingComponent(k, states, edges) for k in mapping.keys()}
     initial_states = {k: 'static' for k in mapping.keys()}
