@@ -1,0 +1,2 @@
+class BadInputError(Exception):
+    pass

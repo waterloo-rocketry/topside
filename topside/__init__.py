@@ -1,3 +1,6 @@
+import topside.pdl
+from topside.pdl import *
+
 import topside.plumbing
 from topside.plumbing import *
 
