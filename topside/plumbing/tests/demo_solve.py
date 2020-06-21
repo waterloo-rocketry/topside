@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 
-import topside as top
 import topside.plumbing.tests.testing_utils as test
 import topside.plumbing.plumbing_utils as utils
 

@@ -1,5 +1,6 @@
 class Immediate:
     """Condition that is always satisfied."""
+
     def update(self, state):
         """Update the condition with the latest state; a no-op."""
         pass
@@ -11,6 +12,7 @@ class Immediate:
 
 class WaitUntil:
     """Condition that is satisfied once a certain time is reached."""
+
     def __init__(self, t):
         """
         Initialize the condition.
@@ -50,6 +52,7 @@ class WaitUntil:
 
 class Comparison:
     """Base class for conditions comparing a pressure to a reference."""
+
     def __init__(self, node, pressure, comp_fn=None):
         """
         Initialize the Comparison condition.
@@ -147,6 +150,7 @@ class Equal(Comparison):
 
 class Less(Comparison):
     """Condition that tests if a pressure is less than a reference."""
+
     def compare(self, current_pressure, reference_pressure):
         """Compare pressures using less-than."""
         return current_pressure < reference_pressure
@@ -154,6 +158,7 @@ class Less(Comparison):
 
 class Greater(Comparison):
     """Condition that tests if a pressure is greater than a reference."""
+
     def compare(self, current_pressure, reference_pressure):
         """Compare pressures using greater-than."""
         return current_pressure > reference_pressure
@@ -161,6 +166,7 @@ class Greater(Comparison):
 
 class LessEqual(Comparison):
     """Condition that tests if a pressure is less than or equal to a reference."""
+
     def compare(self, current_pressure, reference_pressure):
         """Compare pressures using less-than-or-equal."""
         return current_pressure <= reference_pressure
@@ -168,6 +174,7 @@ class LessEqual(Comparison):
 
 class GreaterEqual(Comparison):
     """Condition that tests if a pressure is greater than or equal to a reference."""
+
     def compare(self, current_pressure, reference_pressure):
         """Compare pressures using greater-than-or-equal."""
         return current_pressure >= reference_pressure

@@ -60,6 +60,7 @@ class ProceduresEngine:
     A Procedure is a graph where nodes are ProcedureSteps and edges
     represent transitions between these steps.
     """
+
     def __init__(self, plumbing_engine=None, procedure=None, initial_step=None):
         """
         Initialize the ProceduresEngine.

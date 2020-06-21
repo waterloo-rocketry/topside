@@ -1,0 +1,103 @@
+name: potato
+
+import: [stdlib, other_lib]
+  
+body: 
+- typedef:
+    params: [edge1, open_teq, closed_teq]
+    name: valve
+    edges:
+      edge1:
+        nodes: [0, 1]
+    states:
+      open:
+        edge1: open_teq
+      closed:
+        edge1: closed_teq
+
+- component:
+    name: fill_valve
+    edges:
+      edge1:
+        nodes: [0, 1]
+    states:
+      open:
+        edge1: 1
+      closed:
+        edge1: closed
+
+
+- component:
+    name: vent_valve
+    type: valve
+    params:
+      edge1: fav_edge
+      open_teq: 1
+      closed_teq: closed
+  
+
+- component:
+    name: three_way_valve
+    edges:
+      edge1:
+        nodes: [0, 1]
+      edge2:
+        nodes: [0, 2]
+    states:
+      left:
+        edge1: 1
+        edge2: closed
+      right:
+        edge1: closed
+        edge2: 1
+
+- component:
+    name: vent_plug
+    edges:
+      edge1:
+        nodes: [0, 1]
+        teq: 100
+
+- component:
+    name: check_valve
+    edges:
+      edge1:
+        nodes: [0, 1]
+        teq: {fwd: 1, back: closed}
+
+- graph:
+    name: main
+    nodes:
+      A:
+        fixed_pressure: 500
+        components:
+          - [fill_valve, 0]
+
+      B:
+        components:
+          - [fill_valve, 1]
+          - [vent_valve, 0]
+          - [check_valve, 0]
+
+      C:
+        initial_pressure: 10
+        components:
+          - [check_valve, 1]
+          - [three_way_valve, 0]
+
+      D:
+        components:
+          - [three_way_valve, 1]
+          - [vent_plug, 0]
+
+      atm:
+        components:
+          - [three_way_valve, 2]
+          - [vent_plug, 1]
+          - [vent_valve, 1]
+
+    states:
+      fill_valve: closed
+      vent_valve: open
+      three_way_valve: left
+
