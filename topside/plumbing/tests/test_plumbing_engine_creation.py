@@ -254,7 +254,7 @@ def test_missing_node_pressure():
     pressures = {wrong_node_name: 100, 2: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     with pytest.raises(exceptions.BadInputError) as err:
-        plumb = top.PlumbingEngine(
+        _ = top.PlumbingEngine(
             {'valve1': pc1, 'valve2': pc2}, component_mapping, pressures, default_states)
     assert str(err.value) == f"Node {wrong_node_name} not found in graph."
 
@@ -369,7 +369,7 @@ def test_engine_dicts_remain_unchanged():
     pressures = {3: 100}
     default_states = {'valve1': 'closed', 'valve2': 'open'}
     component_dict = {'valve1': pc1, 'valve2': pc2}
-    plumb = top.PlumbingEngine(
+    _ = top.PlumbingEngine(
         component_dict, component_mapping, pressures, default_states)
 
     assert component_mapping == {

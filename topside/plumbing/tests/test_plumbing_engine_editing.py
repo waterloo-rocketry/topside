@@ -505,7 +505,7 @@ def test_set_teq_errors():
     with pytest.raises(exceptions.BadInputError) as err:
         plumb.set_teq('valve1', bad_key)
     assert str(err.value) == f"State 'closed', edge (2, 1, '{wrong_name}') not found in" +\
-        f" component valve1's states dict."
+        " component valve1's states dict."
 
     with pytest.raises(exceptions.BadInputError) as err:
         plumb.set_teq('valve1', bad_state)
