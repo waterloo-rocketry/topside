@@ -4,16 +4,20 @@ import topside as top
 import topside.pdl.exceptions as exceptions
 
 
-def test_valid_PDL():
+def test_valid_pdl():
     file = top.File("topside/pdl/example.yaml")
-    file.validate()
 
-    assert file.typedefs == {"valve": ["edge1", "open_teq", "closed_teq"]}
+    assert file.namespace == "potato"
+    assert file.imports == ["stdlib"]
+
+    assert len(file.typedefs) == 1
+    assert len(file.components) == 6
+    assert len(file.graphs) == 1
 
 
 def test_invalid_typedef():
     no_params =\
-"""
+        """
 name: potato
 import: [stdlib, other_lib]
 body:
@@ -30,14 +34,13 @@ body:
         edge1: closed_teq
 """
 
-    f_no_params = top.File(no_params, input_type="s")
     with pytest.raises(exceptions.BadInputError):
-        f_no_params.validate()
+        _ = top.File(no_params, input_type="s")
 
 
 def test_invalid_component():
     no_name =\
-"""
+        """
 name: potato
 import: [stdlib, other_lib]
 body:
@@ -51,12 +54,11 @@ body:
       closed:
         edge1: closed
 """
-    f_no_name = top.File(no_name, input_type="s")
     with pytest.raises(exceptions.BadInputError):
-        f_no_name.validate()
+        _ = top.File(no_name, input_type="s")
 
     no_state_no_teq =\
-"""
+        """
 name: potato
 import: [stdlib, other_lib]
 body:
@@ -66,12 +68,11 @@ body:
       edge1:
         nodes: [0, 1]
 """
-    f_no_state_no_teq = top.File(no_state_no_teq, input_type="s")
     with pytest.raises(exceptions.BadInputError):
-        f_no_state_no_teq.validate()
+        _ = top.File(no_state_no_teq, input_type="s")
 
     param_missing =\
-"""
+        """
 name: potato
 import: [stdlib, other_lib]
 body:
@@ -94,12 +95,11 @@ body:
       closed_teq: closed
 """
 
-    f_param_missing = top.File(param_missing, input_type="s")
     with pytest.raises(exceptions.BadInputError):
-        f_param_missing.validate()
+        _ = top.File(param_missing, input_type="s")
 
     no_hoisting =\
-"""
+        """
 name: potato
 import: [stdlib, other_lib]
 body:
@@ -122,14 +122,13 @@ body:
       closed:
         edge1: closed_teq
 """
-    f_no_hoisting = top.File(no_hoisting, input_type="s")
     with pytest.raises(exceptions.BadInputError):
-        f_no_hoisting.validate()
+        _ = top.File(no_hoisting, input_type="s")
 
 
 def test_invalid_graph():
     missing_states =\
-"""
+        """
 name: potato
 import: [stdlib, other_lib]
 body:
@@ -164,12 +163,11 @@ body:
           - [vent_plug, 1]
           - [vent_valve, 1]
 """
-    f_missing_states = top.File(missing_states, "s")
     with pytest.raises(exceptions.BadInputError):
-        f_missing_states.validate()
+        _ = top.File(missing_states, "s")
 
     incomplete_nodes =\
-"""
+        """
 name: potato
 import: [stdlib, other_lib]
 body:
@@ -208,6 +206,5 @@ body:
       three_way_valve: left
 """
 
-    f_incomplete_nodes = top.File(incomplete_nodes, "s")
     with pytest.raises(exceptions.BadInputError):
-        f_incomplete_nodes.validate()
+        _ = top.File(incomplete_nodes, "s")

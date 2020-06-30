@@ -1,19 +1,19 @@
 name: potato
 
-import: [stdlib, other_lib]
+import: [stdlib]
   
 body: 
 - typedef:
-    params: [edge1, open_teq, closed_teq]
+    params: [edge_name, open_teq, closed_teq]
     name: valve
     edges:
-      edge1:
+      edge_name:
         nodes: [0, 1]
     states:
       open:
-        edge1: open_teq
+        edge_name: open_teq
       closed:
-        edge1: closed_teq
+        edge_name: closed_teq
 
 - component:
     name: fill_valve
@@ -22,17 +22,25 @@ body:
         nodes: [0, 1]
     states:
       open:
-        edge1: 1
+        edge1: 6
       closed:
         edge1: closed
+
+
+- component:
+    name: hole_valve
+    type: stdlib.hole
+    params:
+      open_teq: 1
+      closed_teq: closed
 
 
 - component:
     name: vent_valve
     type: valve
     params:
-      edge1: fav_edge
-      open_teq: 1
+      edge_name: fav_edge
+      open_teq: 5
       closed_teq: closed
   
 

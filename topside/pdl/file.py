@@ -4,9 +4,13 @@ import topside.pdl.exceptions as exceptions
 
 
 def check_fields(fields, entry):
+    if entry is None:
+        raise exceptions.BadInputError("empty entry")
     for field in fields:
-        if field not in entry or entry[field] is None:
+        if field not in entry:
             raise exceptions.BadInputError(f"field {field} required and not found")
+        if entry[field] is None:
+            raise exceptions.BadInputError(f"field {field} required not to be empty")
 
 
 class File:
@@ -27,10 +31,14 @@ class File:
             "component": self.validate_component,
             "graph": self.validate_graph,
         }
+
         self.namespace = pdl['name']
         self.imports = pdl['import']
         self.body = pdl['body']
         self.typedefs = {}
+        self.components = []
+        self.graphs = []
+        self.validate()
 
     def validate(self):
         for entry in self.body:
@@ -44,7 +52,7 @@ class File:
     def validate_typedef(self, entry):
         check_fields(["params", "name", "edges", "states"], entry)
         name = entry["name"]
-        self.typedefs[name] = entry["params"]
+        self.typedefs[name] = entry
 
     def validate_component(self, entry):
         if "type" in entry:
@@ -60,15 +68,21 @@ class File:
                     raise exceptions.BadInputError(
                         f"invalid single-state component syntax in {entry}")
 
+        self.components.append(entry)
+
     # This setup doesn't allow for hoisting (ie defining a typedef after a component that
     # references it)
     def validate_type_entry(self, entry):
         check_fields(["name", "type", "params"], entry)
         def_type = entry["type"]
+        # a "." indicates it's an import, which will be checked later.
+        if "." in def_type:
+            self.components.append(entry)
+            return
         if def_type not in self.typedefs:
             raise exceptions.BadInputError(f"typedef {def_type} not found; hoisting not allowed")
 
-        params = self.typedefs[def_type]
+        params = self.typedefs[def_type]["params"]
         if len(params) != len(entry):
             raise exceptions.BadInputError(f"not all params ({params}) present in component "
                                            "declaration")
@@ -77,6 +91,8 @@ class File:
             if param not in entry["params"]:
                 raise exceptions.BadInputError(f"param {param} not found")
 
+        self.components.append(entry)
+
     def validate_graph(self, entry):
         check_fields(["name", "nodes", "states"], entry)
         for node_name in entry["nodes"]:
@@ -84,6 +100,4 @@ class File:
             if len(node) < 1 or "components" not in node:
                 raise exceptions.BadInputError(f"invalid entry for {node_name}: {node}")
 
-
-f = File("topside/pdl/example.yaml")
-f.validate()
+        self.graphs.append(entry)
