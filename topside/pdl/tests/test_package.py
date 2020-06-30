@@ -93,7 +93,6 @@ body:
     with pytest.raises(exceptions.BadInputError):
         _ = top.Package([invalid_import_file])
 
-
     # typedef not found errors having to do with imported files will only be caught at the package
     # level, not at the file one. We can look at changing this if we change the implementation of
     # how importable files are stored.
@@ -113,3 +112,6 @@ body:
     bad_imported_type_file = top.File(bad_imported_type, input_type="s")
     with pytest.raises(exceptions.BadInputError):
         _ = top.Package([bad_imported_type_file])
+
+    with pytest.raises(exceptions.BadInputError):
+        _ = top.Package([])
