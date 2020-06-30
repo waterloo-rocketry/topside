@@ -4,8 +4,9 @@ import yaml
 import topside as top
 import topside.pdl.exceptions as exceptions
 
-# imports is a dict of package name: path to file, used to locate files to read in
+# imports is a dict of {package name: path to file}, used to locate files to load
 # on requested import.
+
 # TODO(wendi): make imports more dynamic, so that users can add importable files
 # outside a predefined library. Likely involves a function that traipses through the
 # imports folder for new files and stores them in this dict whenever new Packages are instantiated.
@@ -15,18 +16,36 @@ IMPORTS = {
 
 
 class Package:
-    """Package represents a collection of files that make a coherent plumbing system."""
+    """ Package represents a collection of files that make a coherent plumbing system."""
 
     def __init__(self, files):
+        """
+        Initialize a Package from one or more Files.
+
+        A Package should have all the components of a complete plumbing engine system; from
+        here no additional information is added to what will go into the PlumbingEngine. Once
+        instantiated, a Package's PDL is cleaned and ready to use.
+
+        Parameters
+        ==========
+
+        files: list
+            files is the list of one or more Files whose contents should go into the Package.
+        """
+
+        if len(files) < 1:
+            raise exceptions.BadInputError("cannot instantiate a Package with no Files")
         self.imports = []
 
-        # dicts of namespace: entry. Organized ilke this to reduce dict nesting;
-        # since this is a one time process it should be easy to keep them synced.
+        # dicts of {namespace: entry}, where entry is a PDL object. Organized like this to
+        # reduce dict nesting; since this is a one time process it should be easy to keep
+        # them synced.
         self.typedefs = {}
         self.components = {}
         self.graphs = {}
 
         for file in files:
+            # TODO(wendi): unused import detection
             self.imports.extend(copy.deepcopy(file.imports))
 
         for imp in self.imports:
@@ -34,6 +53,7 @@ class Package:
                 raise exceptions.BadInputError(f"invalid import: {imp}")
             files.append(top.File(IMPORTS[imp]))
 
+        # consolidate entry information from files
         for file in files:
             name = file.namespace
             if name not in self.typedefs:
@@ -47,6 +67,8 @@ class Package:
         self.clean()
 
     def clean(self):
+        """ Spin user-friendly PDL shortcuts into the verbose PDL standard."""
+
         # preprocessing for typedefs
         for namespace in self.typedefs:
             for idx, component in enumerate(self.components[namespace]):
@@ -64,6 +86,7 @@ class Package:
                 self.components[namespace][idx] = unpack_teq(component)
 
     def fill_typedef(self, namespace, component):
+        """ Fill in typedef template for components invoking a typedef."""
         name = component["type"]
         if "." in name:
             # rough implementation, needs more robustness in the future
@@ -85,6 +108,7 @@ class Package:
 
 
 def unpack_teq(component):
+    """ Replace single-direction teq shortcut with verbose teq form."""
     ret = component
     for state, edges in component["states"].items():
         for edge, teq in edges.items():
@@ -98,6 +122,7 @@ def unpack_teq(component):
 
 
 def unpack_single_state(component):
+    """ Replace single-state shortcut with verbose states entry form."""
     ret = component
     states = {"default": {}}
     for edge, specs in component["edges"].items():
