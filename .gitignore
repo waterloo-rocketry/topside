@@ -15,3 +15,5 @@ dist/
 *.egg-info/
 
 Topside.spec
+
+.coverage
