@@ -46,7 +46,7 @@ class VisualizationArea(QQuickPaintedItem):
     its own events and graphics.
     """
 
-    DEBUG_MODE = False  # Flipping this to True turns on print statments in parts of the code
+    DEBUG_MODE = False  # Flipping this to True turns on print statements in parts of the code
 
     def __init__(self, parent=None):
         QQuickPaintedItem.__init__(self, parent)
