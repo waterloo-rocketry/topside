@@ -4,7 +4,7 @@ import topside.pdl.exceptions as exceptions
 
 
 def check_fields(fields, entry):
-    """ Check that all fields in field are in entry."""
+    """ Check that all provided fields are in entry, where entry is a PDL object."""
     if entry is None:
         raise exceptions.BadInputError("empty entry")
     for field in fields:
@@ -32,7 +32,7 @@ class File:
         path: string
             path should contain either the path to the file containing PDL,
             or a string that contains a valid PDL file by itself (mostly for
-            testing purpoeses).
+            testing purposes).
 
         input_type: char
             input_type indicates whether the argument provided to "path" is

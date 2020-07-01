@@ -23,8 +23,8 @@ class Package:
         Initialize a Package from one or more Files.
 
         A Package should have all the components of a complete plumbing engine system; from
-        here no additional information is added to what will go into the PlumbingEngine. Once
-        instantiated, a Package's PDL is cleaned and ready to use.
+        here no additional information will make it into the PlumbingEngine. Once instantiated,
+        a Package's PDL is cleaned and ready to use.
 
         Parameters
         ==========
@@ -67,15 +67,15 @@ class Package:
         self.clean()
 
     def clean(self):
-        """ Spin user-friendly PDL shortcuts into the verbose PDL standard."""
+        """ Change user-friendly PDL shortcuts into the verbose PDL standard."""
 
-        # preprocessing for typedefs
+        # preprocess typedefs
         for namespace in self.typedefs:
             for idx, component in enumerate(self.components[namespace]):
                 if "type" in component:
                     self.components[namespace][idx] = self.fill_typedef(namespace, component)
 
-        # cleaning PDL shortcuts
+        # clean PDL shortcuts
         for namespace in self.components:
             for idx, component in enumerate(self.components[namespace]):
                 # deal with single state shortcuts
@@ -89,7 +89,7 @@ class Package:
         """ Fill in typedef template for components invoking a typedef."""
         name = component["type"]
         if "." in name:
-            # rough implementation, needs more robustness in the future
+            # NOTE: we might eventually want to consider how well this will play with nested imports
             fields = name.split(".")
             namespace = fields[0]
             name = fields[-1]
@@ -103,12 +103,11 @@ class Package:
 
         ret = yaml.safe_load(body)
         ret.pop("params")
-        print(yaml.dump(ret))
         return ret
 
 
 def unpack_teq(component):
-    """ Replace single-direction teq shortcut with verbose teq form."""
+    """ Replace single-direction teq shortcut with verbose teq."""
     ret = component
     for state, edges in component["states"].items():
         for edge, teq in edges.items():
@@ -122,7 +121,7 @@ def unpack_teq(component):
 
 
 def unpack_single_state(component):
-    """ Replace single-state shortcut with verbose states entry form."""
+    """ Replace single-state shortcut with verbose states entry."""
     ret = component
     states = {"default": {}}
     for edge, specs in component["edges"].items():
