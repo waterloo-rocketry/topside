@@ -40,7 +40,7 @@ def make_engine():
 
 class VisualizationArea(QQuickPaintedItem):
     """
-    A QML-acessible item that will draw the state of the engine.
+    A QML-accessible item that will draw the state of the engine.
 
     It is a subclass of QQuickPaintedItem, which means it imperatively handles all of
     its own events and graphics.
@@ -236,5 +236,5 @@ class VisualizationArea(QQuickPaintedItem):
         """
         self.color_property = input_color
 
-    # Registers color as a QML-acessible property, along with directions for its getter and setter
+    # Registers color as a QML-accessible property, along with directions for its getter and setter
     color = Property(QColor, get_color, set_color)
