@@ -16,7 +16,7 @@ IMPORTS = {
 
 
 class Package:
-    """ Package represents a collection of files that make a coherent plumbing system."""
+    """Package represents a collection of files that make a coherent plumbing system."""
 
     def __init__(self, files):
         """
@@ -67,7 +67,7 @@ class Package:
         self.clean()
 
     def clean(self):
-        """ Change user-friendly PDL shortcuts into the verbose PDL standard."""
+        """Change user-friendly PDL shortcuts into the verbose PDL standard."""
 
         # preprocess typedefs
         for namespace in self.typedefs:
@@ -86,11 +86,13 @@ class Package:
                 self.components[namespace][idx] = unpack_teq(component)
 
     def fill_typedef(self, namespace, component):
-        """ Fill in typedef template for components invoking a typedef."""
+        """Fill in typedef template for components invoking a typedef."""
         name = component["type"]
-        if "." in name:
+        if name.count('.') > 1:
+            raise NotImplementedError(f"nested imports (in {name}) not supported yet")
+        if '.' in name:
             # NOTE: we might eventually want to consider how well this will play with nested imports
-            fields = name.split(".")
+            fields = name.split('.')
             namespace = fields[0]
             name = fields[-1]
         if name not in self.typedefs[namespace]:
@@ -107,7 +109,7 @@ class Package:
 
 
 def unpack_teq(component):
-    """ Replace single-direction teq shortcut with verbose teq."""
+    """Replace single-direction teq shortcut with verbose teq."""
     ret = component
     for state, edges in component["states"].items():
         for edge, teq in edges.items():
@@ -121,7 +123,7 @@ def unpack_teq(component):
 
 
 def unpack_single_state(component):
-    """ Replace single-state shortcut with verbose states entry."""
+    """Replace single-state shortcut with verbose states entry."""
     ret = component
     states = {"default": {}}
     for edge, specs in component["edges"].items():

@@ -3,21 +3,22 @@ import yaml
 import topside.pdl.exceptions as exceptions
 
 
-def check_fields(fields, entry):
-    """ Check that all provided fields are in entry, where entry is a PDL object."""
+def check_fields(entry, fields):
+    """Check that all provided fields are in entry, where entry is a PDL object."""
     if entry is None:
         raise exceptions.BadInputError("empty entry")
     for field in fields:
         if field not in entry:
             raise exceptions.BadInputError(f"field {field} required and not found")
         if entry[field] is None:
+            # empty fields will be loaded in as None by pyyaml
             raise exceptions.BadInputError(f"field {field} required not to be empty")
 
 
 class File:
-    """ Represents a single PDL file."""
+    """Represents a single PDL file."""
 
-    def __init__(self, path, input_type="f"):
+    def __init__(self, path, input_type='f'):
         """
         Initialize a File object from a file's worth of PDL.
 
@@ -57,9 +58,9 @@ class File:
         graphs: list
             list of PDL graph bodies, stored as objects.
         """
-        if input_type == "f":
-            file = open(path, "r")
-        elif input_type == "s":
+        if input_type == 'f':
+            file = open(path, 'r')
+        elif input_type == 's':
             file = path
         else:
             raise exceptions.BadInputError(f"invalid input type {input_type}")
@@ -72,8 +73,11 @@ class File:
             "graph": self.validate_graph,
         }
 
+        self.imports = []
+        if 'import' in pdl:
+            self.imports = pdl['import']
+
         self.namespace = pdl['name']
-        self.imports = pdl['import']
         self.body = pdl['body']
         self.typedefs = {}
         self.components = []
@@ -81,7 +85,7 @@ class File:
         self.validate()
 
     def validate(self):
-        """ Validate the PDL contents of the File."""
+        """Validate the PDL contents of the File."""
 
         for entry in self.body:
             e_type = list(entry.keys())[0]
@@ -92,20 +96,20 @@ class File:
             self.type_checks[e_type](body)
 
     def validate_typedef(self, entry):
-        """ Validate typedef entries specifically."""
+        """Validate typedef entries specifically."""
 
-        check_fields(["params", "name", "edges", "states"], entry)
+        check_fields(entry, ["params", "name", "edges", "states"])
         name = entry["name"]
         self.typedefs[name] = entry
 
     def validate_component(self, entry):
-        """ Validate component entries specifically."""
+        """Validate component entries specifically."""
 
         if "type" in entry:
             self.validate_type_entry(entry)
             return
 
-        check_fields(["name", "edges"], entry)
+        check_fields(entry, ["name", "edges"])
 
         if "states" not in entry:
             for edge in entry["edges"]:
@@ -119,16 +123,18 @@ class File:
     # This setup doesn't allow for hoisting (i.e. defining a typedef after a component that
     # references it).
     def validate_type_entry(self, entry):
-        """ Validate typedef implementation components specifically."""
-        check_fields(["name", "type", "params"], entry)
+        """Validate typedef implementation components specifically."""
+        check_fields(entry, ["name", "type", "params"])
         def_type = entry["type"]
         # a "." indicates it's an import, which will be checked later.
         if "." in def_type:
             self.components.append(entry)
             return
         if def_type not in self.typedefs:
-            raise exceptions.BadInputError(f"typedef {def_type} not found; hoisting not allowed")
+            raise exceptions.BadInputError(f"typedef {def_type} not found; typedef must "
+                                           "be defined before being referenced")
 
+        # TODO(wendi): support default params
         params = self.typedefs[def_type]["params"]
         if len(params) != len(entry):
             raise exceptions.BadInputError(f"not all params ({params}) present in component "
@@ -141,8 +147,8 @@ class File:
         self.components.append(entry)
 
     def validate_graph(self, entry):
-        """ Validate graph entries specifically."""
-        check_fields(["name", "nodes", "states"], entry)
+        """Validate graph entries specifically."""
+        check_fields(entry, ["name", "nodes", "states"])
         for node_name in entry["nodes"]:
             node = entry["nodes"][node_name]
             if len(node) < 1 or "components" not in node:

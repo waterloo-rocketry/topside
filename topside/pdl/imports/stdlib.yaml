@@ -1,5 +1,4 @@
 name: stdlib
-import: []
 body:
 - typedef:
     params: [open_teq, closed_teq]

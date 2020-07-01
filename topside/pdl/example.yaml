@@ -1,8 +1,8 @@
-name: potato
+name: example
 
 import: [stdlib]
-  
-body: 
+
+body:
 - typedef:
     params: [edge_name, open_teq, closed_teq]
     name: valve
@@ -26,14 +26,12 @@ body:
       closed:
         edge1: closed
 
-
 - component:
     name: hole_valve
     type: stdlib.hole
     params:
       open_teq: 1
       closed_teq: closed
-
 
 - component:
     name: vent_valve
@@ -42,7 +40,6 @@ body:
       edge_name: fav_edge
       open_teq: 5
       closed_teq: closed
-  
 
 - component:
     name: three_way_valve
@@ -80,32 +77,26 @@ body:
         fixed_pressure: 500
         components:
           - [fill_valve, 0]
-
       B:
         components:
           - [fill_valve, 1]
           - [vent_valve, 0]
           - [check_valve, 0]
-
       C:
         initial_pressure: 10
         components:
           - [check_valve, 1]
           - [three_way_valve, 0]
-
       D:
         components:
           - [three_way_valve, 1]
           - [vent_plug, 0]
-
       atm:
         components:
           - [three_way_valve, 2]
           - [vent_plug, 1]
           - [vent_valve, 1]
-
     states:
       fill_valve: closed
       vent_valve: open
       three_way_valve: left
-

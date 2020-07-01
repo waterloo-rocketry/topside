@@ -11,7 +11,7 @@ def test_package_storage():
 
     namespace = file.namespace
     assert len(pack.typedefs) == 2
-    assert "potato" in pack.typedefs and "stdlib" in pack.typedefs
+    assert "example" in pack.typedefs and "stdlib" in pack.typedefs
 
     assert len(pack.components[namespace]) == 6
     assert len(pack.components["stdlib"]) == 0
@@ -71,10 +71,10 @@ def test_files_unchanged():
     assert len(file.graphs) == 1
 
 
-def test_errors():
+def test_invalid_import():
     invalid_import =\
         """
-name: potato
+name: example
 import: [stdlib, NONEXISTENT]
 body:
 - typedef:
@@ -89,16 +89,18 @@ body:
       closed:
         edge1: closed_teq
 """
-    invalid_import_file = top.File(invalid_import, input_type="s")
+    invalid_import_file = top.File(invalid_import, input_type='s')
     with pytest.raises(exceptions.BadInputError):
         _ = top.Package([invalid_import_file])
 
+
+def test_invalid_bad_import_type():
     # typedef not found errors having to do with imported files will only be caught at the package
     # level, not at the file one. We can look at changing this if we change the implementation of
     # how importable files are stored.
     bad_imported_type =\
         """
-name: potato
+name: example
 import: [stdlib]
 body:
 - component:
@@ -109,9 +111,29 @@ body:
       open_teq: 5
       closed_teq: closed
 """
-    bad_imported_type_file = top.File(bad_imported_type, input_type="s")
+    bad_imported_type_file = top.File(bad_imported_type, input_type='s')
     with pytest.raises(exceptions.BadInputError):
         _ = top.Package([bad_imported_type_file])
 
+
+def test_invalid_empty_package():
     with pytest.raises(exceptions.BadInputError):
         _ = top.Package([])
+
+
+def test_invalid_nested_import():
+    nested_import =\
+            """
+name: example
+import: [stdlib]
+body:
+- component:
+    name: vent_valve
+    type: stdlib.NEST.hole
+    params:
+      edge_name: fav_edge
+      open_teq: 5
+"""
+    nested_import_file = top.File(nested_import, input_type='s')
+    with pytest.raises(NotImplementedError):
+        _ = top.Package([nested_import_file])
