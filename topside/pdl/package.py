@@ -11,7 +11,7 @@ import topside.pdl.exceptions as exceptions
 # outside a predefined library. Likely involves a function that traipses through the
 # imports folder for new files and stores them in this dict whenever new Packages are instantiated.
 IMPORTS = {
-    "stdlib": "./topside/pdl/imports/stdlib.yaml"
+    'stdlib': './topside/pdl/imports/stdlib.yaml'
 }
 
 
@@ -72,14 +72,14 @@ class Package:
         # preprocess typedefs
         for namespace in self.typedefs:
             for idx, component in enumerate(self.components[namespace]):
-                if "type" in component:
+                if 'type' in component:
                     self.components[namespace][idx] = self.fill_typedef(namespace, component)
 
         # clean PDL shortcuts
         for namespace in self.components:
             for idx, component in enumerate(self.components[namespace]):
                 # deal with single state shortcuts
-                if "states" not in component:
+                if 'states' not in component:
                     self.components[namespace][idx] = unpack_single_state(component)
 
                 # unpack single teq direction shortcuts
@@ -87,7 +87,7 @@ class Package:
 
     def fill_typedef(self, namespace, component):
         """Fill in typedef template for components invoking a typedef."""
-        name = component["type"]
+        name = component['type']
         if name.count('.') > 1:
             raise NotImplementedError(f"nested imports (in {name}) not supported yet")
         if '.' in name:
@@ -97,37 +97,37 @@ class Package:
             name = fields[-1]
         if name not in self.typedefs[namespace]:
             raise exceptions.BadInputError(f"invalid component type: {name}")
-        params = component["params"]
+        params = component['params']
         body = yaml.dump(self.typedefs[namespace][name])
 
         for var, value in params.items():
             body = body.replace(var, str(value))
 
         ret = yaml.safe_load(body)
-        ret.pop("params")
+        ret.pop('params')
         return ret
 
 
 def unpack_teq(component):
     """Replace single-direction teq shortcut with verbose teq."""
     ret = component
-    for state, edges in component["states"].items():
+    for state, edges in component['states'].items():
         for edge, teq in edges.items():
             if isinstance(teq, dict):
                 continue
             long_teq = {}
-            long_teq["fwd"] = teq
-            long_teq["back"] = teq
-            ret["states"][state][edge] = long_teq
+            long_teq['fwd'] = teq
+            long_teq['back'] = teq
+            ret['states'][state][edge] = long_teq
     return ret
 
 
 def unpack_single_state(component):
     """Replace single-state shortcut with verbose states entry."""
     ret = component
-    states = {"default": {}}
-    for edge, specs in component["edges"].items():
-        states["default"][edge] = specs["teq"]
-        ret["edges"][edge].pop("teq")
-    ret["states"] = states
+    states = {'default': {}}
+    for edge, specs in component['edges'].items():
+        states['default'][edge] = specs['teq']
+        ret['edges'][edge].pop('teq')
+    ret['states'] = states
     return ret

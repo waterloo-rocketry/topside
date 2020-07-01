@@ -5,64 +5,64 @@ import topside.pdl.exceptions as exceptions
 
 
 def test_package_storage():
-    file = top.File("topside/pdl/example.yaml")
+    file = top.File('topside/pdl/example.yaml')
 
     pack = top.Package([file])
 
     namespace = file.namespace
     assert len(pack.typedefs) == 2
-    assert "example" in pack.typedefs and "stdlib" in pack.typedefs
+    assert 'example' in pack.typedefs and 'stdlib' in pack.typedefs
 
     assert len(pack.components[namespace]) == 6
-    assert len(pack.components["stdlib"]) == 0
+    assert len(pack.components['stdlib']) == 0
 
     assert len(pack.typedefs[namespace]) == 1
-    assert len(pack.typedefs["stdlib"]) == 1
+    assert len(pack.typedefs['stdlib']) == 1
 
     assert len(pack.graphs[namespace]) == 1
-    assert len(pack.graphs["stdlib"]) == 0
+    assert len(pack.graphs['stdlib']) == 0
 
 
 def test_package_typedefs():
-    file = top.File("topside/pdl/example.yaml")
+    file = top.File('topside/pdl/example.yaml')
     namespace = file.namespace
 
     pack = top.Package([file])
 
-    var_open = "open_teq"
-    var_closed = "closed_teq"
-    var_name = "edge_name"
+    var_open = 'open_teq'
+    var_closed = 'closed_teq'
+    var_name = 'edge_name'
 
     for component in pack.components[namespace]:
         # ensure typedef fulfillment occurred
-        assert "type" not in component and "params" not in component
-        assert "edges" in component
+        assert 'type' not in component and 'params' not in component
+        assert 'edges' in component
 
         # ensure variables were replaced
-        if component["name"] == "vent_valve":
-            assert var_name not in list(component["edges"].keys())
-            assert var_open not in component["states"]["open"]
-            assert var_closed not in component["states"]["closed"]
+        if component['name'] == 'vent_valve':
+            assert var_name not in list(component['edges'].keys())
+            assert var_open not in component['states']['open']
+            assert var_closed not in component['states']['closed']
 
-        if component["name"] == "hole":
-            assert var_name not in list(component["edges"].keys())
-            assert var_open not in component["states"]["open"]
+        if component['name'] == 'hole':
+            assert var_name not in list(component['edges'].keys())
+            assert var_open not in component['states']['open']
 
 
 def test_package_shortcuts():
-    file = top.File("topside/pdl/example.yaml")
+    file = top.File('topside/pdl/example.yaml')
     namespace = file.namespace
 
     pack = top.Package([file])
     for component in pack.components[namespace]:
-        assert "states" in component
-        for edges in component["states"].values():
+        assert 'states' in component
+        for edges in component['states'].values():
             for teq in edges.values():
-                assert "fwd" in teq and "back" in teq
+                assert 'fwd' in teq and 'back' in teq
 
 
 def test_files_unchanged():
-    file = top.File("topside/pdl/example.yaml")
+    file = top.File('topside/pdl/example.yaml')
 
     _ = top.Package([file])
 

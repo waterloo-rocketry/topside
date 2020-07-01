@@ -68,17 +68,17 @@ class File:
         pdl = yaml.safe_load(file)
 
         self.type_checks = {
-            "typedef": self.validate_typedef,
-            "component": self.validate_component,
-            "graph": self.validate_graph,
+            'typedef': self.validate_typedef,
+            'component': self.validate_component,
+            'graph': self.validate_graph,
         }
 
         self.imports = []
-        if "import" in pdl:
-            self.imports = pdl["import"]
+        if 'import' in pdl:
+            self.imports = pdl['import']
 
-        self.namespace = pdl["name"]
-        self.body = pdl["body"]
+        self.namespace = pdl['name']
+        self.body = pdl['body']
         self.typedefs = {}
         self.components = []
         self.graphs = []
@@ -98,25 +98,25 @@ class File:
     def validate_typedef(self, entry):
         """Validate typedef entries specifically."""
 
-        check_fields(entry, ["params", "name", "edges", "states"])
-        name = entry["name"]
+        check_fields(entry, ['params', 'name', 'edges', 'states'])
+        name = entry['name']
         self.typedefs[name] = entry
 
     def validate_component(self, entry):
         """Validate component entries specifically."""
 
-        if "type" in entry:
+        if 'type' in entry:
             self.validate_type_entry(entry)
             return
 
-        check_fields(entry, ["name", "edges"])
+        check_fields(entry, ['name', 'edges'])
 
-        if "states" not in entry:
-            for edge in entry["edges"]:
-                edge_value = entry["edges"][edge]
-                if "nodes" not in edge_value or "teq" not in edge_value or len(edge_value) != 2:
+        if 'states' not in entry:
+            for edge in entry['edges']:
+                edge_value = entry['edges'][edge]
+                if 'nodes' not in edge_value or 'teq' not in edge_value or len(edge_value) != 2:
                     raise exceptions.BadInputError(
-                        f"invalid single-state component syntax in {entry}")
+                        f'invalid single-state component syntax in {entry}')
 
         self.components.append(entry)
 
@@ -124,10 +124,10 @@ class File:
     # references it).
     def validate_type_entry(self, entry):
         """Validate typedef implementation components specifically."""
-        check_fields(entry, ["name", "type", "params"])
-        def_type = entry["type"]
-        # a "." indicates it's an import, which will be checked later.
-        if "." in def_type:
+        check_fields(entry, ['name', 'type', 'params'])
+        def_type = entry['type']
+        # a '.' indicates it's an import, which will be checked later.
+        if '.' in def_type:
             self.components.append(entry)
             return
         if def_type not in self.typedefs:
@@ -135,23 +135,23 @@ class File:
                                            "be defined before being referenced")
 
         # TODO(wendi): support default arguments
-        params = self.typedefs[def_type]["params"]
+        params = self.typedefs[def_type]['params']
         if len(params) != len(entry):
             raise exceptions.BadInputError(f"not all params ({params}) present in component "
                                            "declaration")
 
         for param in params:
-            if param not in entry["params"]:
+            if param not in entry['params']:
                 raise exceptions.BadInputError(f"param {param} not found")
 
         self.components.append(entry)
 
     def validate_graph(self, entry):
         """Validate graph entries specifically."""
-        check_fields(entry, ["name", "nodes", "states"])
-        for node_name in entry["nodes"]:
-            node = entry["nodes"][node_name]
-            if len(node) < 1 or "components" not in node:
+        check_fields(entry, ['name', 'nodes', 'states'])
+        for node_name in entry['nodes']:
+            node = entry['nodes'][node_name]
+            if len(node) < 1 or 'components' not in node:
                 raise exceptions.BadInputError(f"invalid entry for {node_name}: {node}")
 
         self.graphs.append(entry)

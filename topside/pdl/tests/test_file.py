@@ -5,10 +5,10 @@ import topside.pdl.exceptions as exceptions
 
 
 def test_valid_pdl():
-    file = top.File("topside/pdl/example.yaml")
+    file = top.File('topside/pdl/example.yaml')
 
-    assert file.namespace == "example"
-    assert file.imports == ["stdlib"]
+    assert file.namespace == 'example'
+    assert file.imports == ['stdlib']
 
     assert len(file.typedefs) == 1
     assert len(file.components) == 6
@@ -34,7 +34,7 @@ body:
 """
     file = top.File(no_import, 's')
 
-    assert file.namespace == "example"
+    assert file.namespace == 'example'
     assert file.imports == []
 
     assert len(file.typedefs) == 1
