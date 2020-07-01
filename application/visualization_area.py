@@ -1,12 +1,10 @@
 from PySide2.QtQuick import QQuickPaintedItem
-from PySide2.QtGui import QColor, QPen, QPainter, QFont
+from PySide2.QtGui import QColor, QPen, QFont
 from PySide2.QtCore import Qt, Property, QPointF
 
 import topside as top
 
-# Note: Copied from layout_demo to avoid using importlib
-
-
+# NOTE: Copied from layout_demo to avoid using importlib
 def make_engine():
     states = {
         'static': {
@@ -45,7 +43,7 @@ class VisualizationArea(QQuickPaintedItem):
     A QML-acessible item that will draw the state of the engine.
 
     It is a subclass of QQuickPaintedItem, which means it imperatively handles all of
-    its own events and graphics
+    its own events and graphics.
     """
 
     DEBUG_MODE = False  # Flipping this to True turns on print statments in parts of the code
@@ -79,7 +77,6 @@ class VisualizationArea(QQuickPaintedItem):
 
         painter: QPainter
             The painter instance which will draw all of the primitives.
-
         """
         # Creates fonts
         big_font = QFont('Times', 25, QFont.Bold)
@@ -149,7 +146,7 @@ class VisualizationArea(QQuickPaintedItem):
         ----------
 
         event: QMouseEvent
-            The event which contains all of the data about where the move occured.
+            The event which contains all of the data about where the move occurred.
         """
 
         if self.DEBUG_MODE:
@@ -166,8 +163,8 @@ class VisualizationArea(QQuickPaintedItem):
         Parameters
         ----------
 
-        event: QMouseEvent 
-            The event which contains all of the data about where the press occured
+        event: QMouseEvent
+            The event which contains all of the data about where the press occurred.
         """
         if self.DEBUG_MODE:
             print('Press: ' + str(event.x()) + ' ' + str(event.y()))
@@ -193,10 +190,10 @@ class VisualizationArea(QQuickPaintedItem):
 
     def upload_engine_instance(self, engine):
         """
-        Sets the local engine to the input variable and initilizes associated local objects.
+        Sets the local engine to the input variable and initializes associated local objects.
 
         Setter and initializer for uploading an engine to be displayed. After an engine is set,
-        the according layout and terminal graph is generated from the engine data
+        the according layout and terminal graph is generated from the engine data.
 
         Parameters
         ----------
@@ -209,35 +206,35 @@ class VisualizationArea(QQuickPaintedItem):
         self.terminal_graph = top.terminal_graph(self.engine_instance)
         self.layout_pos = top.layout_plumbing_engine(self.engine_instance)
 
-    def getColor(self):
+    def get_color(self):
         """
         Return the local color.
 
-        Getter for the QML-acessible color property 'color', which is registered by
+        Getter for the QML-accessible color property 'color', which is registered by
         a 'Property' call at the end of the file.
 
         Returns
         -------
 
-        QColor: 
+        QColor:
             The local graphics QColor.
         """
         return self.color_property
 
-    def setColor(self, input):
+    def set_color(self, input_color):
         """
         Set the local color to the given color.
 
-        Setter for the QML-acessible color property 'color', which is registered by
+        Setter for the QML-accessible color property 'color', which is registered by
         a 'Property' call at the end of the file.
 
         Parameters
         ----------
 
-        input: QColor 
+        input: QColor
             The local graphics QColor.
         """
-        self.color_property = input
+        self.color_property = input_color
 
     # Registers color as a QML-acessible property, along with directions for its getter and setter
-    color = Property(QColor, getColor, setColor)
+    color = Property(QColor, get_color, set_color)
