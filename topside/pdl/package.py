@@ -48,7 +48,7 @@ class Package:
             # TODO(wendi): unused import detection
             self.imports.extend(copy.deepcopy(file.imports))
 
-        for imp in self.imports:
+        for imp in set(self.imports):
             if imp not in IMPORTS:
                 raise exceptions.BadInputError(f"invalid import: {imp}")
             files.append(top.File(IMPORTS[imp]))

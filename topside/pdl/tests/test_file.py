@@ -179,6 +179,8 @@ body:
     with pytest.raises(exceptions.BadInputError):
         _ = top.File(missing_states, 's')
 
+
+def test_invalid_incomplete_node():
     # A is missing its components
     incomplete_nodes =\
         """

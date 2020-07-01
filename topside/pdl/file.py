@@ -74,11 +74,11 @@ class File:
         }
 
         self.imports = []
-        if 'import' in pdl:
-            self.imports = pdl['import']
+        if "import" in pdl:
+            self.imports = pdl["import"]
 
-        self.namespace = pdl['name']
-        self.body = pdl['body']
+        self.namespace = pdl["name"]
+        self.body = pdl["body"]
         self.typedefs = {}
         self.components = []
         self.graphs = []
@@ -134,7 +134,7 @@ class File:
             raise exceptions.BadInputError(f"typedef {def_type} not found; typedef must "
                                            "be defined before being referenced")
 
-        # TODO(wendi): support default params
+        # TODO(wendi): support default arguments
         params = self.typedefs[def_type]["params"]
         if len(params) != len(entry):
             raise exceptions.BadInputError(f"not all params ({params}) present in component "
