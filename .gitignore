@@ -1,7 +1,13 @@
+# Linter config
+
+.pylintrc
+
 # IDE files and directories
 
 .idea/
 .vscode/
+.pydevproject
+.project
 
 # Python
 

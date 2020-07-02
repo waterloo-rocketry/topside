@@ -36,5 +36,6 @@ def make_engine():
     return top.PlumbingEngine(component_dict, mapping, pressures, initial_states)
 
 
-fig, ax = top.layout_and_plot_plumbing_engine(make_engine())
-plt.show()
+if __name__ == '__main__':
+    fig, ax = top.layout_and_plot_plumbing_engine(make_engine())
+    plt.show()
