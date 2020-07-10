@@ -19,7 +19,7 @@ def test_package_storage():
     assert len(pack.typedefs[namespace]) == 1
     assert len(pack.typedefs['stdlib']) == 1
 
-    assert len(pack.graphs[namespace]) == 1
+    assert len(pack.graphs[namespace]) == 2
     assert len(pack.graphs['stdlib']) == 0
 
 
@@ -68,7 +68,9 @@ def test_files_unchanged():
 
     assert len(file.typedefs) == 1
     assert len(file.components) == 6
-    assert len(file.graphs) == 1
+    assert len(file.graphs) == 2
+
+test_files_unchanged()
 
 
 def test_invalid_import():
@@ -123,7 +125,7 @@ def test_invalid_empty_package():
 
 def test_invalid_nested_import():
     nested_import =\
-            """
+        """
 name: example
 import: [stdlib]
 body:
@@ -174,3 +176,36 @@ body:
     duplicate_pack = top.Package([top.File(file_1, 's'), top.File(file_2, 's')])
     assert duplicate_pack.components["name1"][0]['name'] == "name1.fill_valve"
     assert duplicate_pack.components["name2"][0]['name'] == "name2.fill_valve"
+
+
+def test_invalid_graph_missing_states():
+    missing_states =\
+    """
+name: example
+import: [stdlib]
+body:
+- component:
+    name: fill_valve
+    edges:
+      edge1:
+        nodes: [0, 1]
+    states:
+      open:
+        edge1: 6
+      closed:
+        edge1: closed
+- graph:
+    name: main
+    nodes:
+      A:
+        fixed_pressure: 500
+        components:
+          - [fill_valve, 0]
+
+      B:
+        components:
+          - [fill_valve, 1]
+"""
+    missing_states_file = top.File(missing_states, 's')
+    with pytest.raises(exceptions.BadInputError):
+        top.Package([missing_states_file])

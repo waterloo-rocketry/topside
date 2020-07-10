@@ -76,8 +76,8 @@ class Package:
                     self.components[namespace][idx] = self.fill_typedef(namespace, component)
 
         # clean PDL shortcuts
-        for namespace in self.components:
-            for idx, component in enumerate(self.components[namespace]):
+        for namespace, entries in self.components.items():
+            for idx, component in enumerate(entries):
                 # deal with single state shortcuts
                 if 'states' not in component:
                     self.components[namespace][idx] = unpack_single_state(component)
@@ -85,7 +85,7 @@ class Package:
                 # unpack single teq direction shortcuts
                 self.components[namespace][idx] = unpack_teq(component)
 
-        # prepend any conflicting names with namespace to disambiguate
+        # prepend any conflicting component names with namespace to disambiguate
         names = {}
         repeats = {}
         for namespace, entries in self.components.items():
@@ -102,10 +102,14 @@ class Package:
                 if name in repeats:
                     self.components[namespace][idx]['name'] = namespace + '.' + name
 
+        for namespace, entries in self.graphs.items():
+            for idx, graph in enumerate(entries):
+                self.graphs[namespace][idx] = self.fill_graphs(graph)
 
     def fill_typedef(self, namespace, component):
         """Fill in typedef template for components invoking a typedef."""
         name = component['type']
+        component_name = component['name']
         if name.count('.') > 1:
             raise NotImplementedError(f"nested imports (in {name}) not supported yet")
         if '.' in name:
@@ -123,8 +127,36 @@ class Package:
 
         ret = yaml.safe_load(body)
         ret.pop('params')
+        ret['name'] = component_name
         return ret
 
+    def fill_graphs(self, graph):
+        ret = graph
+        if 'states' not in graph:
+            ret['states'] = {}
+        components = set()
+        for node in graph['nodes'].values():
+            for component in node['components']:
+                components.add(component[0])
+        places = {}
+        for namespace in self.components:
+            for idx, component in enumerate(self.components[namespace]):
+                places[component['name']] = (namespace, idx)
+
+        for component in components:
+            if component in ret['states']:
+                continue
+            namespace, idx = places[component]
+            component_states = self.components[namespace][idx]['states']
+            if len(component_states) != 1:
+                raise exceptions.BadInputError(
+                    f"state must be specified in graph {graph['name']} for component"+
+                    f" {component} with multiple states")
+            state_name = list(component_states.keys())[0]
+            ret['states'][component] = state_name
+        
+        return ret
+            
 
 def unpack_teq(component):
     """Replace single-direction teq shortcut with verbose teq."""

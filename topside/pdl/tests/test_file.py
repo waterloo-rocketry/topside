@@ -12,7 +12,7 @@ def test_valid_pdl():
 
     assert len(file.typedefs) == 1
     assert len(file.components) == 6
-    assert len(file.graphs) == 1
+    assert len(file.graphs) == 2
 
 
 def test_no_import():
@@ -155,29 +155,6 @@ body:
 """
     with pytest.raises(exceptions.BadInputError):
         _ = top.File(no_hoisting, input_type='s')
-
-
-def test_invalid_graph():
-    # missing the field specifying which state each component should take initially
-    missing_states =\
-        """
-name: example
-import: [stdlib]
-body:
-- graph:
-    name: main
-    nodes:
-      A:
-        fixed_pressure: 500
-        components:
-          - [fill_valve, 0]
-
-      B:
-        components:
-          - [fill_valve, 1]
-"""
-    with pytest.raises(exceptions.BadInputError):
-        _ = top.File(missing_states, 's')
 
 
 def test_invalid_incomplete_node():
