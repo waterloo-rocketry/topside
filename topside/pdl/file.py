@@ -148,7 +148,7 @@ class File:
 
     def validate_graph(self, entry):
         """Validate graph entries specifically."""
-        check_fields(entry, ['name', 'nodes', 'states'])
+        check_fields(entry, ['name', 'nodes'])
         for node_name in entry['nodes']:
             node = entry['nodes'][node_name]
             if len(node) < 1 or 'components' not in node:
