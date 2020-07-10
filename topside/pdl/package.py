@@ -37,7 +37,7 @@ class Package:
             raise exceptions.BadInputError("cannot instantiate a Package with no Files")
         self.imports = []
 
-        # dicts of {namespace: entry}, where entry is a PDL object. Organized like this to
+        # dicts of {namespace: [entries]}, where entry is a PDL object. Organized like this to
         # reduce dict nesting; since this is a one time process it should be easy to keep
         # them synced.
         self.typedefs = {}
@@ -84,6 +84,24 @@ class Package:
 
                 # unpack single teq direction shortcuts
                 self.components[namespace][idx] = unpack_teq(component)
+
+        # prepend any conflicting names with namespace to disambiguate
+        names = {}
+        repeats = {}
+        for namespace, entries in self.components.items():
+            for entry in entries:
+                name = entry['name']
+                if name in names:
+                    repeats[name] = True
+                else:
+                    names[name] = namespace
+
+        for namespace, entries in self.components.items():
+            for idx, entry in enumerate(entries):
+                name = entry['name']
+                if name in repeats:
+                    self.components[namespace][idx]['name'] = namespace + '.' + name
+
 
     def fill_typedef(self, namespace, component):
         """Fill in typedef template for components invoking a typedef."""
