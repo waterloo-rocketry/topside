@@ -131,13 +131,18 @@ class Package:
         return ret
 
     def fill_graphs(self, graph):
+        """Fill in states field with default states if left blank."""
         ret = graph
         if 'states' not in graph:
             ret['states'] = {}
+
+        # set of components in this graph
         components = set()
         for node in graph['nodes'].values():
             for component in node['components']:
                 components.add(component[0])
+
+        # dict of {component: (namespace, index)} used to locate the component in self.components
         places = {}
         for namespace in self.components:
             for idx, component in enumerate(self.components[namespace]):
@@ -146,17 +151,22 @@ class Package:
         for component in components:
             if component in ret['states']:
                 continue
+
+            if component not in places:
+                raise exceptions.BadInputError(f"missing component {component}")
             namespace, idx = places[component]
             component_states = self.components[namespace][idx]['states']
+
             if len(component_states) != 1:
                 raise exceptions.BadInputError(
-                    f"state must be specified in graph {graph['name']} for component"+
+                    f"state must be specified in graph {graph['name']} for component" +
                     f" {component} with multiple states")
+
             state_name = list(component_states.keys())[0]
             ret['states'][component] = state_name
-        
+
         return ret
-            
+
 
 def unpack_teq(component):
     """Replace single-direction teq shortcut with verbose teq."""
