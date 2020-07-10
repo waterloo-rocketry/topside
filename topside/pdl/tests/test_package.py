@@ -137,3 +137,40 @@ body:
     nested_import_file = top.File(nested_import, input_type='s')
     with pytest.raises(NotImplementedError):
         _ = top.Package([nested_import_file])
+
+
+def test_duplicate_names():
+    file_1 =\
+        """
+name: name1
+body:
+- component:
+    name: fill_valve
+    edges:
+      edge1:
+        nodes: [0, 1]
+    states:
+      open:
+        edge1: 6
+      closed:
+        edge1: closed
+"""
+
+    file_2 =\
+        """
+name: name2
+body:
+- component:
+    name: fill_valve
+    edges:
+      edge1:
+        nodes: [0, 1]
+    states:
+      open:
+        edge1: 6
+      closed:
+        edge1: closed
+"""
+    duplicate_pack = top.Package([top.File(file_1, 's'), top.File(file_2, 's')])
+    assert duplicate_pack.components["name1"][0]['name'] == "name1.fill_valve"
+    assert duplicate_pack.components["name2"][0]['name'] == "name2.fill_valve"
