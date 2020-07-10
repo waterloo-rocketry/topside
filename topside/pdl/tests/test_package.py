@@ -64,11 +64,12 @@ def test_package_shortcuts():
 def test_files_unchanged():
     file = top.File('topside/pdl/example.yaml')
 
-    _ = top.Package([file])
+    top.Package([file])
 
     assert len(file.typedefs) == 1
     assert len(file.components) == 6
     assert len(file.graphs) == 2
+
 
 test_files_unchanged()
 
@@ -93,7 +94,7 @@ body:
 """
     invalid_import_file = top.File(invalid_import, input_type='s')
     with pytest.raises(exceptions.BadInputError):
-        _ = top.Package([invalid_import_file])
+        top.Package([invalid_import_file])
 
 
 def test_invalid_bad_import_type():
@@ -115,12 +116,12 @@ body:
 """
     bad_imported_type_file = top.File(bad_imported_type, input_type='s')
     with pytest.raises(exceptions.BadInputError):
-        _ = top.Package([bad_imported_type_file])
+        top.Package([bad_imported_type_file])
 
 
 def test_invalid_empty_package():
     with pytest.raises(exceptions.BadInputError):
-        _ = top.Package([])
+        top.Package([])
 
 
 def test_invalid_nested_import():
@@ -138,7 +139,7 @@ body:
 """
     nested_import_file = top.File(nested_import, input_type='s')
     with pytest.raises(NotImplementedError):
-        _ = top.Package([nested_import_file])
+        top.Package([nested_import_file])
 
 
 def test_duplicate_names():
@@ -180,7 +181,7 @@ body:
 
 def test_invalid_graph_missing_states():
     missing_states =\
-    """
+        """
 name: example
 import: [stdlib]
 body:
