@@ -1,3 +1,5 @@
+import copy
+
 import pytest
 
 import topside as top
@@ -224,3 +226,20 @@ def test_list_functions():
     assert plumb.errors() == {
         invalid.InvalidNodePressure(f"Negative pressure {negative_pressure} not allowed.", 3)
     }
+
+
+def test_components():
+    plumb = test.two_valve_setup(1, 1, 1, 1, 1, 1, 1, 1)
+    original_components = copy.deepcopy(plumb.component_dict)
+    queried_components = plumb.components()
+
+    assert list(original_components.keys()) == list(queried_components.keys())
+
+    queried_components.pop('valve1')
+
+    assert len(queried_components) == 1
+    assert len(original_components) == 2
+
+    # make sure that changes to the returned dict aren't propagated through to the original
+    assert list(original_components.keys()) == list(plumb.component_dict.keys())
+    assert list(original_components.keys()) == list(plumb.components().keys())
