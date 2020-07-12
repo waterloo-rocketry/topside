@@ -5,26 +5,25 @@ from PySide2.QtGui import QImage
 class GraphicsComponent():
     """
     A object that acts as the graphical representation of a component.
-
     """
 
-    def __init__(self, name, component_id):
+    def __init__(self, name, component_type):
         self.name = name
         self.nodes = []
         self.bounding_rect = None
         self.image = None
 
         # Loads associated sprite
-        self.image = QImage('application/resources/component_icons/' + component_id + '_icon.png')
+        self.image = QImage('application/resources/component_icons/' + component_type + '_icon.jpg')
         if self.image.isNull():
-            print('could not load \'' + component_id + '\'!')
+            print(f'could not load "{component_type}" icon from' +
+                    'application/resources/component_icons/ !')
         else:
             print('load sucessful!')
 
     def calculate_bounding_rect(self):
         """
         Calculate the bounding rectangle of the component based on what nodes it owns.
-
         """
         x_min = x_max = self.nodes[0].center[0]
         y_min = y_max = self.nodes[0].center[1]
@@ -57,7 +56,6 @@ class GraphicsComponent():
 
         painter: QPainter
             The given painter which will execute the graphical commands given to it.
-
         """
 
         pass

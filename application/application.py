@@ -5,7 +5,7 @@ from PySide2.QtGui import QGuiApplication, QIcon
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 
 import topside as top
-from .vis_area_res.visualization_area import VisualizationArea
+from .plumbing_vis.visualization_area import VisualizationArea
 from .procedures_bridge import ProceduresBridge
 
 

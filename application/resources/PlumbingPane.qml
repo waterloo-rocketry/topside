@@ -29,7 +29,7 @@ Rectangle {
         Connections {
             target: visualization_area
 
-            onRequest_QML_context: {
+            onRequestQMLContext: {
                 contextMenu.type = type
                 contextMenu.popup()
 
@@ -140,9 +140,7 @@ Rectangle {
             }
 
             onRetract_QML_info_box_request: info_box.visible = false
-
         }
-
     }
 
 
@@ -187,17 +185,15 @@ Rectangle {
             anchors.fill: parent
             hoverEnabled: true
 
-
             onClicked: parent.pressed()
         }
-
     }
 
     component CustomCheckButton : CustomHoverButtonTemplate {
         property var isChecked: true
 
         onPressed: {
-            isChecked = (!isChecked)
+            isChecked = !isChecked
             notifyVisArea()
         }
 
@@ -211,7 +207,6 @@ Rectangle {
             color: Qt.rgba(0, 0.1, 0.8, 0.2)
 
             visible: parent.isChecked
-
         }
     }
 
@@ -233,7 +228,6 @@ Rectangle {
             color: Qt.rgba(0, 0.1, 0.8, 0.2)
 
             visible: false
-
         }
 
         Timer {
@@ -247,7 +241,6 @@ Rectangle {
             }
         }
     }
-
 
     CustomCheckButton {
         tooltipText: "Toggles the grid"
@@ -291,5 +284,4 @@ Rectangle {
 
         onNotifyVisArea: visualization_area.toggle_image_visibility(isChecked)
     }
-
 }

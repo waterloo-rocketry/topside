@@ -1,13 +1,14 @@
 from PySide2.QtQuick import QQuickPaintedItem
 from PySide2.QtGui import QColor, QPen, QFont, QBrush, QCursor, QImage
 from PySide2.QtCore import Qt, Property, Signal, QPointF, Slot, QRectF
+from numpy import arctan, cos, sin, round, pi
 
 import topside as top
 from .graphics_node import GraphicsNode
 from .graphics_component import GraphicsComponent
-from numpy import arctan, cos, sin, round, pi
 
-# Note: Copied from layout_demo to avoid using importlib
+
+# NOTE: Copied from layout_demo to avoid using importlib
 
 
 def make_engine():
@@ -53,7 +54,7 @@ class VisualizationArea(QQuickPaintedItem):
 
     DEBUG_MODE = False  # Flipping this to True turns on print statements in parts of the code
     # Defines additional (probably temporary) scaling constants
-    NODE_RAD = 5
+    NODE_RADIUS = 5
 
     def __init__(self, parent=None):
         QQuickPaintedItem.__init__(self, parent)
@@ -80,14 +81,15 @@ class VisualizationArea(QQuickPaintedItem):
 
         self.active_node = None
 
+        # This variable monitors how much the window is being zoomed by
+        self.zoom_factor = 1
+
+        # These variables monitor how much the window is panned by
+        self.temporary_x_transpose_factor = 0
+        self.temporary_y_transpose_factor = 0
+        self.permanent_x_transpose_factor = 0
+        self.permanent_y_transpose_factor = 0
         self.drag_source = None
-
-        self.zoom_state = 1
-
-        self.temporary_x_transpose_state = 0
-        self.temporary_y_transpose_state = 0
-        self.permanent_x_transpose_state = 0
-        self.permanent_y_transpose_state = 0
 
         self.frozen = False
 
@@ -122,7 +124,6 @@ class VisualizationArea(QQuickPaintedItem):
 
         Any items that can be initialized without an active QPainter instance but will be used in
         the paint method should be initialized and calculated once in this method.
-
         """
 
         self.scale_engine_instance()
@@ -133,25 +134,25 @@ class VisualizationArea(QQuickPaintedItem):
         for node in t.nodes:
             pt = pos[node]
 
-            self.graphics_nodes[node] = GraphicsNode(pt, self.NODE_RAD, node)
+            self.graphics_nodes[node] = GraphicsNode(pt, self.NODE_RADIUS, node)
 
         # Instantiates the graphics components based on the dict in engine instance
-        self.graphics_components = {key: GraphicsComponent(
-            key, 'valve') for key in self.engine_instance.component_dict.keys()}
+        self.graphics_components = {name: GraphicsComponent(
+            name, 'valve') for name in self.engine_instance.components().keys()}
 
         # Populates the graphics components with their respective graphics nodes
-        for comp_key in self.graphics_components.keys():
+        for comp_name_key in self.graphics_components.keys():
             for g_node_key in self.graphics_nodes.keys():
 
                 if self.DEBUG_MODE:
-                    print(comp_key + ' ' + str(g_node_key))
+                    print(comp_name_key + ' ' + str(g_node_key))
 
-                if (comp_key + '.') in str(g_node_key):
-                    self.graphics_components[comp_key].nodes.append(self.graphics_nodes[g_node_key])
+                if str(g_node_key).startswith(comp_name_key + '.'):
+                    self.graphics_components[comp_name_key].nodes.append(self.graphics_nodes[g_node_key])
 
         # Calculates the bounds of each graphics component based on the nodes it owns
-        for comp_key in self.graphics_components.keys():
-            comp = self.graphics_components[comp_key]
+        for comp_name_key in self.graphics_components.keys():
+            comp = self.graphics_components[comp_name_key]
             comp.calculate_bounding_rect()
             if self.DEBUG_MODE:
                 print(comp.name + ": " + str(comp.nodes[0].name) + ' ' + str(comp.nodes[1].name))
@@ -162,7 +163,6 @@ class VisualizationArea(QQuickPaintedItem):
 
         This is a temporary function that quickly adapts the output of the test function such
         that it could work with the display using hard-coded adjustment values.
-
         """
 
         t = self.terminal_graph
@@ -184,7 +184,7 @@ class VisualizationArea(QQuickPaintedItem):
             pt[0] = round(pt[0])
             pt[1] = round(pt[1])
 
-            self.graphics_nodes[node] = GraphicsNode(pt, self.NODE_RAD, node)
+            self.graphics_nodes[node] = GraphicsNode(pt, self.NODE_RADIUS, node)
 
     def paint(self, painter):
         """
@@ -215,9 +215,9 @@ class VisualizationArea(QQuickPaintedItem):
         fill_brush.setColor(Qt.cyan)
 
         # Scales according to current zoom
-        painter.scale(self.zoom_state, self.zoom_state)
-        painter.translate(self.permanent_x_transpose_state + self.temporary_x_transpose_state,
-                          self.permanent_y_transpose_state + self.temporary_y_transpose_state)
+        painter.scale(self.zoom_factor, self.zoom_factor)
+        painter.translate(self.permanent_x_transpose_factor + self.temporary_x_transpose_factor,
+                          self.permanent_y_transpose_factor + self.temporary_y_transpose_factor)
 
         if not self.scaled:
             self.initial_bounds = QRectF(painter.viewport())
@@ -226,18 +226,19 @@ class VisualizationArea(QQuickPaintedItem):
         painter.setPen(graph_pen)
         painter.drawRect(self.initial_bounds)
 
-        num_horiz_lines = 10
-        num_vertical_lines = 10
-        vertical_interval = self.initial_bounds.height() / num_vertical_lines
-        horiz_interval = self.initial_bounds.width() / num_horiz_lines
+        NUM_HORIZ_LINES = 10
+        NUM_VERTICAL_LINES = 10
+
+        horiz_interval = self.initial_bounds.width() / NUM_HORIZ_LINES
+        vertical_interval = self.initial_bounds.height() / NUM_VERTICAL_LINES
 
         # Draws grid if necessary
         if self.grid_visible:
-            for draw_idx in range(num_vertical_lines):
+            for draw_idx in range(NUM_VERTICAL_LINES):
                 painter.drawLine(0, draw_idx*vertical_interval,
                                  self.initial_bounds.width(), draw_idx*vertical_interval)
 
-            for draw_idx in range(num_horiz_lines):
+            for draw_idx in range(NUM_HORIZ_LINES):
                 painter.drawLine(draw_idx*horiz_interval, 0, draw_idx *
                                  horiz_interval, self.initial_bounds.height())
 
@@ -255,11 +256,10 @@ class VisualizationArea(QQuickPaintedItem):
 
             # Uses the drawing algorithm from plotting.py to draw the graph using the painter
 
-            t = self.terminal_graph
             pos = self.layout_pos
 
             # Draws all nodes
-            for node in t.nodes:
+            for node in self.terminal_graph.nodes:
 
                 if self.DEBUG_MODE:
                     pt = pos[node]
@@ -268,7 +268,7 @@ class VisualizationArea(QQuickPaintedItem):
                 painter.drawEllipse(self.graphics_nodes[node])
 
             # Draws all edges
-            for edge in t.edges:
+            for edge in self.terminal_graph.edges:
 
                 # For correct calculations later on, precedence of points must be evaluated
                 if pos[edge[0]][0] == pos[edge[1]][0]:
@@ -286,10 +286,10 @@ class VisualizationArea(QQuickPaintedItem):
                     p2 = pos[edge[0]]
 
                 # For clipping lines out of nodes, angle is determined
-                if (p2[0] - p1[0]) == 0:
+                if p1[0] == p2[0]:
                     theta_edge = pi/2
                 else:
-                    m_edge = (p2[1] - p1[1])/((p2[0] - p1[0]))
+                    m_edge = (p2[1] - p1[1])/(p2[0] - p1[0])
                     theta_edge = arctan(m_edge)
 
                 if self.DEBUG_MODE:
@@ -297,10 +297,10 @@ class VisualizationArea(QQuickPaintedItem):
                     print('edge end 2: ' + str(p2[0]) + str(p2[1]))
 
                 # Line is actually drawn with clipping considered
-                painter.drawLine(p1[0] + (self.NODE_RAD + 1)*cos(theta_edge),
-                                 p1[1] + (self.NODE_RAD + 1)*sin(theta_edge),
-                                 p2[0] - (self.NODE_RAD)*cos(theta_edge), p2[1]
-                                 - (self.NODE_RAD)*sin(theta_edge))
+                painter.drawLine(p1[0] + (self.NODE_RADIUS + 1)*cos(theta_edge),
+                                 p1[1] + (self.NODE_RADIUS + 1)*sin(theta_edge),
+                                 p2[0] - (self.NODE_RADIUS)*cos(theta_edge), p2[1]
+                                 - (self.NODE_RADIUS)*sin(theta_edge))
 
             if self.DEBUG_MODE:
                 print(list(self.graphics_components.values()))
@@ -360,8 +360,8 @@ class VisualizationArea(QQuickPaintedItem):
             print('cursor set!')
         else:
             # Adjusted for zoom and pan
-            self.temporary_x_transpose_state = (event.x() - self.drag_source.x())/self.zoom_state
-            self.temporary_y_transpose_state = (event.y() - self.drag_source.y())/self.zoom_state
+            self.temporary_x_transpose_factor = (event.x() - self.drag_source.x())/self.zoom_factor
+            self.temporary_y_transpose_factor = (event.y() - self.drag_source.y())/self.zoom_factor
             self.force_repaint()
 
         event.accept()
@@ -385,10 +385,10 @@ class VisualizationArea(QQuickPaintedItem):
 
         # Pan is locked in, temporary variables reset
         self.drag_source = None
-        self.permanent_x_transpose_state += self.temporary_x_transpose_state
-        self.permanent_y_transpose_state += self.temporary_y_transpose_state
-        self.temporary_x_transpose_state = 0
-        self.temporary_y_transpose_state = 0
+        self.permanent_x_transpose_factor += self.temporary_x_transpose_factor
+        self.permanent_y_transpose_factor += self.temporary_y_transpose_factor
+        self.temporary_x_transpose_factor = 0
+        self.temporary_y_transpose_factor = 0
 
         self.setCursor(QCursor(Qt.ArrowCursor))  # Cursor reset to normal
 
@@ -412,10 +412,10 @@ class VisualizationArea(QQuickPaintedItem):
 
         # Pan is locked in, temporary variables reset
         self.drag_source = None
-        self.permanent_x_transpose_state += self.temporary_x_transpose_state
-        self.permanent_y_transpose_state += self.temporary_y_transpose_state
-        self.temporary_x_transpose_state = 0
-        self.temporary_y_transpose_state = 0
+        self.permanent_x_transpose_factor += self.temporary_x_transpose_factor
+        self.permanent_y_transpose_factor += self.temporary_y_transpose_factor
+        self.temporary_x_transpose_factor = 0
+        self.temporary_y_transpose_factor = 0
 
         if self.DEBUG_MODE:
             print('Press: ' + str(event.x()) + ' ' + str(event.y()))
@@ -463,10 +463,10 @@ class VisualizationArea(QQuickPaintedItem):
         position_float = QPointF(event.pos())
 
         # Position is adjusted given the current zoom and pan.
-        position_float.setX(position_float.x()/self.zoom_state
-                            - self.permanent_x_transpose_state - self.temporary_x_transpose_state)
-        position_float.setY(position_float.y()/self.zoom_state
-                            - self.permanent_y_transpose_state - self.temporary_y_transpose_state)
+        position_float.setX(position_float.x()/self.zoom_factor
+                            - self.permanent_x_transpose_factor - self.temporary_x_transpose_factor)
+        position_float.setY(position_float.y()/self.zoom_factor
+                            - self.permanent_y_transpose_factor - self.temporary_y_transpose_factor)
 
         if self.DEBUG_MODE:
             print('Hover track adjusted: '
@@ -508,15 +508,15 @@ class VisualizationArea(QQuickPaintedItem):
 
         ZOOM_SENSITIVITY = 0.5
 
-        self.zoom_state += (event.angleDelta().y() / 120)*ZOOM_SENSITIVITY
+        self.zoom_factor += (event.angleDelta().y() / 120)*ZOOM_SENSITIVITY
 
-        if self.zoom_state <= 0:  # Operation is reversed if out of bounds
-            self.zoom_state -= (event.angleDelta().y() / 120)*ZOOM_SENSITIVITY
+        if self.zoom_factor <= 0:  # Operation is reversed if out of bounds
+            self.zoom_factor -= (event.angleDelta().y() / 120)*ZOOM_SENSITIVITY
 
         if self.DEBUG_MODE:
             print('zoom by ' + str(event.angleDelta().y()) +
                   ' and ' + str(event.angleDelta().x()) + ' detected')
-            print(str(self.zoom_state))
+            print(str(self.zoom_factor))
 
         self.force_repaint()
         event.accept()
@@ -586,11 +586,11 @@ class VisualizationArea(QQuickPaintedItem):
         can call this when the user requests it from QML-controlled channels.
         """
 
-        print('zoom state: ' + str(self.zoom_state))
-        print('permanent x transpose: ' + str(self.permanent_x_transpose_state))
-        print('permanent y transpose: ' + str(self.permanent_y_transpose_state))
-        print('temporary x transpose: ' + str(self.temporary_x_transpose_state))
-        print('temporary y transpose: ' + str(self.temporary_y_transpose_state))
+        print('zoom state: ' + str(self.zoom_factor))
+        print('permanent x transpose: ' + str(self.permanent_x_transpose_factor))
+        print('permanent y transpose: ' + str(self.permanent_y_transpose_factor))
+        print('temporary x transpose: ' + str(self.temporary_x_transpose_factor))
+        print('temporary y transpose: ' + str(self.temporary_y_transpose_factor))
         print('viewport rectangle' + str(self.initial_bounds))
 
     @Slot(bool)
@@ -683,12 +683,12 @@ class VisualizationArea(QQuickPaintedItem):
 
         self.drag_source = None
 
-        self.zoom_state = 1
+        self.zoom_factor = 1
 
-        self.temporary_x_transpose_state = 0
-        self.temporary_y_transpose_state = 0
-        self.permanent_x_transpose_state = 0
-        self.permanent_y_transpose_state = 0
+        self.temporary_x_transpose_factor = 0
+        self.temporary_y_transpose_factor = 0
+        self.permanent_x_transpose_factor = 0
+        self.permanent_y_transpose_factor = 0
 
     @Slot()
     def unfreeze_display(self):
@@ -718,7 +718,7 @@ class VisualizationArea(QQuickPaintedItem):
     color = Property(QColor, get_color, set_color)
 
     # Registers the signals such that it can be accessible to external QML classes
-    request_QML_context = Signal(str, arguments=['type'], name='request_QML_context')
+    request_QML_context = Signal(str, arguments=['type'], name='requestQMLContext')
     request_QML_info_box = Signal(
         str, str, arguments=['node_data', 'comp_data'], name='request_QML_info_box')
     retract_QML_info_box_request = Signal(name='retract_QML_info_box_request')
