@@ -13,14 +13,16 @@ def test_package_storage():
     assert len(pack.typedefs) == 2
     assert 'example' in pack.typedefs and 'stdlib' in pack.typedefs
 
-    assert len(pack.components[namespace]) == 6
-    assert len(pack.components['stdlib']) == 0
+    assert len(pack.component_dict[namespace]) == 6
+    assert len(pack.component_dict['stdlib']) == 0
+    assert len(pack.components()) == 6
 
     assert len(pack.typedefs[namespace]) == 1
     assert len(pack.typedefs['stdlib']) == 1
 
-    assert len(pack.graphs[namespace]) == 2
-    assert len(pack.graphs['stdlib']) == 0
+    assert len(pack.graph_dict[namespace]) == 2
+    assert len(pack.graph_dict['stdlib']) == 0
+    assert len(pack.graphs()) == 2
 
 
 def test_package_typedefs():
@@ -33,7 +35,7 @@ def test_package_typedefs():
     var_closed = 'closed_teq'
     var_name = 'edge_name'
 
-    for component in pack.components[namespace]:
+    for component in pack.component_dict[namespace]:
         # ensure typedef fulfillment occurred
         assert 'type' not in component and 'params' not in component
         assert 'edges' in component
@@ -54,7 +56,7 @@ def test_package_shortcuts():
     namespace = file.namespace
 
     pack = top.Package([file])
-    for component in pack.components[namespace]:
+    for component in pack.component_dict[namespace]:
         assert 'states' in component
         for edges in component['states'].values():
             for teq in edges.values():
@@ -69,9 +71,6 @@ def test_files_unchanged():
     assert len(file.typedefs) == 1
     assert len(file.components) == 6
     assert len(file.graphs) == 2
-
-
-test_files_unchanged()
 
 
 def test_invalid_import():
@@ -175,8 +174,8 @@ body:
         edge1: closed
 """
     duplicate_pack = top.Package([top.File(file_1, 's'), top.File(file_2, 's')])
-    assert duplicate_pack.components["name1"][0]['name'] == "name1.fill_valve"
-    assert duplicate_pack.components["name2"][0]['name'] == "name2.fill_valve"
+    assert duplicate_pack.component_dict["name1"][0]['name'] == "name1.fill_valve"
+    assert duplicate_pack.component_dict["name2"][0]['name'] == "name2.fill_valve"
 
 
 def test_invalid_graph_missing_states():

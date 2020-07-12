@@ -41,8 +41,8 @@ class Package:
         # reduce dict nesting; since this is a one time process it should be easy to keep
         # them synced.
         self.typedefs = {}
-        self.components = {}
-        self.graphs = {}
+        self.component_dict = {}
+        self.graph_dict = {}
 
         for file in files:
             # TODO(wendi): unused import detection
@@ -58,11 +58,11 @@ class Package:
             name = file.namespace
             if name not in self.typedefs:
                 self.typedefs[name] = {}
-                self.components[name] = []
-                self.graphs[name] = []
+                self.component_dict[name] = []
+                self.graph_dict[name] = []
             self.typedefs[name].update(copy.deepcopy(file.typedefs))
-            self.components[name].extend(copy.deepcopy(file.components))
-            self.graphs[name].extend(copy.deepcopy(file.graphs))
+            self.component_dict[name].extend(copy.deepcopy(file.components))
+            self.graph_dict[name].extend(copy.deepcopy(file.graphs))
 
         self.clean()
 
@@ -71,24 +71,31 @@ class Package:
 
         # preprocess typedefs
         for namespace in self.typedefs:
-            for idx, component in enumerate(self.components[namespace]):
+            for idx, component in enumerate(self.component_dict[namespace]):
                 if 'type' in component:
-                    self.components[namespace][idx] = self.fill_typedef(namespace, component)
+                    self.component_dict[namespace][idx] = self.fill_typedef(namespace, component)
 
         # clean PDL shortcuts
-        for namespace, entries in self.components.items():
+        for namespace, entries in self.component_dict.items():
             for idx, component in enumerate(entries):
                 # deal with single state shortcuts
                 if 'states' not in component:
-                    self.components[namespace][idx] = unpack_single_state(component)
+                    self.component_dict[namespace][idx] = unpack_single_state(component)
 
                 # unpack single teq direction shortcuts
-                self.components[namespace][idx] = unpack_teq(component)
+                self.component_dict[namespace][idx] = unpack_teq(component)
 
-        # prepend any conflicting component names with namespace to disambiguate
+        self.rename()
+
+        for namespace, entries in self.graph_dict.items():
+            for idx, graph in enumerate(entries):
+                self.graph_dict[namespace][idx] = self.fill_graphs(graph)
+
+    def rename(self):
+        """Prepend any conflicting component names with namespace to disambiguate."""
         names = {}
         repeats = {}
-        for namespace, entries in self.components.items():
+        for namespace, entries in self.component_dict.items():
             for entry in entries:
                 name = entry['name']
                 if name in names:
@@ -96,15 +103,11 @@ class Package:
                 else:
                     names[name] = namespace
 
-        for namespace, entries in self.components.items():
+        for namespace, entries in self.component_dict.items():
             for idx, entry in enumerate(entries):
                 name = entry['name']
                 if name in repeats:
-                    self.components[namespace][idx]['name'] = namespace + '.' + name
-
-        for namespace, entries in self.graphs.items():
-            for idx, graph in enumerate(entries):
-                self.graphs[namespace][idx] = self.fill_graphs(graph)
+                    self.component_dict[namespace][idx]['name'] = namespace + '.' + name
 
     def fill_typedef(self, namespace, component):
         """Fill in typedef template for components invoking a typedef."""
@@ -142,10 +145,10 @@ class Package:
             for component in node['components']:
                 components.add(component[0])
 
-        # dict of {component: (namespace, index)} used to locate the component in self.components
+        # dict of {component:(namespace, index)} used to locate the component in self.component_dict
         places = {}
-        for namespace in self.components:
-            for idx, component in enumerate(self.components[namespace]):
+        for namespace in self.component_dict:
+            for idx, component in enumerate(self.component_dict[namespace]):
                 places[component['name']] = (namespace, idx)
 
         for component in components:
@@ -155,7 +158,7 @@ class Package:
             if component not in places:
                 raise exceptions.BadInputError(f"missing component {component}")
             namespace, idx = places[component]
-            component_states = self.components[namespace][idx]['states']
+            component_states = self.component_dict[namespace][idx]['states']
 
             if len(component_states) != 1:
                 raise exceptions.BadInputError(
@@ -166,6 +169,20 @@ class Package:
             ret['states'][component] = state_name
 
         return ret
+
+    def components(self):
+        """Return list of all component objects"""
+        components = []
+        for component_list in self.component_dict.values():
+            components.extend(component_list)
+        return components
+
+    def graphs(self):
+        """Return a list of all graph objects"""
+        graphs = []
+        for graph_list in self.graph_dict.values():
+            graphs.extend(graph_list)
+        return graphs
 
 
 def unpack_teq(component):
