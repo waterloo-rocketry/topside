@@ -9,6 +9,14 @@
 .pydevproject
 .project
 
+# Qt Designer Config Files
+topside_qtcreator.cflags
+topside_qtcreator.config
+topside_qtcreator.creator
+topside_qtcreator.cxxflags
+topside_qtcreator.files
+topside_qtcreator.includes
+
 # Python
 
 venv/

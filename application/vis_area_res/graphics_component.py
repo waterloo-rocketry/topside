@@ -1,9 +1,12 @@
 from PySide2.QtCore import QRectF, QPointF
-from _ast import Try
-from PySide2.QtGui import QPixmap, QImage
+from PySide2.QtGui import QImage
 
 
 class GraphicsComponent():
+    """
+    A object that acts as the graphical representation of a component.
+
+    """
 
     def __init__(self, name, component_id):
         self.name = name
@@ -11,13 +14,18 @@ class GraphicsComponent():
         self.bounding_rect = None
         self.image = None
 
+        # Loads associated sprite
         self.image = QImage('application/resources/component_icons/' + component_id + '_icon.png')
-        if (self.image.isNull()):
+        if self.image.isNull():
             print('could not load \'' + component_id + '\'!')
         else:
             print('load sucessful!')
 
     def calculate_bouding_rect(self):
+        """
+        Calculate the bounding rectangle of the component based on what nodes it owns.
+
+        """
         x_min = x_max = self.nodes[0].center[0]
         y_min = y_max = self.nodes[0].center[1]
 
@@ -39,4 +47,17 @@ class GraphicsComponent():
         self.bounding_rect = QRectF(top_left_p, bottom_right_p)
 
     def pseudo_paint(self, painter):
+        """
+        Handle painting operation delegated from a paint call.
+
+        Note: Currently not used.
+
+        Parameters
+        ----------
+
+        painter: QPainter
+            The given painter which will execute the graphical commands given to it.
+
+        """
+
         pass

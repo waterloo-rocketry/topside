@@ -2,6 +2,12 @@ from PySide2.QtCore import QRectF, QPointF
 
 
 class GraphicsNode(QRectF):
+    """
+    A object that acts as the graphical representation of a node.
+
+    Inherits PySide2.QtCore.QRectF.
+
+    """
 
     def __init__(self, center_point, radius, name):
         self.name = name
