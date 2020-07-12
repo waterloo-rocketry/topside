@@ -236,6 +236,9 @@ def test_components():
 
     queried_components.pop('valve1')
 
+    assert len(queried_components) == 1
+    assert len(original_components) == 2
+
     # make sure that changes to the returned dict aren't propagated through to the original
     assert list(original_components.keys()) == list(plumb.component_dict.keys())
     assert list(original_components.keys()) == list(plumb.components().keys())
