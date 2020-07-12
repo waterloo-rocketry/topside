@@ -502,13 +502,16 @@ class PlumbingEngine:
         return ret
 
     def errors(self):
-        return self.error_set
+        return copy.deepcopy(self.error_set)
 
     def nodes(self, data=True):
         return list(self.plumbing_graph.nodes(data=data))
 
     def edges(self, data=True):
         return list(self.plumbing_graph.edges(keys=True, data=data))
+
+    def components(self):
+        return copy.deepcopy(self.component_dict)
 
     def step(self, timestep=None):
         """ Return node pressures in the engine after timestep has elapsed.
