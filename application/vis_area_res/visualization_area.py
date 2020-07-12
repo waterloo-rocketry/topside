@@ -96,6 +96,26 @@ class VisualizationArea(QQuickPaintedItem):
         if self.DEBUG_MODE:
             print('VisualizationArea created!')
 
+    
+    def upload_engine_instance(self, engine):
+        """
+        Set the local engine to the input variable and initializes associated local objects.
+
+        Setter and initializer for uploading an engine to be displayed. After an engine is set,
+        the according layout and terminal graph is generated from the engine data.
+
+        Parameters
+        ----------
+
+        engine: topside.PlumbingEngine
+            An instance of the topside engine to be displayed.
+        """
+
+        self.engine_instance = engine
+        self.terminal_graph = top.terminal_graph(self.engine_instance)
+        self.layout_pos = top.layout_plumbing_engine(self.engine_instance)
+        self.scaled = False
+
     def prepare_drawing_area(self):
         """
         Prepare all graphics items for future paint operations.
@@ -132,7 +152,7 @@ class VisualizationArea(QQuickPaintedItem):
         # Calculates the bounds of each graphics component based on the nodes it owns
         for comp_key in self.graphics_components.keys():
             comp = self.graphics_components[comp_key]
-            comp.calculate_bouding_rect()
+            comp.calculate_bounding_rect()
             if self.DEBUG_MODE:
                 print(comp.name + ": " + str(comp.nodes[0].name) + ' ' + str(comp.nodes[1].name))
 
@@ -141,7 +161,7 @@ class VisualizationArea(QQuickPaintedItem):
         Scale the constructed graph from `make_engine` such that all coordinates are positive.
 
         This is a temporary function that quickly adapts the output of the test function such
-        that it could work with the display using hard-coded adjustment values. 
+        that it could work with the display using hard-coded adjustment values.
 
         """
 
@@ -213,9 +233,11 @@ class VisualizationArea(QQuickPaintedItem):
 
         # Draws grid if necessary
         if self.grid_visible:
-            for draw_idx in range(0, 10):
+            for draw_idx in range(num_vertical_lines):
                 painter.drawLine(0, draw_idx*vertical_interval,
                                  self.initial_bounds.width(), draw_idx*vertical_interval)
+
+            for draw_idx in range(num_horiz_lines):
                 painter.drawLine(draw_idx*horiz_interval, 0, draw_idx *
                                  horiz_interval, self.initial_bounds.height())
 
@@ -248,7 +270,7 @@ class VisualizationArea(QQuickPaintedItem):
             # Draws all edges
             for edge in t.edges:
 
-                # For correct calculations later on, precedence  of points must be evaluated
+                # For correct calculations later on, precedence of points must be evaluated
                 if pos[edge[0]][0] == pos[edge[1]][0]:
                     if pos[edge[0]][1] < pos[edge[1]][1]:
                         p1 = pos[edge[0]]
@@ -408,7 +430,7 @@ class VisualizationArea(QQuickPaintedItem):
                 self.request_QML_context.emit('regular')
 
             # While the context menu is open, no further actions should be registered.
-            # The qml will issue a call `unfreeze_display()` when it is done
+            # The QML will issue a call `unfreeze_display()` when it is done
             self.frozen = True
 
         else:
@@ -471,7 +493,7 @@ class VisualizationArea(QQuickPaintedItem):
         """
         Handle the wheel event for a movement of the scroll wheel on the paint surface.
 
-        Is called automatically by the object whenever the scroll wheel is moved. 
+        Is called automatically by the object whenever the scroll wheel is moved.
         Overloads the wheelEvent method from `QQuickItem`.
 
         Parameters
@@ -498,25 +520,6 @@ class VisualizationArea(QQuickPaintedItem):
 
         self.force_repaint()
         event.accept()
-
-    def upload_engine_instance(self, engine):
-        """
-        Sets the local engine to the input variable and initializes associated local objects.
-
-        Setter and initializer for uploading an engine to be displayed. After an engine is set,
-        the according layout and terminal graph is generated from the engine data.
-
-        Parameters
-        ----------
-
-        engine: topside.plumbing_engine
-            An instance of the topside engine to be displayed.
-        """
-
-        self.engine_instance = engine
-        self.terminal_graph = top.terminal_graph(self.engine_instance)
-        self.layout_pos = top.layout_plumbing_engine(self.engine_instance)
-        self.scaled = False
 
     def get_color(self):
         """
@@ -554,13 +557,13 @@ class VisualizationArea(QQuickPaintedItem):
         Print the given text.
 
         This method is accessible to QML, so QML objects can use it to report
-        errors to the python console.
+        errors to the Python console.
 
         Parameters
         ----------
 
         text: Str
-            The text to be printed to the python console.
+            The text to be printed to the Python console.
         """
         print(text)
 
@@ -569,7 +572,7 @@ class VisualizationArea(QQuickPaintedItem):
         """
         Force a re-paint to occur on the draw surface.
 
-        This method is accessible to QML, so QML objects can use it to froce repaints
+        This method is accessible to QML, so QML objects can use it to force repaints
         when important updates have taken place.
         """
         self.update()
@@ -616,7 +619,7 @@ class VisualizationArea(QQuickPaintedItem):
         Set components_visible property to the desired value, and then repaint.
 
         This method is accessible to QML, so QML objects can use it to change component
-        visbility when the user requests it from QML-controlled channels. Essentially,
+        visibility when the user requests it from QML-controlled channels. Essentially,
         this is a QML-accessible setter for components_visible. The repaint has to be called
         for the changes to take place immediately.
 
@@ -635,7 +638,7 @@ class VisualizationArea(QQuickPaintedItem):
         Set labels_visible property to the desired value, and then repaint.
 
         This method is accessible to QML, so QML objects can use it to change label
-        visbility when the user requests it from QML-controlled channels. Essentially,
+        visibility when the user requests it from QML-controlled channels. Essentially,
         this is a QML-accessible setter for labels_visible. The repaint has to be called
         for the changes to take place immediately.
 
@@ -654,7 +657,7 @@ class VisualizationArea(QQuickPaintedItem):
         Set images_visible property to the desired value, and then repaint.
 
         This method is accessible to QML, so QML objects can use it to change image
-        visbility when the user requests it from QML-controlled channels. Essentially,
+        visibility when the user requests it from QML-controlled channels. Essentially,
         this is a QML-accessible setter for images_visible. The repaint has to be called
         for the changes to take place immediately.
 
@@ -702,7 +705,7 @@ class VisualizationArea(QQuickPaintedItem):
     @Slot()
     def parrot_mode_demo(self):
         """
-        Demo sprite accessing
+        Demo sprite accessing.
 
         This is a demo function for changing sprites during runtime.
         """
@@ -714,7 +717,7 @@ class VisualizationArea(QQuickPaintedItem):
     # Registers color as a QML-accessible property, along with directions for its getter and setter
     color = Property(QColor, get_color, set_color)
 
-    # Registers the signals such that it can be accessible to external QML classesc
+    # Registers the signals such that it can be accessible to external QML classes
     request_QML_context = Signal(str, arguments=['type'], name='request_QML_context')
     request_QML_info_box = Signal(
         str, str, arguments=['node_data', 'comp_data'], name='request_QML_info_box')

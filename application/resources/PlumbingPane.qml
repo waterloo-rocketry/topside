@@ -28,7 +28,7 @@ Rectangle {
 
         Connections {
             target: visualization_area
-            
+
             onRequest_QML_context: {
                 contextMenu.type = type
                 contextMenu.popup()
@@ -137,7 +137,7 @@ Rectangle {
                 info_box.visible = true
                 text_field1.text = "Node identifier: " + node_data
                 text_field2.text = "Node identifier: " + comp_data
-            }    
+            }
 
             onRetract_QML_info_box_request: info_box.visible = false
 
@@ -229,7 +229,7 @@ Rectangle {
 
             height: parent.height
             width: parent.width
-            
+
             color: Qt.rgba(0, 0.1, 0.8, 0.2)
 
             visible: false
