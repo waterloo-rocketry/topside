@@ -21,7 +21,7 @@ class GraphicsComponent():
         else:
             print('load sucessful!')
 
-    def calculate_bouding_rect(self):
+    def calculate_bounding_rect(self):
         """
         Calculate the bounding rectangle of the component based on what nodes it owns.
 
