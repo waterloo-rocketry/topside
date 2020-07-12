@@ -1,3 +1,5 @@
+import copy
+
 import topside as top
 import topside.pdl.exceptions as exceptions
 
@@ -6,23 +8,28 @@ class Parser:
     def __init__(self, files):
         self.package = top.Package(files)
 
-        self.components = []
+        self.components = {}
         self.mapping = {}
-        self.initial_pressure = {}
+        self.initial_pressures = {}
         self.initial_states = {}
 
         self.parse_components()
+        self.parse_graphs()
 
     def parse_components(self):
         for entry in self.package.components():
             name = entry['name']
 
+            # extract edge list, plus dict keyed by name
             edge_dict = extract_edges(entry)
-
-            edge_list = [edge[0] for edge in edge_dict.values()]
+            edge_list = []
+            fwd_edge_list = [edge[0] for edge in edge_dict.values()]
             back_edge_list = [edge[1] for edge in edge_dict.values()]
             edge_list.extend(back_edge_list)
+            edge_list.extend(fwd_edge_list)
 
+            # extract states dict {state_name: {edge: teq}} for each edge
+            # in both directions
             states = {}
             for state_name, edges in entry['states'].items():
                 edge_teqs = {}
@@ -36,11 +43,42 @@ class Parser:
 
             component = top.PlumbingComponent(name, states, edge_list)
             if not component.is_valid():
-                raise exceptions.BadInputError(f"errors in component {name} instantiation: {component.errors()}")
-            self.components.append(component)
+                raise exceptions.BadInputError(
+                    f"errors in component {name} instantiation: {component.errors()}")
+            self.components[name] = component
+
+    def parse_graphs(self):
+        graphs = self.package.graphs()
+        main_present = False
+
+        # move main graph to end so that its settings take precedence
+        for idx, entry in enumerate(graphs):
+            if entry['name'] == 'main':
+                main_present = True
+                swap(graphs, -1, idx)
+        if not main_present:
+            raise exceptions.BadInputError("must have graph main")
+
+        for entry in graphs:
+            for graph_node, node_data in entry['nodes'].items():
+                if 'initial_pressure' in node_data:
+                    self.initial_pressures[graph_node] = (node_data['initial_pressure'], False)
+                if 'fixed_pressure' in node_data:
+                    self.initial_pressures[graph_node] = (node_data['fixed_pressure'], True)
+                for component in node_data['components']:
+                    component_name = component[0]
+                    component_node = component[1]
+
+                    if component_name not in self.mapping:
+                        self.mapping[component_name] = {}
+
+                    self.mapping[component_name][component_node] = graph_node
+
+            self.initial_states.update(entry['states'])
 
 
 def extract_edges(entry):
+    """Extract dict of {edge_name: (fwd_edge, back_edge)} from a component entry."""
     name = entry['name']
     edge_dict = {}
 
@@ -53,9 +91,12 @@ def extract_edges(entry):
             raise exceptions.BadInputError(
                 f"malformed nodes entry ({edges['nodes']}) for edge {edge_name} in" +
                 f" component {name}")
+
+        # key will just be fwd or back, unless there are multiple edges between the same
+        # two nodes, in which case the key will have a unique int appended.
         key = ""
         nodes = tuple(edges['nodes'])
-        swapped_nodes = tuple(swap(edges['nodes']))
+        swapped_nodes = tuple(swap(edges['nodes'], 0, 1))
         if nodes in edges_seen:
             key = edges_seen[nodes]
             edges_seen[nodes] += 1
@@ -76,10 +117,13 @@ def extract_edges(entry):
     return edge_dict
 
 
-
-def swap(indexable):
+def swap(indexable, idx1, idx2):
     """Take an indexable object and return a list of only its first two elements swapped."""
-    ret = []
-    ret.append(indexable[1])
-    ret.append(indexable[0])
+    if len(indexable) <= max(idx1, idx2):
+        raise exceptions.BadInputError(
+            f"len indexable ({len(indexable)}, {indexable} less than index {max(idx1, idx2)}")
+    ret = copy.deepcopy(indexable)
+    temp = ret[idx1]
+    ret[idx1] = ret[idx2]
+    ret[idx2] = temp
     return ret
