@@ -83,9 +83,9 @@ class Procedure:
             An identifier for this procedure. Expected to be unique
             within a given procedure suite.
 
-        steps: list
-            A list of ProcedureStep objects ordered from first step to
-            last step.
+        steps: iterable
+            An iterable of ProcedureStep objects ordered from first step
+            to last step.
         """
         self.procedure_id = procedure_id
         self.steps = {step.step_id: step for step in steps}
