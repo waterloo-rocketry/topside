@@ -5,14 +5,14 @@ import topside.pdl.exceptions as exceptions
 
 
 class Parser:
-    """Produces plumbing engine input representative of its given files."""
+    """Produces plumbing engine input that's representative of its given files."""
 
     def __init__(self, files):
         """
         Initialize a parser from one or more Files.
 
         A Parser contains a Package; most of its functionality lies in restructuring the data
-        contained in its Package into output suitable for loading a Plumbing Engine.
+        contained in its Package into output suitable for loading a plumbing engine.
 
         Parameters
         ----------
@@ -36,7 +36,7 @@ class Parser:
         for entry in self.package.components():
             name = entry['name']
 
-            # extract edge list, plus dict keyed by name
+            # extract edge list, plus dict of {edge name: edge tuple}
             edge_dict = extract_edges(entry)
             edge_list = []
             fwd_edge_list = [edge[0] for edge in edge_dict.values()]
@@ -95,7 +95,12 @@ class Parser:
 
 
 def extract_edges(entry):
-    """Extract dict of {edge_name: (fwd_edge, back_edge)} from a component entry."""
+    """
+    Extract dict of {edge_name: (fwd_edge, back_edge)} from a component entry.
+
+    fwd_edge and back_edge take the form (node1, node2, key), where key is unique among
+    edges going between the same nodes.
+    """
     name = entry['name']
     edge_dict = {}
 
@@ -135,7 +140,7 @@ def extract_edges(entry):
 
 
 def swap(indexable, idx1, idx2):
-    """Take an indexable object and return a list of only its first two elements swapped."""
+    """Take an indexable object and return a list with its elements swapped at the given indices."""
     if len(indexable) <= max(idx1, idx2):
         raise exceptions.BadInputError(
             f"len indexable ({len(indexable)}, {indexable} less than index {max(idx1, idx2)}")
