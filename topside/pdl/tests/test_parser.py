@@ -225,7 +225,7 @@ def test_extract_repeated_edges():
 
 
 def test_invalid_extract_edges():
-    invalid_entry = {
+    too_many_nodes = {
         'name': 'example',
         'edges': {
             'edge1': {
@@ -238,4 +238,4 @@ def test_invalid_extract_edges():
     }
 
     with pytest.raises(exceptions.BadInputError):
-        top.extract_edges(invalid_entry)
+        top.extract_edges(too_many_nodes)

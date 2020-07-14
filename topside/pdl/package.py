@@ -90,11 +90,15 @@ class Package:
 
         for namespace, entries in self.graph_dict.items():
             for idx, graph in enumerate(entries):
-                self.graph_dict[namespace][idx] = self.fillgraph_dict(graph)
+                self.graph_dict[namespace][idx] = self.fill_graphs(graph)
 
     def rename(self):
         """Prepend any conflicting component names with namespace to disambiguate."""
+
+        # record of {component name: namespace}
         names = {}
+
+        # record of which components were repeated (and need prepending)
         repeats = {}
         for namespace, entries in self.component_dict.items():
             for entry in entries:
@@ -114,8 +118,11 @@ class Package:
         """Fill in typedef template for components invoking a typedef."""
         name = component['type']
         component_name = component['name']
+
         if name.count('.') > 1:
             raise NotImplementedError(f"nested imports (in {name}) not supported yet")
+
+        # handle imported components
         if '.' in name:
             # NOTE: we might eventually want to consider how well this will play with nested imports
             fields = name.split('.')
@@ -123,6 +130,7 @@ class Package:
             name = fields[-1]
         if name not in self.typedefs[namespace]:
             raise exceptions.BadInputError(f"invalid component type: {name}")
+
         params = component['params']
         body = yaml.dump(self.typedefs[namespace][name])
 
@@ -134,9 +142,9 @@ class Package:
         ret['name'] = component_name
         return ret
 
-    def fillgraph_dict(self, graph):
+    def fill_graphs(self, graph):
         """Fill in states field with default states if left blank."""
-        ret = graph
+        ret = copy.deepcopy(graph)
         if 'states' not in graph:
             ret['states'] = {}
 
