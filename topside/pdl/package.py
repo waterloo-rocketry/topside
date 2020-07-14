@@ -27,10 +27,11 @@ class Package:
         a Package's PDL is cleaned and ready to use.
 
         Parameters
-        ==========
+        ----------
 
-        files: list
-            files is the list of one or more Files whose contents should go into the Package.
+        files: iterable
+            files is the iterable (usually a list) of one or more Files whose contents should go
+            into the Package.
         """
 
         if len(files) < 1:
@@ -89,7 +90,7 @@ class Package:
 
         for namespace, entries in self.graph_dict.items():
             for idx, graph in enumerate(entries):
-                self.graph_dict[namespace][idx] = self.fill_graphs(graph)
+                self.graph_dict[namespace][idx] = self.fillgraph_dict(graph)
 
     def rename(self):
         """Prepend any conflicting component names with namespace to disambiguate."""
@@ -133,7 +134,7 @@ class Package:
         ret['name'] = component_name
         return ret
 
-    def fill_graphs(self, graph):
+    def fillgraph_dict(self, graph):
         """Fill in states field with default states if left blank."""
         ret = graph
         if 'states' not in graph:

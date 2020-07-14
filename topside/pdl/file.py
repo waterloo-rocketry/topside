@@ -28,7 +28,7 @@ class File:
           - body: the body of PDL.
 
         Parameters
-        ==========
+        ----------
 
         path: string
             path should contain either the path to the file containing PDL,
@@ -43,7 +43,7 @@ class File:
         initialization produces a ready-to-use File.
 
         Fields
-        ======
+        ------
 
         imports: list
             list of imports (by name) that are relevant to this file.
