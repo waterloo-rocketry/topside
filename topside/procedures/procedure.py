@@ -1,16 +1,13 @@
 from dataclasses import dataclass
 
 
-# TODO(jacob): Consider if any of the classes in this file could simply
-# be NamedTuples instead.
-
 @dataclass
 class Action:
     """
     A state change for a single component in the plumbing engine.
 
     Members
-    =======
+    -------
 
     component: str
         The identifier of the component whose state will be changed.
@@ -32,7 +29,7 @@ class Transition:
     A transition between two states in the procedure graph.
 
     Members
-    =======
+    -------
 
     procedure: str
         The identifier of the procedure that the next step belongs to.
@@ -50,7 +47,7 @@ class ProcedureStep:
     A discrete state in the procedure graph.
 
     Members
-    =======
+    -------
 
     step_id: str
         An identifier for this procedure step. Expected to be unique
@@ -72,22 +69,23 @@ class ProcedureStep:
     conditions: dict
 
 
-@dataclass
 class Procedure:
-    """
-    A discrete state in the procedure graph.
+    """A sequence of discrete procedure steps."""
 
-    Members
-    =======
+    def __init__(self, procedure_id, steps):
+        """
+        Initialize the procedure.
 
-    procedure_id: str
-        An identifier for this procedure. Expected to be unique within
-        a given procedure suite.
+        Parameters
+        ----------
 
-    steps: dict
-        A dict mapping step identifier strings to ProcedureStep objects.
-        This dict is expected to be ordered from first step to last
-        step.
-    """
-    procedure_id: str
-    steps: dict
+        procedure_id: str
+            An identifier for this procedure. Expected to be unique
+            within a given procedure suite.
+
+        steps: iterable
+            An iterable of ProcedureStep objects ordered from first step
+            to last step.
+        """
+        self.procedure_id = procedure_id
+        self.steps = {step.step_id: step for step in steps}
