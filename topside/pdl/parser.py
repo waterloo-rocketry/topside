@@ -5,7 +5,22 @@ import topside.pdl.exceptions as exceptions
 
 
 class Parser:
+    """Produces plumbing engine input representative of its given files."""
+
     def __init__(self, files):
+        """
+        Initialize a parser from one or more Files.
+
+        A Parser contains a Package; most of its functionality lies in restructuring the data
+        contained in its Package into output suitable for loading a Plumbing Engine.
+
+        Parameters
+        ----------
+
+        files: iterable
+            files is the iterable (usually a list) of one or more Files whose contents should go
+            into the Parser.
+        """
         self.package = top.Package(files)
 
         self.components = {}
@@ -17,6 +32,7 @@ class Parser:
         self.parse_graphs()
 
     def parse_components(self):
+        """Create and store components for plumbing engine."""
         for entry in self.package.components():
             name = entry['name']
 
@@ -48,6 +64,7 @@ class Parser:
             self.components[name] = component
 
     def parse_graphs(self):
+        """Extract and store graph information for plumbing engine."""
         graphs = self.package.graphs()
         main_present = False
 
@@ -98,19 +115,19 @@ def extract_edges(entry):
         nodes = tuple(edges['nodes'])
         swapped_nodes = tuple(swap(edges['nodes'], 0, 1))
         if nodes in edges_seen:
-            key = edges_seen[nodes]
             edges_seen[nodes] += 1
+            key = edges_seen[nodes]
         elif swapped_nodes in edges_seen:
-            key = edges_seen[swapped_nodes]
             edges_seen[swapped_nodes] += 1
+            key = edges_seen[swapped_nodes]
         else:
-            edges_seen[nodes] = 0
+            edges_seen[nodes] = 1
 
         node_1 = edges['nodes'][0]
         node_2 = edges['nodes'][1]
 
-        fwd_edge = (node_1, node_2, "fwd" + key)
-        back_edge = (node_2, node_1, "back" + key)
+        fwd_edge = (node_1, node_2, "fwd" + str(key))
+        back_edge = (node_2, node_1, "back" + str(key))
 
         edge_dict[edge_name] = (fwd_edge, back_edge)
 
@@ -122,7 +139,7 @@ def swap(indexable, idx1, idx2):
     if len(indexable) <= max(idx1, idx2):
         raise exceptions.BadInputError(
             f"len indexable ({len(indexable)}, {indexable} less than index {max(idx1, idx2)}")
-    ret = copy.deepcopy(indexable)
+    ret = list(copy.deepcopy(indexable))
     temp = ret[idx1]
     ret[idx1] = ret[idx2]
     ret[idx2] = temp

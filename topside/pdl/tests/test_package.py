@@ -74,10 +74,11 @@ def test_files_unchanged():
 
 
 def test_invalid_import():
+    bad_import = "NONEXISTENT"
     invalid_import =\
-        """
+        f"""
 name: example
-import: [stdlib, NONEXISTENT]
+import: [stdlib, {bad_import}]
 body:
 - typedef:
     params: [edge1, open_teq, closed_teq]
@@ -100,14 +101,15 @@ def test_invalid_bad_import_type():
     # typedef not found errors having to do with imported files will only be caught at the package
     # level, not at the file one. We can look at changing this if we change the implementation of
     # how importable files are stored.
+    bad_type = "NONEXISTENT_TYPE"
     bad_imported_type =\
-        """
+        f"""
 name: example
 import: [stdlib]
 body:
 - component:
     name: vent_valve
-    type: stdlib.NONEXISTENT_TYPE
+    type: stdlib.{bad_type}
     params:
       edge_name: fav_edge
       open_teq: 5
