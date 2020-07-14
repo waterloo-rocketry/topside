@@ -16,14 +16,14 @@ class ProceduresEngine:
         Initialize the ProceduresEngine.
 
         Parameters
-        ==========
+        ----------
 
         plumbing_engine: topside.PlumbingEngine
             The PlumbingEngine that this ProceduresEngine should manage.
 
-        procedure_suite: dict
-            A procedure suite is represented as a dict mapping
-            procedure_id strings to Procedure objects.
+        procedure_suite: iterable
+            A procedure suite is any iterable of Procedure objects (but
+            typically a list).
 
         initial_step: str
             The initial procedure step that this ProceduresEngine should
@@ -34,13 +34,15 @@ class ProceduresEngine:
             actual "first step" of the procedure.
         """
         self._plumb = plumbing_engine
-        self._procedure_suite = suite
+        self._procedure_suite = None
         self.current_procedure_id = initial_procedure
+        self.current_step = None
+
+        if suite is not None:
+            self._procedure_suite = {proc.procedure_id: proc for proc in suite}
 
         if suite is not None and initial_procedure is not None and initial_step is not None:
             self.current_step = self._procedure_suite[initial_procedure].steps[initial_step]
-        else:
-            self.current_step = None
 
     def execute(self, action):
         """Execute an action on the managed PlumbingEngine."""
@@ -89,7 +91,7 @@ class ProceduresEngine:
         Step the managed plumbing engine in time and update conditions.
 
         Parameters
-        ==========
+        ----------
 
         timestep: int
             The number of microseconds that the managed plumbing engine

@@ -33,7 +33,7 @@ class And:
         Update all conditions with the latest state.
 
         Parameters
-        ==========
+        ----------
 
         state: dict
             state is expected to contain all information necessary for
@@ -76,7 +76,7 @@ class Or:
         Update all conditions with the latest state.
 
         Parameters
-        ==========
+        ----------
 
         state: dict
             state is expected to contain all information necessary for
