@@ -58,9 +58,6 @@ class Parser:
                 states[state_name] = edge_teqs
 
             component = top.PlumbingComponent(name, states, edge_list)
-            if not component.is_valid():
-                raise exceptions.BadInputError(
-                    f"errors in component {name} instantiation: {component.errors()}")
             self.components[name] = component
 
     def parse_graphs(self):
@@ -72,7 +69,7 @@ class Parser:
         for idx, entry in enumerate(graphs):
             if entry['name'] == 'main':
                 main_present = True
-                swap(graphs, -1, idx)
+                graphs = swap(graphs, -1, idx)
         if not main_present:
             raise exceptions.BadInputError("must have graph main")
 
@@ -92,6 +89,12 @@ class Parser:
                     self.mapping[component_name][component_node] = graph_node
 
             self.initial_states.update(entry['states'])
+
+    def make_engine(self):
+        """Create the plumbing engine from the provided input."""
+        plumb = top.PlumbingEngine(self.components, self.mapping,
+                                   self.initial_pressures, self.initial_states)
+        return plumb
 
 
 def extract_edges(entry):

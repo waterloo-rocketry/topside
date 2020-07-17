@@ -80,8 +80,10 @@ def test_valid_file():
         }
     }
 
-    plumb = top.PlumbingEngine(
-        parsed.components, parsed.mapping, parsed.initial_pressures, parsed.initial_states)
+    for component in parsed.components.values():
+        assert component.is_valid()
+
+    plumb = parsed.make_engine()
 
     assert plumb.is_valid()
 
@@ -140,7 +142,6 @@ def test_invalid_component():
     teq_too_low =\
         f"""
 name: example
-import: [stdlib]
 body:
 - component:
     name: fill_valve
@@ -168,8 +169,11 @@ body:
     """
 
     teq_low_file = top.File(teq_too_low, 's')
-    with pytest.raises(exceptions.BadInputError):
-        top.Parser([teq_low_file])
+    # this shouldn't raise an error, invalid components are legal
+    parse = top.Parser([teq_low_file])
+
+    plumb = parse.make_engine()
+    assert not plumb.is_valid()
 
 
 def test_standard_extract_edges():

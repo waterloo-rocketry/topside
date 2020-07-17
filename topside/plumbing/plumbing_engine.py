@@ -101,7 +101,6 @@ class PlumbingEngine:
                     f"Component with name '{name}' is not valid;"
                     " component cannot be loaded in until errors are resolved.", name)
                 invalid.add_error(error, self.error_set)
-                continue
             name_valid = True
             if name not in self.mapping:
                 error = invalid.InvalidComponentName(
