@@ -88,4 +88,30 @@ class Procedure:
             to last step.
         """
         self.procedure_id = procedure_id
-        self.steps = {step.step_id: step for step in steps}
+        self.steps = {}
+        self.step_id_to_idx = {}
+
+        for i, step in enumerate(steps):
+            if step.step_id in self.steps:
+                raise ValueError(
+                    f'duplicate step ID {step.step_id} encountered in Procedure initialization')
+            self.steps[step.step_id] = step
+            self.step_id_to_idx[step.step_id] = i
+
+    def index_of(self, step_id):
+        """
+        Given the ID for a step, return the index at which that step is found.
+
+        Parameters
+        ----------
+        step_id: str
+            The identifier for the step for which the index is desired.
+
+        Returns
+        -------
+
+        idx: int
+            The positional index of the step with id step_id in this
+            procedure.
+        """
+        return self.step_id_to_idx[step_id]

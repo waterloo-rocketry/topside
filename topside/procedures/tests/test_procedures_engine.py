@@ -248,7 +248,7 @@ def test_step_advances_time_equally():
 
     assert managed_eng.current_pressures() == unmanaged_eng.current_pressures()
 
-    proc_eng.step(1e6)
+    proc_eng.step_time(1e6)
     unmanaged_eng.step(1e6)
 
     assert managed_eng.current_pressures() == unmanaged_eng.current_pressures()
@@ -266,6 +266,6 @@ def test_step_updates_conditions():
 
     assert proc_eng.ready_to_advance() is False
 
-    proc_eng.step(1e6)
+    proc_eng.step_time(1e6)
 
     assert proc_eng.ready_to_advance() is True

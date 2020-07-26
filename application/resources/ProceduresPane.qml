@@ -92,7 +92,7 @@ ColumnLayout {
                 icon.source: "themes/default/play_backwards.png"
                 icon.color: "transparent"
 
-                onClicked: proceduresBridge.play_backwards()
+                onClicked: proceduresBridge.playBackwards()
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
@@ -136,7 +136,14 @@ ColumnLayout {
                 icon.source: "themes/default/step_forward.png"
                 icon.color: "transparent"
 
-                onClicked: proceduresBridge.step_forward()
+                // TODO(jacob): We connect both clicked and doubleClicked to stepForward because
+                // there seems to be some sort of debouncing/delay built in that prevents clicking
+                // twice in quick succession from advancing steps twice. For now, we choose to
+                // explicitly recognize a double click as identical to a click. Investigate if this
+                // is really the best way to do things or if there's a better way to get rid of the
+                // delay.
+                onClicked: proceduresBridge.stepForward()
+                onDoubleClicked: proceduresBridge.stepForward()
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
@@ -154,7 +161,7 @@ ColumnLayout {
         id: procedureStepDelegate
 
         RowLayout {
-            width: parent.width
+            width: proceduresList.width
             spacing: 10
             
             Text {
