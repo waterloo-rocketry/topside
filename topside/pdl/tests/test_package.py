@@ -2,10 +2,11 @@ import pytest
 
 import topside as top
 import topside.pdl.exceptions as exceptions
+import topside.pdl.utils as utils
 
 
 def test_package_storage():
-    file = top.File('topside/pdl/example.yaml')
+    file = top.File(utils.example_path)
 
     pack = top.Package([file])
 
@@ -26,7 +27,7 @@ def test_package_storage():
 
 
 def test_package_typedefs():
-    file = top.File('topside/pdl/example.yaml')
+    file = top.File(utils.example_path)
     namespace = file.namespace
 
     pack = top.Package([file])
@@ -52,7 +53,7 @@ def test_package_typedefs():
 
 
 def test_package_shortcuts():
-    file = top.File('topside/pdl/example.yaml')
+    file = top.File(utils.example_path)
     namespace = file.namespace
 
     pack = top.Package([file])
@@ -64,7 +65,7 @@ def test_package_shortcuts():
 
 
 def test_files_unchanged():
-    file = top.File('topside/pdl/example.yaml')
+    file = top.File(utils.example_path)
 
     top.Package([file])
 

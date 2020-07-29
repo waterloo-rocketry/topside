@@ -100,7 +100,7 @@ body:
       fill_valve: closed
       vent_valve: open
       three_way_valve: left
-  
+
 - graph:
     name: secondary
     nodes:

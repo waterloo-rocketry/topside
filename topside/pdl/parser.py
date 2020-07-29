@@ -39,10 +39,8 @@ class Parser:
             # extract edge list, plus dict of {edge name: edge tuple}
             edge_dict = extract_edges(entry)
             edge_list = []
-            fwd_edge_list = [edge[0] for edge in edge_dict.values()]
-            back_edge_list = [edge[1] for edge in edge_dict.values()]
-            edge_list.extend(back_edge_list)
-            edge_list.extend(fwd_edge_list)
+            for edge in edge_dict.values():
+                edge_list.extend(edge)
 
             # extract states dict {state_name: {edge: teq}} for each edge
             # in both directions
@@ -50,10 +48,9 @@ class Parser:
             for state_name, edges in entry['states'].items():
                 edge_teqs = {}
                 for edge_name, teqs in edges.items():
-                    fwd_edge = edge_dict[edge_name][0]
-                    edge_teqs[fwd_edge] = teqs['fwd']
+                    fwd_edge, back_edge = edge_dict[edge_name]
 
-                    back_edge = edge_dict[edge_name][1]
+                    edge_teqs[fwd_edge] = teqs['fwd']
                     edge_teqs[back_edge] = teqs['back']
                 states[state_name] = edge_teqs
 
@@ -69,7 +66,8 @@ class Parser:
         for idx, entry in enumerate(graphs):
             if entry['name'] == 'main':
                 main_present = True
-                graphs = swap(graphs, -1, idx)
+                graphs.append(graphs.pop(idx))
+                break
         if not main_present:
             raise exceptions.BadInputError("must have graph main")
 
@@ -79,10 +77,7 @@ class Parser:
                     self.initial_pressures[graph_node] = (node_data['initial_pressure'], False)
                 if 'fixed_pressure' in node_data:
                     self.initial_pressures[graph_node] = (node_data['fixed_pressure'], True)
-                for component in node_data['components']:
-                    component_name = component[0]
-                    component_node = component[1]
-
+                for component_name, component_node in node_data['components']:
                     if component_name not in self.mapping:
                         self.mapping[component_name] = {}
 
@@ -119,9 +114,9 @@ def extract_edges(entry):
 
         # key will just be fwd or back, unless there are multiple edges between the same
         # two nodes, in which case the key will have a unique int appended.
-        key = ""
+        key = ''
         nodes = tuple(edges['nodes'])
-        swapped_nodes = tuple(swap(edges['nodes'], 0, 1))
+        swapped_nodes = (nodes[1], nodes[0])
         if nodes in edges_seen:
             edges_seen[nodes] += 1
             key = edges_seen[nodes]
@@ -131,24 +126,11 @@ def extract_edges(entry):
         else:
             edges_seen[nodes] = 1
 
-        node_1 = edges['nodes'][0]
-        node_2 = edges['nodes'][1]
+        node_1, node_2 = edges['nodes']
 
-        fwd_edge = (node_1, node_2, "fwd" + str(key))
-        back_edge = (node_2, node_1, "back" + str(key))
+        fwd_edge = (node_1, node_2, 'fwd' + str(key))
+        back_edge = (node_2, node_1, 'back' + str(key))
 
         edge_dict[edge_name] = (fwd_edge, back_edge)
 
     return edge_dict
-
-
-def swap(indexable, idx1, idx2):
-    """Take an indexable object and return a list with its elements swapped at the given indices."""
-    if len(indexable) <= max(idx1, idx2):
-        raise exceptions.BadInputError(
-            f"len indexable ({len(indexable)}, {indexable} less than index {max(idx1, idx2)}")
-    ret = list(copy.deepcopy(indexable))
-    temp = ret[idx1]
-    ret[idx1] = ret[idx2]
-    ret[idx2] = temp
-    return ret

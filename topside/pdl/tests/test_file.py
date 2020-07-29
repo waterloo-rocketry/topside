@@ -2,10 +2,11 @@ import pytest
 
 import topside as top
 import topside.pdl.exceptions as exceptions
+import topside.pdl.utils as utils
 
 
 def test_valid_pdl():
-    file = top.File('topside/pdl/example.yaml')
+    file = top.File(utils.example_path)
 
     assert file.namespace == 'example'
     assert file.imports == ['stdlib']

@@ -1,8 +1,10 @@
 import copy
+import os
 import yaml
 
 import topside as top
 import topside.pdl.exceptions as exceptions
+import topside.pdl.utils as utils
 
 # imports is a dict of {package name: path to file}, used to locate files to load
 # on requested import.
@@ -11,7 +13,7 @@ import topside.pdl.exceptions as exceptions
 # outside a predefined library. Likely involves a function that traipses through the
 # imports folder for new files and stores them in this dict whenever new Packages are instantiated.
 IMPORTS = {
-    'stdlib': './topside/pdl/imports/stdlib.yaml'
+    'stdlib': os.path.join(utils.imports_path, "stdlib.yaml")
 }
 
 
@@ -30,11 +32,11 @@ class Package:
         ----------
 
         files: iterable
-            files is the iterable (usually a list) of one or more Files whose contents should go
+            files is an iterable (usually a list) of one or more Files whose contents should go
             into the Package.
         """
 
-        if len(files) < 1:
+        if len(list(files)) < 1:
             raise exceptions.BadInputError("cannot instantiate a Package with no Files")
         self.imports = []
 
@@ -89,14 +91,14 @@ class Package:
         self.rename()
 
         for namespace, entries in self.graph_dict.items():
-            for idx, graph in enumerate(entries):
-                self.graph_dict[namespace][idx] = self.fill_graphs(graph)
+            for entry in entries:
+                self.fill_blank_states(entry)
 
     def rename(self):
         """Prepend any conflicting component names with namespace to disambiguate."""
 
         # record of {component name: namespace}
-        names = {}
+        names = set()
 
         # record of which components were repeated (and need prepending)
         repeats = {}
@@ -106,7 +108,7 @@ class Package:
                 if name in names:
                     repeats[name] = True
                 else:
-                    names[name] = namespace
+                    names.add(name)
 
         for namespace, entries in self.component_dict.items():
             for idx, entry in enumerate(entries):
@@ -142,11 +144,12 @@ class Package:
         ret['name'] = component_name
         return ret
 
-    def fill_graphs(self, graph):
+    def fill_blank_states(self, graph):
         """Fill in states field with default states if left blank."""
-        ret = copy.deepcopy(graph)
         if 'states' not in graph:
-            ret['states'] = {}
+            graph['states'] = {}
+
+        default_states = self.get_default_states()
 
         # set of components in this graph
         components = set()
@@ -154,30 +157,33 @@ class Package:
             for component in node['components']:
                 components.add(component[0])
 
+        for component in components:
+            if component in graph['states']:
+                continue
+
+            if component not in default_states:
+                raise exceptions.BadInputError(
+                    f"missing component {component}: either a nonexistent or a"
+                    "multi-state component")
+
+            graph['states'][component] = default_states[component]
+
+    def get_default_states(self):
+        """Return a dict of {component_name: default state name} for one-state components"""
         # dict of {component:(namespace, index)} used to locate the component in self.component_dict
         places = {}
         for namespace in self.component_dict:
             for idx, component in enumerate(self.component_dict[namespace]):
                 places[component['name']] = (namespace, idx)
 
-        for component in components:
-            if component in ret['states']:
-                continue
-
-            if component not in places:
-                raise exceptions.BadInputError(f"missing component {component}")
-            namespace, idx = places[component]
+        default_states = {}
+        for component in self.components():
+            namespace, idx = places[component['name']]
             component_states = self.component_dict[namespace][idx]['states']
+            if len(component_states) == 1:
+                default_states[component["name"]] = list(component_states.keys())[0]
 
-            if len(component_states) != 1:
-                raise exceptions.BadInputError(
-                    f"state must be specified in graph {graph['name']} for component" +
-                    f" {component} with multiple states")
-
-            state_name = list(component_states.keys())[0]
-            ret['states'][component] = state_name
-
-        return ret
+        return default_states
 
     def components(self):
         """Return list of all component objects"""

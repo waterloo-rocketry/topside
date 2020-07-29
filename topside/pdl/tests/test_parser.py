@@ -2,35 +2,11 @@ import pytest
 
 import topside as top
 import topside.pdl.exceptions as exceptions
-
-
-def test_swap():
-    list_3 = [1, 2, 3]
-    assert top.swap(list_3, 0, 2) == [3, 2, 1]
-    # index order doesn't matter
-    assert top.swap(list_3, 2, 0) == top.swap(list_3, 0, 2)
-
-    list_2 = [1, 2]
-    assert top.swap(list_2, 1, 0) == [2, 1]
-
-    # original list remains unchanged
-    assert list_3 == [1, 2, 3]
-
-    tuple_3 = (1, 2, 3)
-    tuple_2 = (1, 2)
-    assert top.swap(tuple_3, 1, 0) == [2, 1, 3]
-    assert top.swap(tuple_2, 1, 0) == [2, 1]
-
-    list_1 = [1]
-    assert top.swap(list_1, 0, 0) == [1]
-
-    # swap index exceeds list length
-    with pytest.raises(exceptions.BadInputError):
-        top.swap(list_1, 0, 1)
+import topside.pdl.utils as utils
 
 
 def test_valid_file():
-    file = top.File('topside/pdl/example.yaml')
+    file = top.File(utils.example_path)
 
     parsed = top.Parser([file])
 
