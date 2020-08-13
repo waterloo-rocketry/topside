@@ -1,10 +1,10 @@
 import copy
 import os
+
 import yaml
 
 import topside as top
-import topside.pdl.exceptions as exceptions
-import topside.pdl.utils as utils
+from topside.pdl import exceptions, utils
 
 # imports is a dict of {package name: path to file}, used to locate files to load
 # on requested import.
@@ -13,7 +13,7 @@ import topside.pdl.utils as utils
 # outside a predefined library. Likely involves a function that traipses through the
 # imports folder for new files and stores them in this dict whenever new Packages are instantiated.
 IMPORTS = {
-    'stdlib': os.path.join(utils.imports_path, "stdlib.yaml")
+    'stdlib': os.path.join(utils.imports_path, 'stdlib.yaml')
 }
 
 
@@ -90,9 +90,11 @@ class Package:
 
         self.rename()
 
+        default_states = self.get_default_states()
+
         for namespace, entries in self.graph_dict.items():
             for entry in entries:
-                self.fill_blank_states(entry)
+                self.fill_blank_states(entry, default_states)
 
     def rename(self):
         """Prepend any conflicting component names with namespace to disambiguate."""
@@ -144,12 +146,10 @@ class Package:
         ret['name'] = component_name
         return ret
 
-    def fill_blank_states(self, graph):
+    def fill_blank_states(self, graph, default_states):
         """Fill in states field with default states if left blank."""
         if 'states' not in graph:
             graph['states'] = {}
-
-        default_states = self.get_default_states()
 
         # set of components in this graph
         components = set()

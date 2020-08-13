@@ -78,7 +78,7 @@ def test_valid_file():
 
 
 def test_invalid_main():
-    not_main = "NOT MAIN"
+    not_main = "NOT_MAIN"
     no_main_graph =\
         f"""
 name: example
