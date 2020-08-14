@@ -46,6 +46,9 @@ class StateChangeAction(Action):
         else:
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
+    def __str__(self):
+        return "Component: " + self.component + "\tState: " + self.state
+
 
 @dataclass
 class MiscAction(Action):
@@ -82,6 +85,9 @@ class Transition:
     """
     procedure: str
     step: str
+
+    def __str__(self):
+        return "Procedure: " + self.procedure + "\nStep: " + self.step
 
 
 @dataclass
@@ -124,6 +130,9 @@ class ProcedureStep:
             return retval
         else:
             raise NotImplementedError(f'Format "{fmt}" not supported')
+
+    def __str__(self):
+        return "Step ID: " + self.step_id + "\nAction: {" + self.action.__str__() + "}\nConditions: " + str(self.conditions)
 
 
 class Procedure:
@@ -206,6 +215,9 @@ class Procedure:
             return export_val
         else:
             raise NotImplementedError(f'Format "{fmt}" not supported')
+
+    def __str__(self):
+        return "Procedure ID: " + self.procedure_id + "\nSteps: " + self.steps
 
 
 class ProcedureSuite:
