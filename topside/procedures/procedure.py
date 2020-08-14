@@ -22,6 +22,9 @@ class Action:
     component: str
     state: str
 
+    def __str__(self):
+        return "Component: " + self.component + "\tState: " + self.state
+
 
 @dataclass
 class Transition:
@@ -39,6 +42,9 @@ class Transition:
     """
     procedure: str
     step: str
+
+    def __str__(self):
+        return "Procedure: " + self.procedure + "\nStep: " + self.step
 
 
 @dataclass
@@ -68,6 +74,9 @@ class ProcedureStep:
     action: Action
     conditions: dict
 
+    def __str__(self):
+        return "Step ID: " + self.step_id + "\nAction: {" + self.action.__str__() + "}\nConditions: " + str(self.conditions)
+
 
 class Procedure:
     """A sequence of discrete procedure steps."""
@@ -89,3 +98,9 @@ class Procedure:
         """
         self.procedure_id = procedure_id
         self.steps = {step.step_id: step for step in steps}
+
+    def __str__(self):
+        return "Procedure ID: " + self.procedure_id + "\nSteps: " + self.steps
+
+
+
