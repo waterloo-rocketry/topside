@@ -89,6 +89,7 @@ class Procedure:
         """
         self.procedure_id = procedure_id
         self.steps = {}
+        self.step_list = list(steps)
         self.step_id_to_idx = {}
 
         for i, step in enumerate(steps):

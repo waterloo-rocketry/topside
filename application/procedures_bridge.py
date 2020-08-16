@@ -69,10 +69,13 @@ class ProcedureStepsModel(QAbstractListModel):
         }
 
     def data(self, index, role):
+        try:
+            step = self.procedure.step_list[index.row()]
+        except IndexError:
+            return 'Invalid Index'
         if role == ProcedureStepsModel.PersonRoleIdx:
             return 'Primary Technician'
         elif role == ProcedureStepsModel.StepRoleIdx:
-            step = list(self.procedure.steps.values())[index.row()]
             action = step.action
             return f'Set {action.component} to {action.state}'
         return None

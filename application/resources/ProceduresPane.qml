@@ -163,7 +163,7 @@ ColumnLayout {
         RowLayout {
             width: proceduresList.width
             spacing: 10
-            
+
             Text {
                 text: model.index + 1 + "."
                 font.bold: true
