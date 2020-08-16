@@ -100,3 +100,15 @@ body:
       fill_valve: closed
       vent_valve: open
       three_way_valve: left
+
+- graph:
+    name: secondary
+    nodes:
+      D:
+        components:
+          - [hole_valve, 0]
+      E:
+        components:
+          - [hole_valve, 1]
+    states:
+      hole_valve: open

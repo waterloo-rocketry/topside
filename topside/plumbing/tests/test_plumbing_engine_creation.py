@@ -147,7 +147,7 @@ def test_invalid_component():
     assert str(err.value) == "Node 1 not found in graph."
 
     assert not plumb.is_valid()
-    assert len(plumb.errors()) == 1
+    assert len(plumb.errors()) == 2
 
     error = invalid.InvalidComponentName(
         "Component with name 'valve' is not valid;"

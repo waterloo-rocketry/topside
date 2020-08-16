@@ -28,7 +28,7 @@ class File:
           - body: the body of PDL.
 
         Parameters
-        ==========
+        ----------
 
         path: string
             path should contain either the path to the file containing PDL,
@@ -43,7 +43,7 @@ class File:
         initialization produces a ready-to-use File.
 
         Fields
-        ======
+        ------
 
         imports: list
             list of imports (by name) that are relevant to this file.
@@ -148,7 +148,7 @@ class File:
 
     def validate_graph(self, entry):
         """Validate graph entries specifically."""
-        check_fields(entry, ['name', 'nodes', 'states'])
+        check_fields(entry, ['name', 'nodes'])
         for node_name in entry['nodes']:
             node = entry['nodes'][node_name]
             if len(node) < 1 or 'components' not in node:
