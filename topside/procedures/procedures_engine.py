@@ -86,7 +86,7 @@ class ProceduresEngine:
                 self.execute(self.current_step.action)
                 break
 
-    def step(self, timestep=None):
+    def step_time(self, timestep=None):
         """
         Step the managed plumbing engine in time and update conditions.
 
@@ -103,3 +103,7 @@ class ProceduresEngine:
         # TODO(jacob): Consider if this function should return anything
         # about the state of the system: plumbing engine state, current
         # time, etc.
+
+    def current_procedure(self):
+        """Return the procedure currently being executed."""
+        return self._procedure_suite[self.current_procedure_id]

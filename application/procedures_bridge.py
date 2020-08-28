@@ -1,18 +1,61 @@
 from PySide2.QtCore import Qt, Slot, Signal, Property, \
     QObject, QAbstractListModel, QModelIndex
 
+import topside as top
+
+
+# TODO(jacob): Delete this test code and load a real engine and procedure
+
+class MockPlumbingEngine:
+    def __init__(self):
+        pass
+
+    def step(self, dt):
+        pass
+
+    def set_component_state(self, component, state):
+        pass
+
+    def current_pressures(self):
+        return {}
+
+
+def build_test_procedure_suite():
+    open_action_1 = top.Action('c1', 'open')
+    open_action_2 = top.Action('c2', 'open')
+    close_action_1 = top.Action('c1', 'close')
+    close_action_2 = top.Action('c2', 'close')
+
+    s1 = top.ProcedureStep('s1', open_action_1, {top.Immediate(): top.Transition('p1', 's2')})
+    s2 = top.ProcedureStep('s2', open_action_2, {top.Immediate(): top.Transition('p2', 's3')})
+
+    p1 = top.Procedure('p1', [s1, s2])
+
+    s3 = top.ProcedureStep('s3', close_action_1, {top.Immediate(): top.Transition('p2', 's4')})
+    s4 = top.ProcedureStep('s4', close_action_2, {top.Immediate(): top.Transition('p1', 's1')})
+
+    p2 = top.Procedure('p2', [s3, s4])
+
+    return [p1, p2]
+
 
 class ProcedureStepsModel(QAbstractListModel):
     PersonRoleIdx = Qt.UserRole + 1
     StepRoleIdx = Qt.UserRole + 2
 
-    def __init__(self, steps, parent=None):
+    def __init__(self, procedure, parent=None):
         QAbstractListModel.__init__(self, parent)
-        self.steps = steps
-        self.idx = 0
+        self.procedure = procedure
+
+    def change_procedure(self, new_procedure):
+        self.layoutAboutToBeChanged.emit()
+        self.procedure = new_procedure
+        self.layoutChanged.emit()
+
+    # Qt accessible methods
 
     def rowCount(self, parent=QModelIndex()):
-        return len(self.steps)
+        return len(self.procedure.steps)
 
     def roleNames(self):
         # NOTE(jacob): The values in this dict are byte strings instead
@@ -26,59 +69,51 @@ class ProcedureStepsModel(QAbstractListModel):
         }
 
     def data(self, index, role):
+        try:
+            step = self.procedure.step_list[index.row()]
+        except IndexError:
+            return 'Invalid Index'
         if role == ProcedureStepsModel.PersonRoleIdx:
             return 'Primary Technician'
         elif role == ProcedureStepsModel.StepRoleIdx:
-            return self.steps[index.row()]
+            action = step.action
+            return f'Set {action.component} to {action.state}'
         return None
 
-    def stop(self):
-        self.idx = 0
 
-    def previous_step(self):
-        if self.idx > 0:
-            self.idx -= 1
-
-    def next_step(self):
-        if self.idx < self.rowCount() - 1:
-            self.idx += 1
-
-    def append_step(self, step):
-        row_idx = self.rowCount()
-        self.beginInsertRows(QModelIndex(), row_idx, row_idx)
-        self.steps.append(step)
-        self.endInsertRows()
-
-
-# TODO(jacob): Once the procedures engine exists and the internal logic
-# is a bit more fleshed out, investigate if we really need a separate
-# bridge class or if we can connect the signals directly to the model.
 class ProceduresBridge(QObject):
     goto_step_sig = Signal(int, name='gotoStep')
-    steps_changed_sig = Signal(name='stepsChanged')
+    steps_changed_sig = Signal(name='dataChanged')
 
     def __init__(self):
         QObject.__init__(self)
 
-        self._procedure_steps = ProcedureStepsModel([
-            'Open Series Fill Valve',
-            'Open Line Vent Valve',
-            'Retreat to Mission Control',
-            'Open Injector Valve',
-        ])
+        plumb = MockPlumbingEngine()
+        suite = build_test_procedure_suite()
+
+        self._procedures_engine = top.ProceduresEngine(plumb, suite, 'p1', 's1')
+        self._procedure_steps = ProcedureStepsModel(self._procedures_engine.current_procedure())
+
+    def _refresh_procedure_view(self):
+        proc = self._procedures_engine.current_procedure()
+
+        if self._procedure_steps.procedure.procedure_id != proc.procedure_id:
+            self._procedure_steps.change_procedure(proc)
+
+        idx = proc.index_of(self._procedures_engine.current_step.step_id)
+        self.goto_step_sig.emit(idx)
 
     @Property(QObject, notify=steps_changed_sig)
     def steps(self):
         return self._procedure_steps
 
     @Slot()
-    def play_backwards(self):
+    def playBackwards(self):
         pass
 
     @Slot()
     def undo(self):
-        self._procedure_steps.previous_step()
-        self.goto_step_sig.emit(self._procedure_steps.idx)
+        pass
 
     @Slot()
     def play(self):
@@ -90,14 +125,13 @@ class ProceduresBridge(QObject):
 
     @Slot()
     def stop(self):
-        self._procedure_steps.stop()
-        self.goto_step_sig.emit(self._procedure_steps.idx)
+        pass
 
     @Slot()
-    def step_forward(self):
-        self._procedure_steps.next_step()
-        self.goto_step_sig.emit(self._procedure_steps.idx)
+    def stepForward(self):
+        self._procedures_engine.next_step()
+        self._refresh_procedure_view()
 
     @Slot()
     def advance(self):
-        self._procedure_steps.append_step('Close Injector Valve')
+        pass
