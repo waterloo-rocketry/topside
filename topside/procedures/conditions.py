@@ -212,8 +212,8 @@ class Comparison:
 
     def __eq__(self, other):
         return type(self) == type(other) and \
-               self.node == other.node and \
-               self.reference_pressure == other.reference_pressure
+            self.node == other.node and \
+            self.reference_pressure == other.reference_pressure
 
 
 class Equal(Comparison):
@@ -252,8 +252,8 @@ class Equal(Comparison):
 
     def __eq__(self, other):
         return self.node == other.node and \
-               self.reference_pressure == other.reference_pressure and \
-               self.eps == other.eps
+            self.reference_pressure == other.reference_pressure and \
+            self.eps == other.eps
 
 
 class Less(Comparison):
