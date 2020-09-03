@@ -38,9 +38,9 @@ def single_procedure_suite():
     open_action = top.Action('c1', 'open')
     close_action = top.Action('c1', 'closed')
 
-    s1 = top.ProcedureStep('s1', None, {top.Immediate(): top.Transition('p1', 's2')})
-    s2 = top.ProcedureStep('s2', open_action, {top.Immediate(): top.Transition('p1', 's3')})
-    s3 = top.ProcedureStep('s3', close_action, {})
+    s1 = top.ProcedureStep('s1', None, [(top.Immediate(), top.Transition('p1', 's2'))])
+    s2 = top.ProcedureStep('s2', open_action, [(top.Immediate(), top.Transition('p1', 's3'))])
+    s3 = top.ProcedureStep('s3', close_action, [])
 
     proc = top.Procedure('p1', [s1, s2, s3])
 
@@ -51,10 +51,10 @@ def branching_procedure_suite_no_options():
     open_action = top.Action('c1', 'open')
     halfway_open_action = top.Action('c1', 'halfway_open')
 
-    s1 = top.ProcedureStep('s1', None, {NeverSatisfied(): top.Transition('p1', 's2'),
-                                        NeverSatisfied(): top.Transition('p2', 's3')})
-    s2 = top.ProcedureStep('s2', halfway_open_action, {})
-    s3 = top.ProcedureStep('s3', open_action, {})
+    s1 = top.ProcedureStep('s1', None, [(NeverSatisfied(), top.Transition('p1', 's2')),
+                                        (NeverSatisfied(), top.Transition('p2', 's3'))])
+    s2 = top.ProcedureStep('s2', halfway_open_action, [])
+    s3 = top.ProcedureStep('s3', open_action, [])
 
     proc_1 = top.Procedure('p1', [s1, s2, s3])
     proc_2 = top.Procedure('p2', [s1, s2, s3])
@@ -66,8 +66,8 @@ def branching_procedure_suite_one_option():
     open_action = top.Action('c1', 'open')
     halfway_open_action = top.Action('c1', 'halfway_open')
 
-    s1 = top.ProcedureStep('s1', None, {NeverSatisfied(): top.Transition('p1', 's2'),
-                                        top.Immediate(): top.Transition('p2', 's3')})
+    s1 = top.ProcedureStep('s1', None, [(NeverSatisfied(), top.Transition('p1', 's2')),
+                                        (top.Immediate(), top.Transition('p2', 's3'))])
     s2 = top.ProcedureStep('s2', halfway_open_action, {})
     s3 = top.ProcedureStep('s3', open_action, {})
 
@@ -81,8 +81,8 @@ def branching_procedure_suite_two_options():
     open_action = top.Action('c1', 'open')
     halfway_open_action = top.Action('c1', 'halfway_open')
 
-    s1 = top.ProcedureStep('s1', None, {top.Immediate(): top.Transition('p1', 's2'),
-                                        top.Immediate(): top.Transition('p2', 's3')})
+    s1 = top.ProcedureStep('s1', None, [(top.Immediate(), top.Transition('p1', 's2')),
+                                        (top.Immediate(), top.Transition('p2', 's3'))])
     s2 = top.ProcedureStep('s2', halfway_open_action, {})
     s3 = top.ProcedureStep('s3', open_action, {})
 
@@ -179,10 +179,10 @@ def test_transitions_respects_procedure_identifier():
 
     action = top.Action('c1', 'open')
 
-    s1 = top.ProcedureStep('s1', None, {NeverSatisfied(): top.Transition('p1', 'same_name'),
-                                        top.Immediate(): top.Transition('p2', 'same_name')})
-    same_name_1 = top.ProcedureStep('same_name', action, {})
-    same_name_2 = top.ProcedureStep('same_name', action, {})
+    s1 = top.ProcedureStep('s1', None, [(NeverSatisfied(), top.Transition('p1', 'same_name')),
+                                        (top.Immediate(), top.Transition('p2', 'same_name'))])
+    same_name_1 = top.ProcedureStep('same_name', action, [])
+    same_name_2 = top.ProcedureStep('same_name', action, [])
 
     proc_1 = top.Procedure('p1', [s1, same_name_1])
     proc_2 = top.Procedure('p2', [same_name_2])
@@ -201,7 +201,7 @@ def test_update_conditions_updates_pressures():
     plumb_eng = one_component_engine()
     plumb_eng.set_component_state('c1', 'open')
 
-    s1 = top.ProcedureStep('s1', None, {top.Less(1, 75): top.Transition('p1', 's2')})
+    s1 = top.ProcedureStep('s1', None, [(top.Less(1, 75), top.Transition('p1', 's2'))])
     proc = top.Procedure('p1', [s1])
     proc_suite = [proc]
 
@@ -219,7 +219,7 @@ def test_update_conditions_updates_time():
     plumb_eng = one_component_engine()
     plumb_eng.set_component_state('c1', 'open')
 
-    s1 = top.ProcedureStep('s1', None, {top.WaitUntil(1e6): 's2'})
+    s1 = top.ProcedureStep('s1', None, [(top.WaitUntil(1e6), 's2')])
     proc = top.Procedure('p1', [s1])
     proc_suite = [proc]
 
@@ -258,7 +258,7 @@ def test_step_updates_conditions():
     plumb_eng = one_component_engine()
     plumb_eng.set_component_state('c1', 'open')
 
-    s1 = top.ProcedureStep('s1', None, {top.Less(1, 75): 's2'})
+    s1 = top.ProcedureStep('s1', None, [(top.Less(1, 75), 's2')])
     proc = top.Procedure('p1', [s1])
     proc_suite = [proc]
 

@@ -56,7 +56,7 @@ class ProceduresEngine:
         pressures = self._plumb.current_pressures()
         state = {'time': time, 'pressures': pressures}
 
-        for condition in self.current_step.conditions.keys():
+        for condition, _ in self.current_step.conditions:
             condition.update(state)
 
     def ready_to_advance(self):
@@ -65,7 +65,7 @@ class ProceduresEngine:
 
         Returns True if any condition is satisfied, and False otherwise.
         """
-        for condition in self.current_step.conditions.keys():
+        for condition, _ in self.current_step.conditions:
             if condition.satisfied():
                 return True
         return False
@@ -78,7 +78,7 @@ class ProceduresEngine:
         first one (the highest priority one). If no conditions are
         satisfied, this function does nothing.
         """
-        for condition, transition in self.current_step.conditions.items():
+        for condition, transition in self.current_step.conditions:
             if condition.satisfied():
                 new_proc = transition.procedure
                 self.current_procedure_id = new_proc
