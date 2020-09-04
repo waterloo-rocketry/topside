@@ -9,6 +9,9 @@ class Immediate:
         """Return True, since this condition is always satisfied."""
         return True
 
+    def __eq__(self, other):
+        return type(other) == Immediate
+
 
 class And:
     """
@@ -51,6 +54,9 @@ class And:
             if not cond.satisfied():
                 return False
         return True
+
+    def __eq__(self, other):
+        return self._conditions == other._conditions
 
 
 class Or:
@@ -95,6 +101,9 @@ class Or:
                 return True
         return False
 
+    def __eq__(self, other):
+        return self._conditions == other._conditions
+
 
 class WaitUntil:
     """Condition that is satisfied once a certain time is reached."""
@@ -134,6 +143,9 @@ class WaitUntil:
         if self.current_t is None:
             return False
         return self.current_t >= self.target_t
+
+    def __eq__(self, other):
+        return self.target_t == other.target_t
 
 
 class Comparison:
@@ -198,6 +210,11 @@ class Comparison:
             return False
         return self.compare(self.current_pressure, self.reference_pressure)
 
+    def __eq__(self, other):
+        return type(self) == type(other) and \
+            self.node == other.node and \
+            self.reference_pressure == other.reference_pressure
+
 
 class Equal(Comparison):
     """
@@ -232,6 +249,11 @@ class Equal(Comparison):
     def compare(self, current_pressure, reference_pressure):
         """Return True if the pressures differ by less than eps."""
         return abs(current_pressure - reference_pressure) <= self.eps
+
+    def __eq__(self, other):
+        return self.node == other.node and \
+            self.reference_pressure == other.reference_pressure and \
+            self.eps == other.eps
 
 
 class Less(Comparison):

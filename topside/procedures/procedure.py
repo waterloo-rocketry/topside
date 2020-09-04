@@ -56,17 +56,17 @@ class ProcedureStep:
     action: topside.Action
         The action that should be executed when this step is performed.
 
-    conditions: dict
-        A dict mapping topside.Condition objects to Transition objects.
-        Each entry in `conditions` represents a conditional transition
-        from this ProcedureStep to another step, potentially in a
-        different proceddure. This dict is expected to be ordered in
-        terms of condition priority; if multiple conditions are
-        satisfied, the first one will be selected.
+    conditions: list
+        A list of tuples (topside.Condition, Transition). Each entry in
+        `conditions` represents a conditional transition from this
+        ProcedureStep to another step, potentially in a different
+        procedure. This list is expected to be ordered in terms of
+        condition priority; if multiple conditions are satisfied, the
+        first one will be selected.
     """
     step_id: str
     action: Action
-    conditions: dict
+    conditions: list
 
 
 class Procedure:
@@ -105,6 +105,7 @@ class Procedure:
 
         Parameters
         ----------
+
         step_id: str
             The identifier for the step for which the index is desired.
 
@@ -116,3 +117,6 @@ class Procedure:
             procedure.
         """
         return self.step_id_to_idx[step_id]
+
+    def __eq__(self, other):
+        return self.procedure_id == other.procedure_id and self.step_list == other.step_list
