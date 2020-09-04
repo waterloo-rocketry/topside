@@ -1,6 +1,7 @@
 autopep8==1.5.2
 cx-freeze==6.1
 datatest==0.9.6
+lark-parser==0.9.0
 matplotlib==3.2.0
 networkx==2.4
 numpy==1.15.1
