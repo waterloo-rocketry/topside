@@ -23,8 +23,8 @@ class MockPlumbingEngine:
 def build_test_procedure_suite():
     open_action_1 = top.Action('c1', 'open')
     open_action_2 = top.Action('c2', 'open')
-    close_action_1 = top.Action('c1', 'close')
-    close_action_2 = top.Action('c2', 'close')
+    close_action_1 = top.Action('c1', 'closed')
+    close_action_2 = top.Action('c2', 'closed')
 
     s1 = top.ProcedureStep('s1', open_action_1, [(top.Immediate(), top.Transition('p1', 's2'))])
     s2 = top.ProcedureStep('s2', open_action_2, [(top.Immediate(), top.Transition('p2', 's3'))])
@@ -36,7 +36,7 @@ def build_test_procedure_suite():
 
     p2 = top.Procedure('p2', [s3, s4])
 
-    return [p1, p2]
+    return top.ProcedureSuite([p1, p2], 'p1')
 
 
 class ProcedureStepsModel(QAbstractListModel):
@@ -91,7 +91,7 @@ class ProceduresBridge(QObject):
         plumb = MockPlumbingEngine()
         suite = build_test_procedure_suite()
 
-        self._procedures_engine = top.ProceduresEngine(plumb, suite, 'p1', 's1')
+        self._procedures_engine = top.ProceduresEngine(plumb, suite)
         self._procedure_steps = ProcedureStepsModel(self._procedures_engine.current_procedure())
 
     def _refresh_procedure_view(self):

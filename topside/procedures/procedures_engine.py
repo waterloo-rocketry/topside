@@ -11,7 +11,7 @@ class ProceduresEngine:
     represent transitions between these steps.
     """
 
-    def __init__(self, plumbing_engine=None, suite=None, initial_procedure=None, initial_step=None):
+    def __init__(self, plumbing_engine=None, suite=None):
         """
         Initialize the ProceduresEngine.
 
@@ -21,28 +21,18 @@ class ProceduresEngine:
         plumbing_engine: topside.PlumbingEngine
             The PlumbingEngine that this ProceduresEngine should manage.
 
-        procedure_suite: iterable
-            A procedure suite is any iterable of Procedure objects (but
-            typically a list).
-
-        initial_step: str
-            The initial procedure step that this ProceduresEngine should
-            begin in. Note that the action associated with this step
-            will not be executed (unless the step is eventually reached
-            again); therefore, this step often has a `None` action and
-            a single `Immediate` condition leading directly to the
-            actual "first step" of the procedure.
+        suite: topside.ProcedureSuite
+            The ProcedureSuite that this engine should execute,
+            including information about the starting procedure.
         """
         self._plumb = plumbing_engine
-        self._procedure_suite = None
-        self.current_procedure_id = initial_procedure
+        self._suite = suite
+        self.current_procedure_id = None
         self.current_step = None
 
         if suite is not None:
-            self._procedure_suite = {proc.procedure_id: proc for proc in suite}
-
-        if suite is not None and initial_procedure is not None and initial_step is not None:
-            self.current_step = self._procedure_suite[initial_procedure].steps[initial_step]
+            self.current_procedure_id = self._suite.starting_procedure_id
+            self.current_step = self._suite[self.current_procedure_id].step_list[0]
 
     def execute(self, action):
         """Execute an action on the managed PlumbingEngine."""
@@ -82,7 +72,7 @@ class ProceduresEngine:
             if condition.satisfied():
                 new_proc = transition.procedure
                 self.current_procedure_id = new_proc
-                self.current_step = self._procedure_suite[new_proc].steps[transition.step]
+                self.current_step = self._suite[new_proc].steps[transition.step]
                 self.execute(self.current_step.action)
                 break
 
@@ -106,4 +96,4 @@ class ProceduresEngine:
 
     def current_procedure(self):
         """Return the procedure currently being executed."""
-        return self._procedure_suite[self.current_procedure_id]
+        return self._suite[self.current_procedure_id]

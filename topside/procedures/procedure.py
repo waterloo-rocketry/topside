@@ -120,3 +120,39 @@ class Procedure:
 
     def __eq__(self, other):
         return self.procedure_id == other.procedure_id and self.step_list == other.step_list
+
+
+class ProcedureSuite:
+    """A set of procedures and associated metadata."""
+
+    def __init__(self, procedures, starting_procedure_id='main'):
+        """
+        Initialize the procedure suite.
+
+        Parameters
+        ----------
+
+        procedures: iterable
+            An iterable of Procedure objects. Each procedure is expected
+            to have a unique procedure ID. Order is irrelevant.
+
+        starting_procedure: str
+            The procedure ID for the starting procedure used when this
+            procedure suite is executed. Defaults to "main" if not
+            specified.
+        """
+        self.starting_procedure_id = starting_procedure_id
+        self.procedures = {}
+
+        for proc in procedures:
+            if proc.procedure_id in self.procedures:
+                raise ValueError(f'duplicate procedure ID {proc.procedure_id} encountered in \
+                                   ProcedureSuite initialization')
+            self.procedures[proc.procedure_id] = proc
+
+    def __eq__(self, other):
+        return self.starting_procedure_id == other.starting_procedure_id and \
+            self.procedures == other.procedures
+
+    def __getitem__(self, key):
+        return self.procedures[key]

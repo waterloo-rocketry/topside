@@ -44,7 +44,7 @@ def single_procedure_suite():
 
     proc = top.Procedure('p1', [s1, s2, s3])
 
-    return [proc]
+    return top.ProcedureSuite([proc], 'p1')
 
 
 def branching_procedure_suite_no_options():
@@ -59,7 +59,7 @@ def branching_procedure_suite_no_options():
     proc_1 = top.Procedure('p1', [s1, s2, s3])
     proc_2 = top.Procedure('p2', [s1, s2, s3])
 
-    return [proc_1, proc_2]
+    return top.ProcedureSuite([proc_1, proc_2], 'p1')
 
 
 def branching_procedure_suite_one_option():
@@ -74,7 +74,7 @@ def branching_procedure_suite_one_option():
     proc_1 = top.Procedure('p1', [s1, s2, s3])
     proc_2 = top.Procedure('p2', [s1, s2, s3])
 
-    return [proc_1, proc_2]
+    return top.ProcedureSuite([proc_1, proc_2], 'p1')
 
 
 def branching_procedure_suite_two_options():
@@ -89,7 +89,7 @@ def branching_procedure_suite_two_options():
     proc_1 = top.Procedure('p1', [s1, s2, s3])
     proc_2 = top.Procedure('p2', [s1, s2, s3])
 
-    return [proc_1, proc_2]
+    return top.ProcedureSuite([proc_1, proc_2], 'p1')
 
 
 def test_execute_custom_action():
@@ -104,26 +104,26 @@ def test_execute_custom_action():
 
 
 def test_ready_to_advance_if_condition_satisfied():
-    proc_eng = top.ProceduresEngine(None, single_procedure_suite(), 'p1', 's1')
+    proc_eng = top.ProceduresEngine(None, single_procedure_suite())
 
     assert proc_eng.ready_to_advance() is True
 
 
 def test_ready_to_advance_one_is_enough():
-    proc_eng = top.ProceduresEngine(None, branching_procedure_suite_one_option(), 'p1', 's1')
+    proc_eng = top.ProceduresEngine(None, branching_procedure_suite_one_option())
 
     assert proc_eng.ready_to_advance() is True
 
 
 def test_ready_to_advance_no_options():
-    proc_eng = top.ProceduresEngine(None, branching_procedure_suite_no_options(), 'p1', 's1')
+    proc_eng = top.ProceduresEngine(None, branching_procedure_suite_no_options())
 
     assert proc_eng.ready_to_advance() is False
 
 
 def test_next_step_immediate():
     plumb_eng = one_component_engine()
-    proc_eng = top.ProceduresEngine(plumb_eng, single_procedure_suite(), 'p1', 's1')
+    proc_eng = top.ProceduresEngine(plumb_eng, single_procedure_suite())
 
     assert proc_eng.current_step.step_id == 's1'
     assert plumb_eng.current_state('c1') == 'closed'
@@ -137,7 +137,7 @@ def test_next_step_immediate():
 
 def test_next_step_requires_satisfaction():
     plumb_eng = one_component_engine()
-    proc_eng = top.ProceduresEngine(plumb_eng, branching_procedure_suite_no_options(), 'p1', 's1')
+    proc_eng = top.ProceduresEngine(plumb_eng, branching_procedure_suite_no_options())
 
     assert proc_eng.current_procedure_id == 'p1'
     assert proc_eng.current_step.step_id == 's1'
@@ -150,7 +150,7 @@ def test_next_step_requires_satisfaction():
 
 def test_next_step_follows_satisfied_condition():
     plumb_eng = one_component_engine()
-    proc_eng = top.ProceduresEngine(plumb_eng, branching_procedure_suite_one_option(), 'p1', 's1')
+    proc_eng = top.ProceduresEngine(plumb_eng, branching_procedure_suite_one_option())
 
     assert proc_eng.current_procedure_id == 'p1'
     assert proc_eng.current_step.step_id == 's1'
@@ -163,7 +163,7 @@ def test_next_step_follows_satisfied_condition():
 
 def test_next_step_follows_highest_priority_condition():
     plumb_eng = one_component_engine()
-    proc_eng = top.ProceduresEngine(plumb_eng, branching_procedure_suite_two_options(), 'p1', 's1')
+    proc_eng = top.ProceduresEngine(plumb_eng, branching_procedure_suite_two_options())
 
     assert proc_eng.current_procedure_id == 'p1'
     assert proc_eng.current_step.step_id == 's1'
@@ -186,9 +186,9 @@ def test_transitions_respects_procedure_identifier():
 
     proc_1 = top.Procedure('p1', [s1, same_name_1])
     proc_2 = top.Procedure('p2', [same_name_2])
-    proc_suite = [proc_1, proc_2]
+    proc_suite = top.ProcedureSuite([proc_1, proc_2], 'p1')
 
-    proc_eng = top.ProceduresEngine(plumb_eng, proc_suite, 'p1', 's1')
+    proc_eng = top.ProceduresEngine(plumb_eng, proc_suite)
 
     assert proc_eng.current_procedure_id == 'p1'
     assert proc_eng.current_step.step_id == 's1'
@@ -203,9 +203,9 @@ def test_update_conditions_updates_pressures():
 
     s1 = top.ProcedureStep('s1', None, [(top.Less(1, 75), top.Transition('p1', 's2'))])
     proc = top.Procedure('p1', [s1])
-    proc_suite = [proc]
+    proc_suite = top.ProcedureSuite([proc], 'p1')
 
-    proc_eng = top.ProceduresEngine(plumb_eng, proc_suite, 'p1', 's1')
+    proc_eng = top.ProceduresEngine(plumb_eng, proc_suite)
 
     assert proc_eng.ready_to_advance() is False
 
@@ -221,9 +221,9 @@ def test_update_conditions_updates_time():
 
     s1 = top.ProcedureStep('s1', None, [(top.WaitUntil(1e6), 's2')])
     proc = top.Procedure('p1', [s1])
-    proc_suite = [proc]
+    proc_suite = top.ProcedureSuite([proc], 'p1')
 
-    proc_eng = top.ProceduresEngine(plumb_eng, proc_suite, 'p1', 's1')
+    proc_eng = top.ProceduresEngine(plumb_eng, proc_suite)
 
     assert proc_eng.ready_to_advance() is False
 
@@ -244,7 +244,7 @@ def test_step_advances_time_equally():
 
     unmanaged_eng = copy.deepcopy(managed_eng)
 
-    proc_eng = top.ProceduresEngine(managed_eng, single_procedure_suite(), 'p1', 's1')
+    proc_eng = top.ProceduresEngine(managed_eng, single_procedure_suite())
 
     assert managed_eng.current_pressures() == unmanaged_eng.current_pressures()
 
@@ -260,9 +260,9 @@ def test_step_updates_conditions():
 
     s1 = top.ProcedureStep('s1', None, [(top.Less(1, 75), 's2')])
     proc = top.Procedure('p1', [s1])
-    proc_suite = [proc]
+    proc_suite = top.ProcedureSuite([proc], 'p1')
 
-    proc_eng = top.ProceduresEngine(plumb_eng, proc_suite, 'p1', 's1')
+    proc_eng = top.ProceduresEngine(plumb_eng, proc_suite)
 
     assert proc_eng.ready_to_advance() is False
 
