@@ -1,8 +1,9 @@
 import os
 import sys
 
-from PySide2.QtGui import QGuiApplication, QIcon
+from PySide2.QtGui import QIcon
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
+from PySide2.QtWidgets import QApplication
 
 import topside as top
 from .visualization_area import VisualizationArea
@@ -26,7 +27,7 @@ class Application:
     def __init__(self, argv):
         self.procedures_bridge = ProceduresBridge()
 
-        self.app = QGuiApplication(argv)
+        self.app = QApplication(argv)
 
         # ALL custom built QQuickItems have to be registed as QML objects in this way:
         qmlRegisterType(VisualizationArea, 'VisualizationArea', 1, 0, 'VisualizationArea')
