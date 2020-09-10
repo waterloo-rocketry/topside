@@ -144,11 +144,19 @@ class ProcedureSuite:
         self.starting_procedure_id = starting_procedure_id
         self.procedures = {}
 
+        # TODO(jacob): Allow invalid procedure suites to be created, but
+        # keep track of the invalid reasons (same way plumbing code
+        # works).
+
         for proc in procedures:
             if proc.procedure_id in self.procedures:
-                raise ValueError(f'duplicate procedure ID {proc.procedure_id} encountered in \
-                                   ProcedureSuite initialization')
+                raise ValueError(f'duplicate procedure ID {proc.procedure_id} encountered in '
+                                 + 'ProcedureSuite initialization')
             self.procedures[proc.procedure_id] = proc
+
+        if self.starting_procedure_id not in self.procedures:
+            raise ValueError(f'starting procedure ID {self.starting_procedure_id} not found in '
+                             + 'procedure dict')
 
     def __eq__(self, other):
         return self.starting_procedure_id == other.starting_procedure_id and \
