@@ -121,7 +121,7 @@ class ProceduresBridge(QObject):
             self._procedure_steps.change_procedure(None)
             return
 
-        if displayed_proc is None or displayed_proc.procedure_id != proc.procedure_id:
+        if displayed_proc != proc:
             self._procedure_steps.change_procedure(proc)
 
         idx = proc.index_of(self._procedures_engine.current_step.step_id)
