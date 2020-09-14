@@ -56,7 +56,7 @@ class And:
         return True
 
     def __eq__(self, other):
-        return self._conditions == other._conditions
+        return type(self) == type(other) and self._conditions == other._conditions
 
 
 class Or:
@@ -102,7 +102,7 @@ class Or:
         return False
 
     def __eq__(self, other):
-        return self._conditions == other._conditions
+        return type(self) == type(other) and self._conditions == other._conditions
 
 
 class WaitUntil:
@@ -145,18 +145,19 @@ class WaitUntil:
         return self.current_t >= self.target_t
 
     def __eq__(self, other):
-        return self.target_t == other.target_t
+        return type(self) == type(other) and self.target_t == other.target_t
 
 
 class Comparison:
     """Base class for conditions comparing a pressure to a reference."""
 
-    def __init__(self, node, pressure, comp_fn=None):
+    def __init__(self, node, pressure):
         """
         Initialize the Comparison condition.
 
-        If using the Comparison base class directly, the comp_fn
-        parameter is required.
+        The Comparison base class should not be instantiated directly;
+        instead, use one of the derived classes, like LessEqual or
+        Greater.
 
         Parameters
         ----------
@@ -167,28 +168,19 @@ class Comparison:
         pressure: float
             The reference pressure that will be used in evaluating
             comparisons.
-
-        comp_fn: function object
-            comp_fn is expected to have the following signature:
-              comp_fn(curr_pressure: float, ref_pressure: float) -> bool
-            This function compares the current pressure to the set
-            reference and returns True if the comparison passes.
         """
         self.node = node
         self.reference_pressure = pressure
         self.current_pressure = None
-        self.comp_fn = comp_fn
 
     def compare(self, current_pressure, reference_pressure):
         """
-        Evaluates the custom comp_fn and returns the result.
+        Evaluates the comparison and returns the result.
 
-        This method should be overridden in classes inheriting from
+        This method must be overridden in classes inheriting from
         Comparison.
         """
-        if self.comp_fn is None:
-            raise NotImplementedError('Comparison base class requires a custom comparison function')
-        return self.comp_fn(self.current_pressure, self.reference_pressure)
+        raise NotImplementedError('Comparison base class cannot be used directly')
 
     def update(self, state):
         """
@@ -251,7 +243,8 @@ class Equal(Comparison):
         return abs(current_pressure - reference_pressure) <= self.eps
 
     def __eq__(self, other):
-        return self.node == other.node and \
+        return type(self) == type(other) and \
+            self.node == other.node and \
             self.reference_pressure == other.reference_pressure and \
             self.eps == other.eps
 

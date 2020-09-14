@@ -119,7 +119,9 @@ class Procedure:
         return self.step_id_to_idx[step_id]
 
     def __eq__(self, other):
-        return self.procedure_id == other.procedure_id and self.step_list == other.step_list
+        return type(self) == type(other) and \
+            self.procedure_id == other.procedure_id and \
+            self.step_list == other.step_list
 
 
 class ProcedureSuite:
@@ -159,7 +161,8 @@ class ProcedureSuite:
                              + 'procedure dict')
 
     def __eq__(self, other):
-        return self.starting_procedure_id == other.starting_procedure_id and \
+        return type(self) == type(other) and \
+            self.starting_procedure_id == other.starting_procedure_id and \
             self.procedures == other.procedures
 
     def __getitem__(self, key):

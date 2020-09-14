@@ -44,6 +44,18 @@ def test_procedure_index_of():
     assert proc.index_of('s3') == 2
 
 
+def test_procedure_equality_different_type():
+    s1 = top.ProcedureStep('s1', None, [])
+    s2 = top.ProcedureStep('s2', None, [])
+    s3 = top.ProcedureStep('s3', None, [])
+
+    proc_1 = top.Procedure('p1', [s1, s2, s3])
+
+    assert proc_1 != 'proc_1'
+    assert proc_1 != 10
+    assert proc_1 != None
+
+
 def test_procedure_equality_equal():
     s1 = top.ProcedureStep('s1', None, [])
     s2 = top.ProcedureStep('s2', None, [])
@@ -140,6 +152,21 @@ def test_procedure_suite_invalid_starting_procedure_errors():
 
     with pytest.raises(Exception):
         top.ProcedureSuite([p1], 'p2')
+
+
+def test_procedure_suite_equality_different_type():
+    s1 = top.ProcedureStep('s1', None, [])
+    s2 = top.ProcedureStep('s2', None, [])
+    s3 = top.ProcedureStep('s3', None, [])
+
+    proc_1 = top.Procedure('p1', [s1, s2])
+    proc_2 = top.Procedure('p2', [s1, s3])
+
+    suite_1 = top.ProcedureSuite([proc_1, proc_2], 'p1')
+
+    assert suite_1 != 'suite_1'
+    assert suite_1 != 10
+    assert suite_1 != None
 
 
 def test_procedure_suite_equality_equal():
