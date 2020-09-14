@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 import topside as top
@@ -80,7 +82,7 @@ def test_parse_step_with_waituntil():
     expected_suite = top.ProcedureSuite([
         top.Procedure('main', [
             top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
-                (top.WaitUntil(10), top.Transition('main', '2'))
+                (top.WaitUntil(10e6), top.Transition('main', '2'))
             ]),
             top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [])
         ])
@@ -161,7 +163,7 @@ def test_parse_step_with_two_deviations():
         top.Procedure('main', [
             top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
                 (top.Less('p1', 500), top.Transition('abort', '1')),
-                (top.WaitUntil(300), top.Transition('abort', '2')),
+                (top.WaitUntil(300e6), top.Transition('abort', '2')),
                 (top.Immediate(), top.Transition('main', '2'))
             ]),
             top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [])
@@ -185,7 +187,7 @@ def test_whitespace_is_irrelevant():
         top.Procedure('main', [
             top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
                 (top.Less('p1', 500), top.Transition('abort', '1')),
-                (top.WaitUntil(300), top.Transition('abort', '2')),
+                (top.WaitUntil(300e6), top.Transition('abort', '2')),
                 (top.Immediate(), top.Transition('main', '2'))
             ]),
             top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [])
@@ -226,3 +228,45 @@ def test_duplicate_procedure_name_throws():
     '''
     with pytest.raises(Exception):
         top.proclang.parse(proclang)
+
+
+def test_parse_from_file():
+    filepath = os.path.join(os.path.dirname(__file__), 'example.proc')
+    suite = top.proclang.parse_from_file(filepath)
+
+    expected_suite = top.ProcedureSuite([
+        top.Procedure('main', [
+            top.ProcedureStep('1', top.Action('series_fill_valve', 'closed'), [
+                (top.WaitUntil(5e6), top.Transition('main', '2'))
+            ]),
+            top.ProcedureStep('2', top.Action('supply_valve', 'open'), [
+                (top.Less('p1', 600), top.Transition('abort_1', '1')),
+                (top.Greater('p1', 1000), top.Transition('abort_2', '1')),
+                (top.Immediate(), top.Transition('main', '3'))
+            ]),
+            top.ProcedureStep('3', top.Action('series_fill_valve', 'open'), [
+                (top.Immediate(), top.Transition('main', '4'))
+            ]),
+            top.ProcedureStep('4', top.Action('remote_fill_valve', 'open'), [
+                (top.WaitUntil(180e6), top.Transition('main', '5'))
+            ]),
+            top.ProcedureStep('5', top.Action('remote_fill_valve', 'closed'), [
+                (top.Immediate(), top.Transition('main', '6'))
+            ]),
+            top.ProcedureStep('6', top.Action('remote_vent_valve', 'open'), [])
+        ]),
+        top.Procedure('abort_1', [
+            top.ProcedureStep('1', top.Action('supply_valve', 'closed'), [
+                (top.WaitUntil(10e6), top.Transition('abort_1', '2'))
+            ]),
+            top.ProcedureStep('2', top.Action('remote_vent_valve', 'open'), [])
+        ]),
+        top.Procedure('abort_2', [
+            top.ProcedureStep('1', top.Action('supply_valve', 'closed'), [
+                (top.Immediate(), top.Transition('abort_2', '2'))
+            ]),
+            top.ProcedureStep('2', top.Action('line_vent_valve', 'open'), [])
+        ]),
+    ])
+
+    assert suite == expected_suite
