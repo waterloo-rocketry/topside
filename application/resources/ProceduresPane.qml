@@ -6,6 +6,9 @@ import QtQuick.Layouts 1.0
 ColumnLayout {
     spacing: 0
 
+    property string procHeaderBg: "#888888"
+    property string procHeaderTxt: "#ffffff"
+
     Component.onCompleted: {
         proceduresBridge.gotoStep.connect(proceduresList.gotoStep)
     }
@@ -15,11 +18,11 @@ ColumnLayout {
         Layout.minimumHeight: 30
         Layout.preferredHeight: 30
         Layout.fillWidth: true
-        color: "#888888"
+        color: procHeaderBg
 
         Text {
             text: "PROCEDURES"
-            color: "white"
+            color: procHeaderTxt
             font.pointSize: 10
             font.weight: Font.Bold
             anchors.verticalCenter: parent.verticalCenter
@@ -67,11 +70,16 @@ ColumnLayout {
         id: procedureStepDelegate
 
         Rectangle {
+            property string stepHighlightBg: "#d8fff7"
+            property string stepHighlightBorder: "#800000"
+            property string stepEvenIdxBg: "#f2f2f2"
+            property string stepOddIdxBg: "#f9f9f9"
+
             id: wrapper
             width: proceduresList.width
             height: procedureColumn.height + 10
-            color: ListView.isCurrentItem ? "#d8fff7" : (index % 2 == 0 ? "#f2f2f2" : "#f9f9f9")
-            border.color: ListView.isCurrentItem ? "#800000" : "transparent"
+            color: ListView.isCurrentItem ? stepHighlightBg : (index % 2 == 0 ? stepEvenIdxBg : stepOddIdxBg)
+            border.color: ListView.isCurrentItem ? stepHighlightBorder : "transparent"
 
             Column {
                 id: procedureColumn
@@ -142,12 +150,15 @@ ColumnLayout {
                     color: "transparent"
 
                     Text {
+                        property string condSatisfiedTxt: "#005000"
+                        property string condNotSatisfiedTxt: "#4d4d4d"
+
                         // TODO(jacob): Figure out how to get this text to wrap
                         anchors.verticalCenter: parent.verticalCenter
                         x: 30
                         font.pointSize: 10
                         font.weight: modelData.satisfied ? Font.Bold : Font.Normal
-                        color: modelData.satisfied ? "#005000" : "#4d4d4d"
+                        color: modelData.satisfied ? condSatisfiedTxt : condNotSatisfiedTxt
                         text: "[" + modelData.condition + "] " + modelData.transition
                     }
                 }
@@ -156,11 +167,13 @@ ColumnLayout {
     }
 
     Rectangle {
+        property string procFooterBg: "#007700"
+
         Layout.alignment: Qt.AlignBottom
         Layout.minimumHeight: 100
         Layout.preferredHeight: 100
         Layout.fillWidth: true
-        color: "green"
+        color: procFooterBg
 
         RowLayout {
             anchors.verticalCenter: parent.verticalCenter
