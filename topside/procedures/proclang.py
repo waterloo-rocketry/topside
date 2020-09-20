@@ -1,6 +1,7 @@
 import copy
 
 from lark import Lark, Transformer
+from lark.visitors import Discard
 
 import topside as top
 
@@ -31,8 +32,19 @@ condition: "[" (waituntil | comparison) "]"
 waituntil: time "s"
 time: NUMBER
 
+comparison: comparison_and ( logic_or comparison_and )+
+    | comparison_and
+
+comparison_and: comp_direct ( logic_and comp_direct )+
+    | comp_direct
+
+comp_direct: node operator value
+    |   "(" comparison ")"
+
+logic_and : "and" | "&&" | "AND"
+logic_or  : "or" | "||" | "OR"
+
 // TODO(jacob): Add support for tolerance in equality comparison.
-comparison: node operator value
 node: STRING
 value: NUMBER
 operator: "<"    -> lt
@@ -90,14 +102,35 @@ class ProcedureTransformer(Transformer):
     def eq(self, data):
         return top.Equal
 
-    def comparison(self, data):
-        """
-        Process `comparison` nodes in the parse tree.
+    def logic_and(self, data):
+        raise Discard()
 
-        `data` is a list of the form [node, operator, reference].
+    def logic_or(self, data):
+        raise Discard()
+
+    def comp_direct(self, data):
         """
-        comp_class = data[1]
-        return comp_class(data[0], data[2])
+        Process `comp_direct` nodes in the parse tree.
+
+        `data` is a list either of the form [node, operator, reference] or [comparison] """
+        if len(data) == 3:
+            comp_class = data[1]
+            return comp_class(data[0], data[2])
+        else:
+            return data[0]
+
+    def comparison(self, data):
+        if len(data) == 1:
+            return data[0]
+        else:
+            return top.Or(data)
+
+    def comparison_and(self, data):
+        print(data)
+        if len(data) == 1:
+            return data[0]
+        else:
+            return top.And(data)
 
     def waituntil(self, data):
         """
