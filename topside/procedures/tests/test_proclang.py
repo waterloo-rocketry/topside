@@ -346,3 +346,64 @@ def test_parse_steps_with_multiple_comparisons():
     ])
 
     assert suite == expected_suite
+
+def test_parse_logical_operator_forms():
+    proclang = '''
+    main:
+        1. set injector_valve to open
+        2. [p1 < 100 and p2 < 100] set vent_valve to open
+        3. [p1 < 100 AND p2 < 100] set vent_valve to open
+        4. [p1 < 100 &&  p2 < 100] set vent_valve to open
+        5. [p1 < 100 or  p2 < 100] set vent_valve to open
+        6. [p1 < 100 OR  p2 < 100] set vent_valve to open
+        7. [p1 < 100 ||  p2 < 100] set vent_valve to open
+    '''
+    suite = top.proclang.parse(proclang)
+
+    compAnd = top.And([top.Less('p1', 100), top.Less('p2', 100)])
+    compOr = top.Or([top.Less('p1', 100), top.Less('p2', 100)])
+
+    expected_suite = top.ProcedureSuite([
+        top.Procedure('main', [
+            top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
+                (compAnd, top.Transition('main', '2'))
+            ]),
+            top.ProcedureStep('2', top.Action('vent_valve', 'open'), [
+                (compAnd, top.Transition('main', '3'))
+            ]),
+            top.ProcedureStep('3', top.Action('vent_valve', 'open'), [
+                (compAnd, top.Transition('main', '4'))
+            ]),
+            top.ProcedureStep('4', top.Action('vent_valve', 'open'), [
+                (compOr, top.Transition('main', '5'))
+            ]),
+            top.ProcedureStep('5', top.Action('vent_valve', 'open'), [
+                (compOr, top.Transition('main', '6'))
+            ]),
+            top.ProcedureStep('6', top.Action('vent_valve', 'open'), [
+                (compOr, top.Transition('main', '7'))
+            ]),
+            top.ProcedureStep('7', top.Action('vent_valve', 'open'), [])
+        ])
+    ])
+
+    assert suite == expected_suite
+
+def test_parse_combined_conditions():
+    proclang = '''
+    main:
+        1. set s to v
+        2. [p1 < 100 or 500s and p2 < 200] set s to v
+    '''
+
+    suite = top.proclang.parse(proclang)
+    expected_suite = top.ProcedureSuite([
+        top.Procedure('main', [
+            top.ProcedureStep('1', top.Action('s', 'v'), [
+                (top.Or([top.Less('p1', 100), top.And([top.WaitUntil(1e6*500), top.Less('p2', 200)])]), top.Transition('main', '2'))
+            ]),
+            top.ProcedureStep('2', top.Action('s', 'v'), [])
+        ])
+    ])
+
+    assert suite == expected_suite
