@@ -21,10 +21,11 @@ class MockPlumbingEngine:
 
 
 def build_test_procedure_suite():
-    open_action_1 = top.Action('c1', 'open')
-    open_action_2 = top.Action('c2', 'open')
-    close_action_1 = top.Action('c1', 'closed')
-    close_action_2 = top.Action('c2', 'closed')
+    open_action_1 = top.StateChangeAction('c1', 'open')
+    open_action_2 = top.StateChangeAction('c2', 'open')
+    close_action_1 = top.StateChangeAction('c1', 'closed')
+    close_action_2 = top.StateChangeAction('c2', 'closed')
+    misc_action_1 = top.MiscAction('Approach the launch tower')
 
     s1 = top.ProcedureStep('s1', open_action_1, [(top.Immediate(), top.Transition('p1', 's2'))])
     s2 = top.ProcedureStep('s2', open_action_2, [(top.Immediate(), top.Transition('p2', 's3'))])

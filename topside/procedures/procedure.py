@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class Action:
+class StateChangeAction:
     """
     A state change for a single component in the plumbing engine.
 
@@ -21,6 +21,19 @@ class Action:
     """
     component: str
     state: str
+
+
+@dataclass
+class MiscAction:
+    """
+    A specifier for miscellaneous action
+
+    Members
+    -------
+    actionType: str
+        The string specifies which type of action it is.
+    """
+    actionType: str
 
 
 @dataclass
@@ -53,7 +66,7 @@ class ProcedureStep:
         An identifier for this procedure step. Expected to be unique
         within the same procedure.
 
-    action: topside.Action
+    action: topside.StateChangeAction
         The action that should be executed when this step is performed.
 
     conditions: list
@@ -65,7 +78,7 @@ class ProcedureStep:
         first one will be selected.
     """
     step_id: str
-    action: Action
+    action: StateChangeAction
     conditions: list
 
 
