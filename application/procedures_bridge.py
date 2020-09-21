@@ -25,17 +25,22 @@ def build_test_procedure_suite():
     open_action_2 = top.StateChangeAction('c2', 'open')
     close_action_1 = top.StateChangeAction('c1', 'closed')
     close_action_2 = top.StateChangeAction('c2', 'closed')
-    misc_action_1 = top.MiscAction('Approach the launch tower')
+
+    # Add miscellaneous action
+    misc_action = top.MiscAction('Approach the tower')
 
     s1 = top.ProcedureStep('s1', open_action_1, [(top.Immediate(), top.Transition('p1', 's2'))])
     s2 = top.ProcedureStep('s2', open_action_2, [(top.Immediate(), top.Transition('p2', 's3'))])
 
-    p1 = top.Procedure('p1', [s1, s2])
+    # The step contain misc action
+    s5 = top.ProcedureStep('s5', misc_action, [(top.Immediate())])
+
+    p1 = top.Procedure('p1', [s1, s2, s5])
 
     s3 = top.ProcedureStep('s3', close_action_1, [(top.Immediate(), top.Transition('p2', 's4'))])
     s4 = top.ProcedureStep('s4', close_action_2, [(top.Immediate(), top.Transition('p1', 's1'))])
 
-    p2 = top.Procedure('p2', [s3, s4])
+    p2 = top.Procedure('p2', [s3, s4, s5])
 
     return top.ProcedureSuite([p1, p2], 'p1')
 
@@ -77,8 +82,12 @@ class ProcedureStepsModel(QAbstractListModel):
         if role == ProcedureStepsModel.PersonRoleIdx:
             return 'Primary Technician'
         elif role == ProcedureStepsModel.StepRoleIdx:
-            action = step.action
-            return f'Set {action.component} to {action.state}'
+            action = step.action 
+            # Check if misc action or not
+            if type(action) != top.procedures.procedure.MiscAction : 
+                return f'Set {action.component} to {action.state}'
+            if type(action) == top.procedures.procedure.MiscAction :
+                return f'{action.actionType}'
         return None
 
 

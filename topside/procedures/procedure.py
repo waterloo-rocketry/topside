@@ -162,7 +162,7 @@ class ProcedureSuite:
         # TODO(jacob): Allow invalid procedure suites to be created, but
         # keep track of the invalid reasons (same way plumbing code
         # works).
-
+        
         for proc in procedures:
             if proc.procedure_id in self.procedures:
                 raise ValueError(f'duplicate procedure ID {proc.procedure_id} encountered in '
