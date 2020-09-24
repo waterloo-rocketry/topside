@@ -14,7 +14,7 @@ def test_parse_one_step():
 
     expected_suite = top.ProcedureSuite([
         top.Procedure('main', [
-            top.ProcedureStep('1', top.Action('injector_valve', 'open'), [])
+            top.ProcedureStep('1', top.Action('injector_valve', 'open'), [], 'PRIMARY')
         ])
     ])
 
@@ -33,8 +33,8 @@ def test_parse_two_steps():
         top.Procedure('main', [
             top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
                 (top.Immediate(), top.Transition('main', '2'))
-            ]),
-            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [])
+            ], 'PRIMARY'),
+            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [], 'PRIMARY')
         ])
     ])
 
@@ -57,14 +57,14 @@ def test_parse_two_procedures():
         top.Procedure('main', [
             top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
                 (top.Immediate(), top.Transition('main', '2'))
-            ]),
-            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [])
+            ], 'PRIMARY'),
+            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [], 'PRIMARY')
         ]),
         top.Procedure('abort', [
             top.ProcedureStep('1', top.Action('injector_valve', 'closed'), [
                 (top.Immediate(), top.Transition('abort', '2'))
-            ]),
-            top.ProcedureStep('2', top.Action('vent_valve', 'open'), [])
+            ], 'PRIMARY'),
+            top.ProcedureStep('2', top.Action('vent_valve', 'open'), [], 'PRIMARY')
         ])
     ])
 
@@ -83,8 +83,8 @@ def test_parse_step_with_waituntil():
         top.Procedure('main', [
             top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
                 (top.WaitUntil(10e6), top.Transition('main', '2'))
-            ]),
-            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [])
+            ], 'PRIMARY'),
+            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [], 'PRIMARY')
         ])
     ])
 
@@ -107,20 +107,20 @@ def test_parse_steps_with_comparisons():
         top.Procedure('main', [
             top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
                 (top.Less('p1', 100), top.Transition('main', '2'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [
                 (top.Greater('p1', 100), top.Transition('main', '3'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('3', top.Action('vent_valve', 'open'), [
                 (top.LessEqual('p1', 100), top.Transition('main', '4'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('4', top.Action('vent_valve', 'closed'), [
                 (top.GreaterEqual('p1', 100), top.Transition('main', '5'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('5', top.Action('vent_valve', 'open'), [
                 (top.Equal('p1', 100), top.Transition('main', '6'))
-            ]),
-            top.ProcedureStep('6', top.Action('vent_valve', 'closed'), [])
+            ], 'PRIMARY'),
+            top.ProcedureStep('6', top.Action('vent_valve', 'closed'), [], 'PRIMARY')
         ])
     ])
 
@@ -141,8 +141,8 @@ def test_parse_step_with_one_deviation():
             top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
                 (top.Less('p1', 500), top.Transition('abort', '1')),
                 (top.Immediate(), top.Transition('main', '2'))
-            ]),
-            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [])
+            ], 'PRIMARY'),
+            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [], 'PRIMARY')
         ])
     ])
 
@@ -165,8 +165,8 @@ def test_parse_step_with_two_deviations():
                 (top.Less('p1', 500), top.Transition('abort', '1')),
                 (top.WaitUntil(300e6), top.Transition('abort', '2')),
                 (top.Immediate(), top.Transition('main', '2'))
-            ]),
-            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [])
+            ], 'PRIMARY'),
+            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [], 'PRIMARY')
         ])
     ])
 
@@ -189,8 +189,8 @@ def test_whitespace_is_irrelevant():
                 (top.Less('p1', 500), top.Transition('abort', '1')),
                 (top.WaitUntil(300e6), top.Transition('abort', '2')),
                 (top.Immediate(), top.Transition('main', '2'))
-            ]),
-            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [])
+            ], 'PRIMARY'),
+            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [], 'PRIMARY')
         ])
     ])
 
@@ -238,34 +238,34 @@ def test_parse_from_file():
         top.Procedure('main', [
             top.ProcedureStep('1', top.Action('series_fill_valve', 'closed'), [
                 (top.WaitUntil(5e6), top.Transition('main', '2'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('2', top.Action('supply_valve', 'open'), [
                 (top.Less('p1', 600), top.Transition('abort_1', '1')),
                 (top.Greater('p1', 1000), top.Transition('abort_2', '1')),
                 (top.Immediate(), top.Transition('main', '3'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('3', top.Action('series_fill_valve', 'open'), [
                 (top.Immediate(), top.Transition('main', '4'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('4', top.Action('remote_fill_valve', 'open'), [
                 (top.WaitUntil(180e6), top.Transition('main', '5'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('5', top.Action('remote_fill_valve', 'closed'), [
                 (top.Immediate(), top.Transition('main', '6'))
-            ]),
-            top.ProcedureStep('6', top.Action('remote_vent_valve', 'open'), [])
+            ], 'PRIMARY'),
+            top.ProcedureStep('6', top.Action('remote_vent_valve', 'open'), [], 'PRIMARY')
         ]),
         top.Procedure('abort_1', [
             top.ProcedureStep('1', top.Action('supply_valve', 'closed'), [
                 (top.WaitUntil(10e6), top.Transition('abort_1', '2'))
-            ]),
-            top.ProcedureStep('2', top.Action('remote_vent_valve', 'open'), [])
+            ], 'PRIMARY'),
+            top.ProcedureStep('2', top.Action('remote_vent_valve', 'open'), [], 'PRIMARY')
         ]),
         top.Procedure('abort_2', [
             top.ProcedureStep('1', top.Action('supply_valve', 'closed'), [
                 (top.Immediate(), top.Transition('abort_2', '2'))
-            ]),
-            top.ProcedureStep('2', top.Action('line_vent_valve', 'open'), [])
+            ], 'PRIMARY'),
+            top.ProcedureStep('2', top.Action('line_vent_valve', 'open'), [], 'PRIMARY')
         ]),
     ])
 
@@ -294,23 +294,23 @@ def test_parse_steps_with_complex_comparisons():
         top.Procedure('main', [
             top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
                 (comp_and, top.Transition('main', '2'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [
                 (comp_or, top.Transition('main', '3'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('3', top.Action('vent_valve', 'open'), [
                 (top.LessEqual('p1', 100), top.Transition('main', '4'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('4', top.Action('vent_valve', 'closed'), [
                 (comp_and_or_1, top.Transition('main', '5'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('5', top.Action('vent_valve', 'open'), [
                 (comp_and_or_2, top.Transition('main', '6'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('6', top.Action('vent_valve', 'open'), [
                 (comp_and_or_3, top.Transition('main', '7'))
-            ]),
-            top.ProcedureStep('7', top.Action('vent_valve', 'closed'), [])
+            ], 'PRIMARY'),
+            top.ProcedureStep('7', top.Action('vent_valve', 'closed'), [], 'PRIMARY')
         ])
     ])
 
@@ -334,14 +334,14 @@ def test_parse_steps_with_multiple_comparisons():
         top.Procedure('main', [
             top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
                 (top.And([p1, p2, p3]), top.Transition('main', '2'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [
                 (top.Or([p1, p2, p3]), top.Transition('main', '3'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('3', top.Action('vent_valve', 'open'), [
                 (top.Or([top.And([p1, p2, p3]), top.And([p1, p2])]), top.Transition('main', '4'))
-            ]),
-            top.ProcedureStep('4', top.Action('vent_valve', 'open'), [])
+            ], 'PRIMARY'),
+            top.ProcedureStep('4', top.Action('vent_valve', 'open'), [], 'PRIMARY')
         ])
     ])
 
@@ -367,23 +367,23 @@ def test_parse_logical_operator_forms():
         top.Procedure('main', [
             top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
                 (comp_and, top.Transition('main', '2'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('2', top.Action('vent_valve', 'open'), [
                 (comp_and, top.Transition('main', '3'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('3', top.Action('vent_valve', 'open'), [
                 (comp_and, top.Transition('main', '4'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('4', top.Action('vent_valve', 'open'), [
                 (comp_or, top.Transition('main', '5'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('5', top.Action('vent_valve', 'open'), [
                 (comp_or, top.Transition('main', '6'))
-            ]),
+            ], 'PRIMARY'),
             top.ProcedureStep('6', top.Action('vent_valve', 'open'), [
                 (comp_or, top.Transition('main', '7'))
-            ]),
-            top.ProcedureStep('7', top.Action('vent_valve', 'open'), [])
+            ], 'PRIMARY'),
+            top.ProcedureStep('7', top.Action('vent_valve', 'open'), [], 'PRIMARY')
         ])
     ])
 
@@ -403,8 +403,8 @@ def test_parse_combined_conditions():
         top.Procedure('main', [
             top.ProcedureStep('1', top.Action('s', 'v'), [
                 (comp_or, top.Transition('main', '2'))
-            ]),
-            top.ProcedureStep('2', top.Action('s', 'v'), [])
+            ], 'PRIMARY'),
+            top.ProcedureStep('2', top.Action('s', 'v'), [], 'PRIMARY')
         ])
     ])
 

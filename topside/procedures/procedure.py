@@ -63,10 +63,14 @@ class ProcedureStep:
         procedure. This list is expected to be ordered in terms of
         condition priority; if multiple conditions are satisfied, the
         first one will be selected.
+
+    operator: str
+        The person who performs the step
     """
     step_id: str
     action: Action
     conditions: list
+    operator: str
 
 
 class Procedure:

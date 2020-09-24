@@ -248,7 +248,7 @@ class ProcedureTransformer(Transformer):
                 conditions.append((successor['condition_in'],
                                    top.Transition(name, successor['id'])))
             successor = step_info
-            new_step = top.ProcedureStep(step_info['id'], step_info['action'], conditions)
+            new_step = top.ProcedureStep(step_info['id'], step_info['action'], conditions, 'PRIMARY')
             steps.insert(0, new_step)
 
         return top.Procedure(name, steps)
