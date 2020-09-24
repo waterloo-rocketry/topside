@@ -1,6 +1,7 @@
 import copy
 
 from lark import Lark, Transformer
+from lark.visitors import Discard
 
 import topside as top
 
@@ -26,13 +27,23 @@ state: STRING
 deviation: "-" condition transition
 transition: name "." step_id
 
-condition: "[" (waituntil | comparison) "]"
+condition: "[" boolean_expr "]"
 
 waituntil: time "s"
 time: NUMBER
 
+boolean_expr: boolean_expr_and ( logic_or boolean_expr_and )*
+
+boolean_expr_and: boolean ( logic_and boolean )*
+
+boolean: waituntil
+    | node operator value
+    | "(" boolean_expr ")"
+
+logic_and : "and" | "&&" | "AND"
+logic_or  : "or" | "||" | "OR"
+
 // TODO(jacob): Add support for tolerance in equality comparison.
-comparison: node operator value
 node: STRING
 value: NUMBER
 operator: "<"    -> lt
@@ -90,14 +101,56 @@ class ProcedureTransformer(Transformer):
     def eq(self, data):
         return top.Equal
 
-    def comparison(self, data):
-        """
-        Process `comparison` nodes in the parse tree.
+    def logic_and(self, data):
+        raise Discard()
 
-        `data` is a list of the form [node, operator, reference].
+    def logic_or(self, data):
+        raise Discard()
+
+    def boolean(self, data):
         """
-        comp_class = data[1]
-        return comp_class(data[0], data[2])
+        Parses a directly evaluatable boolean value in the parse tree
+
+        `data` is a list of either:
+            - three elements, of the form [node, operator, reference]
+            - one WaitUntil element
+            - one boolean_expr element, which was wrapped in parentheses in the
+              text
+         """
+
+        if len(data) == 3:
+            # Must be a [node, operator, reference] type
+            comp_class = data[1]
+            return comp_class(data[0], data[2])
+        elif len(data) == 1 and type(data[0]) == top.WaitUntil:
+            return data[0]
+        elif len(data) == 1:
+            # Assume that this is a parenthesized expression
+            return data[0]
+
+    def boolean_expr(self, data):
+        """
+        Process `boolean_expr` nodes in the parse tree.
+
+        `data` is a list of `boolean_expr_and`'s that were interspersed in the
+        text with logical OR's.
+        """
+        if len(data) == 1:
+            return data[0]
+        else:
+            return top.Or(data)
+
+    def boolean_expr_and(self, data):
+        """
+        Process `boolean_expr_and` nodes in the parse tree.
+
+        `data` is a list of `boolean`'s that were interspersed in the text with
+        logical AND's.
+        """
+        if len(data) == 1:
+            return data[0]
+        else:
+            return top.And(data)
 
     def waituntil(self, data):
         """

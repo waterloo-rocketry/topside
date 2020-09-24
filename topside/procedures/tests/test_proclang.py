@@ -270,3 +270,142 @@ def test_parse_from_file():
     ])
 
     assert suite == expected_suite
+
+def test_parse_steps_with_complex_comparisons():
+    proclang = '''
+    main:
+        1. set injector_valve to open
+        2. [p1 < 100 and p2 > 200] set vent_valve to closed
+        3. [p1 > 100 or  p2 < 200] set vent_valve to open
+        4. [(p1 <= 100)] set vent_valve to closed
+        5. [p1 < 100 or p2 > 200 and p3 < 100] set vent_valve to open
+        6. [p1 < 100 and p2 > 200 or p3 < 100] set vent_valve to open
+        7. [(p1 < 100 or p2 > 200) and p3 < 100] set vent_valve to closed
+    '''
+    suite = top.proclang.parse(proclang)
+
+    comp_and = top.And([top.Less('p1', 100), top.Greater('p2', 200)])
+    comp_or  = top.Or([top.Greater('p1', 100), top.Less('p2', 200)])
+    comp_and_or_1 = top.Or([top.Less('p1', 100), top.And([top.Greater('p2', 200), top.Less('p3', 100)])])
+    comp_and_or_2 = top.Or([top.And([top.Less('p1', 100), top.Greater('p2', 200)]), top.Less('p3', 100)])
+    comp_and_or_3 = top.And([top.Or([top.Less('p1', 100), top.Greater('p2', 200)]), top.Less('p3', 100)])
+
+    expected_suite = top.ProcedureSuite([
+        top.Procedure('main', [
+            top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
+                (comp_and, top.Transition('main', '2'))
+            ]),
+            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [
+                (comp_or, top.Transition('main', '3'))
+            ]),
+            top.ProcedureStep('3', top.Action('vent_valve', 'open'), [
+                (top.LessEqual('p1', 100), top.Transition('main', '4'))
+            ]),
+            top.ProcedureStep('4', top.Action('vent_valve', 'closed'), [
+                (comp_and_or_1, top.Transition('main', '5'))
+            ]),
+            top.ProcedureStep('5', top.Action('vent_valve', 'open'), [
+                (comp_and_or_2, top.Transition('main', '6'))
+            ]),
+            top.ProcedureStep('6', top.Action('vent_valve', 'open'), [
+                (comp_and_or_3, top.Transition('main', '7'))
+            ]),
+            top.ProcedureStep('7', top.Action('vent_valve', 'closed'), [])
+        ])
+    ])
+
+    assert suite == expected_suite
+
+def test_parse_steps_with_multiple_comparisons():
+    proclang = '''
+    main:
+        1. set injector_valve to open
+        2. [p1 < 100 and p2 < 100 and p3 < 100] set vent_valve to closed
+        3. [p1 < 100 or  p2 < 100 or  p3 < 100] set vent_valve to open
+        4. [p1 < 100 and p2 < 100 and p3 < 100 or p1 < 100 and p2 < 100] set vent_valve to open
+    '''
+    suite = top.proclang.parse(proclang)
+
+    p1 = top.Less('p1', 100)
+    p2 = top.Less('p2', 100)
+    p3 = top.Less('p3', 100)
+
+    expected_suite = top.ProcedureSuite([
+        top.Procedure('main', [
+            top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
+                (top.And([p1, p2, p3]), top.Transition('main', '2'))
+            ]),
+            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [
+                (top.Or([p1, p2, p3]), top.Transition('main', '3'))
+            ]),
+            top.ProcedureStep('3', top.Action('vent_valve', 'open'), [
+                (top.Or([top.And([p1, p2, p3]), top.And([p1, p2])]), top.Transition('main', '4'))
+            ]),
+            top.ProcedureStep('4', top.Action('vent_valve', 'open'), [])
+        ])
+    ])
+
+    assert suite == expected_suite
+
+def test_parse_logical_operator_forms():
+    proclang = '''
+    main:
+        1. set injector_valve to open
+        2. [p1 < 100 and p2 < 100] set vent_valve to open
+        3. [p1 < 100 AND p2 < 100] set vent_valve to open
+        4. [p1 < 100 &&  p2 < 100] set vent_valve to open
+        5. [p1 < 100 or  p2 < 100] set vent_valve to open
+        6. [p1 < 100 OR  p2 < 100] set vent_valve to open
+        7. [p1 < 100 ||  p2 < 100] set vent_valve to open
+    '''
+    suite = top.proclang.parse(proclang)
+
+    comp_and = top.And([top.Less('p1', 100), top.Less('p2', 100)])
+    comp_or = top.Or([top.Less('p1', 100), top.Less('p2', 100)])
+
+    expected_suite = top.ProcedureSuite([
+        top.Procedure('main', [
+            top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
+                (comp_and, top.Transition('main', '2'))
+            ]),
+            top.ProcedureStep('2', top.Action('vent_valve', 'open'), [
+                (comp_and, top.Transition('main', '3'))
+            ]),
+            top.ProcedureStep('3', top.Action('vent_valve', 'open'), [
+                (comp_and, top.Transition('main', '4'))
+            ]),
+            top.ProcedureStep('4', top.Action('vent_valve', 'open'), [
+                (comp_or, top.Transition('main', '5'))
+            ]),
+            top.ProcedureStep('5', top.Action('vent_valve', 'open'), [
+                (comp_or, top.Transition('main', '6'))
+            ]),
+            top.ProcedureStep('6', top.Action('vent_valve', 'open'), [
+                (comp_or, top.Transition('main', '7'))
+            ]),
+            top.ProcedureStep('7', top.Action('vent_valve', 'open'), [])
+        ])
+    ])
+
+    assert suite == expected_suite
+
+def test_parse_combined_conditions():
+    proclang = '''
+    main:
+        1. set s to v
+        2. [p1 < 100 or 500s and p2 < 200] set s to v
+    '''
+
+    suite = top.proclang.parse(proclang)
+
+    comp_or = top.Or([top.Less('p1', 100), top.And([top.WaitUntil(1e6*500), top.Less('p2', 200)])])
+    expected_suite = top.ProcedureSuite([
+        top.Procedure('main', [
+            top.ProcedureStep('1', top.Action('s', 'v'), [
+                (comp_or, top.Transition('main', '2'))
+            ]),
+            top.ProcedureStep('2', top.Action('s', 'v'), [])
+        ])
+    ])
+
+    assert suite == expected_suite

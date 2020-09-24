@@ -242,6 +242,14 @@ def test_and_two_conditions():
     assert and_unsat.satisfied() is False
 
 
+def test_nested_and_conditions():
+    and_sat = top.And([top.Immediate(), top.And([top.Immediate(), top.Immediate()])])
+    and_unsat = top.And([top.Immediate(), top.And([NeverSatisfied(), top.Immediate()])])
+
+    assert and_sat.satisfied() is True
+    assert and_unsat.satisfied() is False
+
+
 def test_and_updates_subconditions():
     eq_cond = top.Equal('A1', 100)
     and_cond = top.And([eq_cond])
@@ -294,6 +302,14 @@ def test_or_one_condition():
 def test_or_two_conditions():
     or_sat = top.Or([top.Immediate(), NeverSatisfied()])
     or_unsat = top.Or([NeverSatisfied(), NeverSatisfied()])
+
+    assert or_sat.satisfied() is True
+    assert or_unsat.satisfied() is False
+
+
+def test_nested_or_conditions():
+    or_sat = top.Or([NeverSatisfied(), top.Or([top.Immediate(), NeverSatisfied()])])
+    or_unsat = top.Or([NeverSatisfied(), top.Or([NeverSatisfied(), NeverSatisfied()])])
 
     assert or_sat.satisfied() is True
     assert or_unsat.satisfied() is False
