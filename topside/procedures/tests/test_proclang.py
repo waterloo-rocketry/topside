@@ -292,25 +292,25 @@ def test_parse_steps_with_complex_comparisons():
 
     expected_suite = top.ProcedureSuite([
         top.Procedure('main', [
-            top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
+            top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
                 (comp_and, top.Transition('main', '2'))
             ]),
-            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [
+            top.ProcedureStep('2', top.StateChangeAction('vent_valve', 'closed'), [
                 (comp_or, top.Transition('main', '3'))
             ]),
-            top.ProcedureStep('3', top.Action('vent_valve', 'open'), [
+            top.ProcedureStep('3', top.StateChangeAction('vent_valve', 'open'), [
                 (top.LessEqual('p1', 100), top.Transition('main', '4'))
             ]),
-            top.ProcedureStep('4', top.Action('vent_valve', 'closed'), [
+            top.ProcedureStep('4', top.StateChangeAction('vent_valve', 'closed'), [
                 (comp_and_or_1, top.Transition('main', '5'))
             ]),
-            top.ProcedureStep('5', top.Action('vent_valve', 'open'), [
+            top.ProcedureStep('5', top.StateChangeAction('vent_valve', 'open'), [
                 (comp_and_or_2, top.Transition('main', '6'))
             ]),
-            top.ProcedureStep('6', top.Action('vent_valve', 'open'), [
+            top.ProcedureStep('6', top.StateChangeAction('vent_valve', 'open'), [
                 (comp_and_or_3, top.Transition('main', '7'))
             ]),
-            top.ProcedureStep('7', top.Action('vent_valve', 'closed'), [])
+            top.ProcedureStep('7', top.StateChangeAction('vent_valve', 'closed'), [])
         ])
     ])
 
@@ -332,16 +332,16 @@ def test_parse_steps_with_multiple_comparisons():
 
     expected_suite = top.ProcedureSuite([
         top.Procedure('main', [
-            top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
+            top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
                 (top.And([p1, p2, p3]), top.Transition('main', '2'))
             ]),
-            top.ProcedureStep('2', top.Action('vent_valve', 'closed'), [
+            top.ProcedureStep('2', top.StateChangeAction('vent_valve', 'closed'), [
                 (top.Or([p1, p2, p3]), top.Transition('main', '3'))
             ]),
-            top.ProcedureStep('3', top.Action('vent_valve', 'open'), [
+            top.ProcedureStep('3', top.StateChangeAction('vent_valve', 'open'), [
                 (top.Or([top.And([p1, p2, p3]), top.And([p1, p2])]), top.Transition('main', '4'))
             ]),
-            top.ProcedureStep('4', top.Action('vent_valve', 'open'), [])
+            top.ProcedureStep('4', top.StateChangeAction('vent_valve', 'open'), [])
         ])
     ])
 
@@ -365,25 +365,25 @@ def test_parse_logical_operator_forms():
 
     expected_suite = top.ProcedureSuite([
         top.Procedure('main', [
-            top.ProcedureStep('1', top.Action('injector_valve', 'open'), [
+            top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
                 (comp_and, top.Transition('main', '2'))
             ]),
-            top.ProcedureStep('2', top.Action('vent_valve', 'open'), [
+            top.ProcedureStep('2', top.StateChangeAction('vent_valve', 'open'), [
                 (comp_and, top.Transition('main', '3'))
             ]),
-            top.ProcedureStep('3', top.Action('vent_valve', 'open'), [
+            top.ProcedureStep('3', top.StateChangeAction('vent_valve', 'open'), [
                 (comp_and, top.Transition('main', '4'))
             ]),
-            top.ProcedureStep('4', top.Action('vent_valve', 'open'), [
+            top.ProcedureStep('4', top.StateChangeAction('vent_valve', 'open'), [
                 (comp_or, top.Transition('main', '5'))
             ]),
-            top.ProcedureStep('5', top.Action('vent_valve', 'open'), [
+            top.ProcedureStep('5', top.StateChangeAction('vent_valve', 'open'), [
                 (comp_or, top.Transition('main', '6'))
             ]),
-            top.ProcedureStep('6', top.Action('vent_valve', 'open'), [
+            top.ProcedureStep('6', top.StateChangeAction('vent_valve', 'open'), [
                 (comp_or, top.Transition('main', '7'))
             ]),
-            top.ProcedureStep('7', top.Action('vent_valve', 'open'), [])
+            top.ProcedureStep('7', top.StateChangeAction('vent_valve', 'open'), [])
         ])
     ])
 
@@ -401,10 +401,10 @@ def test_parse_combined_conditions():
     comp_or = top.Or([top.Less('p1', 100), top.And([top.WaitUntil(1e6*500), top.Less('p2', 200)])])
     expected_suite = top.ProcedureSuite([
         top.Procedure('main', [
-            top.ProcedureStep('1', top.Action('s', 'v'), [
+            top.ProcedureStep('1', top.StateChangeAction('s', 'v'), [
                 (comp_or, top.Transition('main', '2'))
             ]),
-            top.ProcedureStep('2', top.Action('s', 'v'), [])
+            top.ProcedureStep('2', top.StateChangeAction('s', 'v'), [])
         ])
     ])
 
