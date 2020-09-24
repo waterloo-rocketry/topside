@@ -33,7 +33,7 @@ class MiscAction:
     actionType: str
         The string specifies which type of action it is.
     """
-    actionType: str
+    action_Type: str
 
 
 @dataclass
@@ -66,7 +66,7 @@ class ProcedureStep:
         An identifier for this procedure step. Expected to be unique
         within the same procedure.
 
-    action: topside.StateChangeAction
+    action: topside.Action
         The action that should be executed when this step is performed.
 
     conditions: list
@@ -159,9 +159,9 @@ class ProcedureSuite:
         self.starting_procedure_id = starting_procedure_id
         self.procedures = {}
 
-        # TODO(jacob): Allow invalid procedure suites to be created, but
-        # keep track of the invalid reasons (same way plumbing code
-        # works).
+# TODO(jacob): Allow invalid procedure suites to be created, but
+# keep track of the invalid reasons (same way plumbing code
+# works).
         
         for proc in procedures:
             if proc.procedure_id in self.procedures:

@@ -136,7 +136,7 @@ class ProcedureTransformer(Transformer):
         `data` is a tuple of the form (component, state).
         """
         component, state = data
-        return top.Action(component, state)
+        return top.StateChangeAction(component, state)
 
     def step(self, data):
         """
@@ -156,7 +156,7 @@ class ProcedureTransformer(Transformer):
         step_info['id'] = data[0]
         step_info['conditions_out'] = []
 
-        if type(data[1]) == top.Action:  # Step has no attached entry condition
+        if type(data[1]) == top.StateChangeAction:  # Step has no attached entry condition
             step_info['condition_in'] = top.Immediate()
             step_info['action'] = data[1]
             deviations = data[2:]
