@@ -271,6 +271,7 @@ def test_parse_from_file():
 
     assert suite == expected_suite
 
+
 def test_parse_steps_with_complex_comparisons():
     proclang = '''
     main:
@@ -285,10 +286,13 @@ def test_parse_steps_with_complex_comparisons():
     suite = top.proclang.parse(proclang)
 
     comp_and = top.And([top.Less('p1', 100), top.Greater('p2', 200)])
-    comp_or  = top.Or([top.Greater('p1', 100), top.Less('p2', 200)])
-    comp_and_or_1 = top.Or([top.Less('p1', 100), top.And([top.Greater('p2', 200), top.Less('p3', 100)])])
-    comp_and_or_2 = top.Or([top.And([top.Less('p1', 100), top.Greater('p2', 200)]), top.Less('p3', 100)])
-    comp_and_or_3 = top.And([top.Or([top.Less('p1', 100), top.Greater('p2', 200)]), top.Less('p3', 100)])
+    comp_or = top.Or([top.Greater('p1', 100), top.Less('p2', 200)])
+    comp_and_or_1 = top.Or([top.Less('p1', 100), top.And(
+        [top.Greater('p2', 200), top.Less('p3', 100)])])
+    comp_and_or_2 = top.Or(
+        [top.And([top.Less('p1', 100), top.Greater('p2', 200)]), top.Less('p3', 100)])
+    comp_and_or_3 = top.And(
+        [top.Or([top.Less('p1', 100), top.Greater('p2', 200)]), top.Less('p3', 100)])
 
     expected_suite = top.ProcedureSuite([
         top.Procedure('main', [
@@ -315,6 +319,7 @@ def test_parse_steps_with_complex_comparisons():
     ])
 
     assert suite == expected_suite
+
 
 def test_parse_steps_with_multiple_comparisons():
     proclang = '''
@@ -346,6 +351,7 @@ def test_parse_steps_with_multiple_comparisons():
     ])
 
     assert suite == expected_suite
+
 
 def test_parse_logical_operator_forms():
     proclang = '''
@@ -388,6 +394,7 @@ def test_parse_logical_operator_forms():
     ])
 
     assert suite == expected_suite
+
 
 def test_parse_combined_conditions():
     proclang = '''

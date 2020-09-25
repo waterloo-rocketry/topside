@@ -39,7 +39,8 @@ def single_procedure_suite():
     close_action = top.Action('c1', 'closed')
 
     s1 = top.ProcedureStep('s1', None, [(top.Immediate(), top.Transition('p1', 's2'))], 'PRIMARY')
-    s2 = top.ProcedureStep('s2', open_action, [(top.Immediate(), top.Transition('p1', 's3'))], 'PRIMARY')
+    s2 = top.ProcedureStep('s2', open_action, [(
+        top.Immediate(), top.Transition('p1', 's3'))], 'PRIMARY')
     s3 = top.ProcedureStep('s3', close_action, [], 'PRIMARY')
 
     proc = top.Procedure('p1', [s1, s2, s3])
