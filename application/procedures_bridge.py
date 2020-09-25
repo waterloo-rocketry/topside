@@ -26,13 +26,17 @@ def build_test_procedure_suite():
     close_action_1 = top.Action('c1', 'closed')
     close_action_2 = top.Action('c2', 'closed')
 
-    s1 = top.ProcedureStep('s1', open_action_1, [(top.Immediate(), top.Transition('p1', 's2'))])
-    s2 = top.ProcedureStep('s2', open_action_2, [(top.Immediate(), top.Transition('p2', 's3'))])
+    s1 = top.ProcedureStep('s1', open_action_1, [(
+        top.Immediate(), top.Transition('p1', 's2'))], 'PRIMARY')
+    s2 = top.ProcedureStep('s2', open_action_2, [(
+        top.Immediate(), top.Transition('p2', 's3'))], 'CONTROL')
 
     p1 = top.Procedure('p1', [s1, s2])
 
-    s3 = top.ProcedureStep('s3', close_action_1, [(top.Immediate(), top.Transition('p2', 's4'))])
-    s4 = top.ProcedureStep('s4', close_action_2, [(top.Immediate(), top.Transition('p1', 's1'))])
+    s3 = top.ProcedureStep('s3', close_action_1, [(
+        top.Immediate(), top.Transition('p2', 's4'))], 'OPS')
+    s4 = top.ProcedureStep('s4', close_action_2, [(
+        top.Immediate(), top.Transition('p1', 's1'))], 'SECONDARY')
 
     p2 = top.Procedure('p2', [s3, s4])
 
@@ -74,7 +78,7 @@ class ProcedureStepsModel(QAbstractListModel):
         except IndexError:
             return 'Invalid Index'
         if role == ProcedureStepsModel.PersonRoleIdx:
-            return 'Primary Technician'
+            return step.operator
         elif role == ProcedureStepsModel.StepRoleIdx:
             action = step.action
             return f'Set {action.component} to {action.state}'
