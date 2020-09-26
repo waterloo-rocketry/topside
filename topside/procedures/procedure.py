@@ -26,11 +26,11 @@ class StateChangeAction:
 @dataclass
 class MiscAction:
     """
-    A specifier for miscellaneous action
+    A procedure action that does not fit into any other category.
 
     Members
     -------
-    actionType: str
+    action_Type: str
         The string specifies which type of action it is.
     """
     action_Type: str
@@ -159,9 +159,9 @@ class ProcedureSuite:
         self.starting_procedure_id = starting_procedure_id
         self.procedures = {}
 
-# TODO(jacob): Allow invalid procedure suites to be created, but
-# keep track of the invalid reasons (same way plumbing code
-# works).
+        # TODO(jacob): Allow invalid procedure suites to be created, but
+        # keep track of the invalid reasons (same way plumbing code
+        # works).
         
         for proc in procedures:
             if proc.procedure_id in self.procedures:

@@ -6,6 +6,7 @@ import topside as top
 class ProceduresEngine:
     """
     An interface for managing Procedure-PlumbingEngine interactions.
+
     A Procedure is a graph where nodes are ProcedureSteps and edges
     represent transitions between these steps.
     """
@@ -82,7 +83,6 @@ class ProceduresEngine:
 
         Parameters
         ----------
-        
         timestep: int
             The number of microseconds that the managed plumbing engine
             should be stepped in time by.

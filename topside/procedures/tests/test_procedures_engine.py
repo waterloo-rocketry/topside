@@ -104,7 +104,7 @@ def test_execute_custom_action():
 
     misc_action = top.MiscAction('Approach the tower')
     proc_eng.execute(misc_action)
-    assert 'Nothing changes'
+    assert plumb_eng.current_state('c1') == 'open'
 
 
 def test_ready_to_advance_if_condition_satisfied():
