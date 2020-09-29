@@ -12,10 +12,8 @@ from topside.pdl import exceptions, utils
 # TODO(wendi): make imports more dynamic, so that users can add importable files
 # outside a predefined library. Likely involves a function that traipses through the
 # imports folder for new files and stores them in this dict whenever new Packages are instantiated.
-IMPORTS = {
-    'stdlib': os.path.join(utils.imports_path, 'stdlib.yaml')
-}
 
+IMPORTS = dict()
 
 class Package:
     """Package represents a collection of files that make a coherent plumbing system."""
@@ -35,6 +33,13 @@ class Package:
             files is an iterable (usually a list) of one or more Files whose contents should go
             into the Package.
         """
+        imports = os.listdir(utils.imports_path)
+
+        for x in imports:
+
+            path = os.path.join(utils.imports_path, x)
+            name = yaml.safe_load(open(path,"r"))["name"]
+            IMPORTS[name] = path
 
         if len(list(files)) < 1:
             raise exceptions.BadInputError("cannot instantiate a Package with no Files")
