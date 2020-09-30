@@ -82,11 +82,11 @@ class ProcedureStepsModel(QAbstractListModel):
         if role == ProcedureStepsModel.PersonRoleIdx:
             return 'Primary Technician'
         elif role == ProcedureStepsModel.StepRoleIdx:
-            action = step.action 
+            action = step.action
             # Check if misc action or not
-            if type(action) == top.StateChangeAction : 
+            if type(action) == top.StateChangeAction:
                 return f'Set {action.component} to {action.state}'
-            elif type(action) == top.MiscAction :
+            elif type(action) == top.MiscAction:
                 return f'{action.action_Type}'
         return None
 

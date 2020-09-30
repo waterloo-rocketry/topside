@@ -36,7 +36,7 @@ class ProceduresEngine:
 
     def execute(self, action):
         """Execute an action on the managed PlumbingEngine if it is not a Miscellaneous Action"""
-        if type(action) == top.StateChangeAction :
+        if type(action) == top.StateChangeAction:
             self._plumb.set_component_state(action.component, action.state)
 
     def update_conditions(self):
