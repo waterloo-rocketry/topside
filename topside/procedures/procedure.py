@@ -22,6 +22,17 @@ class StateChangeAction:
     component: str
     state: str
 
+    def export(self, fmt):
+        if fmt == "latex":
+            if self.state == "open":
+                return "Open " + self.component
+            elif self.state == "closed":
+                return "Close " + self.component
+            else:
+                return "Set " + self.component + " to " + self.state
+        else:
+            raise NotImplementedError("")
+
 
 @dataclass
 class MiscAction:
@@ -85,6 +96,12 @@ class ProcedureStep:
     conditions: list
     operator: str
 
+    def export(self, fmt):
+        if fmt == "latex":
+            return self.action.export(fmt)
+        else:
+            raise NotImplementedError("")
+
 
 class Procedure:
     """A sequence of discrete procedure steps."""
@@ -140,6 +157,18 @@ class Procedure:
             self.procedure_id == other.procedure_id and \
             self.step_list == other.step_list
 
+    def export(self, fmt):
+        if fmt == "latex":
+            export_val = f"\\subsection{{{self.procedure_id}}}"
+            if len(self.step_list) > 0:
+                export_val += "\n\\begin{checklist}"
+                for i in self.step_list:
+                    export_val += "\n    \\item " + i.export(fmt)
+                export_val += "\n\\end{checklist}"
+            return export_val
+        else:
+            raise NotImplementedError("")
+
 
 class ProcedureSuite:
     """A set of procedures and associated metadata."""
@@ -184,3 +213,9 @@ class ProcedureSuite:
 
     def __getitem__(self, key):
         return self.procedures[key]
+
+    def export(self, fmt="ProcLang"):
+        if fmt == "ProcLang":
+            return "\n".join([self.procedures[proc].export(fmt) for proc in self.procedures])
+        else:
+            raise NotImplementedError(f"Format \"{fmt}\" not supported")
