@@ -43,7 +43,7 @@ class Package:
             except:
                 warnings.warn(path + " does not describe a yaml file")
             if (name in IMPORTS):
-                raise NameError("There are multiple files in the imports folder with the name " + name)
+                warnings.warn("There are multiple files in the imports folder with the name " + name)
                 #Maybe we could make this into one of the custom exceptions that the Exceptions file is for
             else:
                 IMPORTS[name] = path
