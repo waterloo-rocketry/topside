@@ -1,5 +1,6 @@
 import copy
 import os
+import warnings
 
 import yaml
 
@@ -9,7 +10,6 @@ from topside.pdl import exceptions, utils
 # imports is a dict of {package name: path to file}, used to locate files to load
 # on requested import.
 
-# TODO(wendi): make imports more dynamic, so that users can add importable files
 # outside a predefined library. Likely involves a function that traipses through the
 # imports folder for new files and stores them in this dict whenever new Packages are instantiated.
 
@@ -35,11 +35,18 @@ class Package:
         """
         imports = os.listdir(utils.imports_path)
 
-        for x in imports:
+        for imported_file in imports:
 
-            path = os.path.join(utils.imports_path, x)
-            name = yaml.safe_load(open(path,"r"))["name"]
-            IMPORTS[name] = path
+            path = os.path.join(utils.imports_path, imported_file)
+            try:
+                name = yaml.safe_load(open(path, 'r'))['name']
+            except:
+                warnings.warn(path + " does not describe a yaml file")
+            if (name in IMPORTS):
+                raise NameError("There are multiple files in the imports folder with the name " + name)
+                #Maybe we could make this into one of the custom exceptions that the Exceptions file is for
+            else:
+                IMPORTS[name] = path
 
         if len(list(files)) < 1:
             raise exceptions.BadInputError("cannot instantiate a Package with no Files")
