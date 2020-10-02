@@ -10,7 +10,7 @@ from topside.pdl import exceptions, utils
 # imports is a dict of {package name: path to file}, used to locate files to load
 # on requested import.
 
-#TODO: make importing more efficent by having a YMAL file storing the importable_files dict and updating it
+#TODO: make importing more efficent by having a YMAL file storing the self.importable_files dict and updating it
 #when ever a Package is made
 
 #TODO; Make the importing code more unit testable
@@ -35,7 +35,7 @@ class Package:
             files is an iterable (usually a list) of one or more Files whose contents should go
             into the Package.
         """
-        importable_files = dict()
+        self.importable_files = dict()
         
         imports_folder = os.listdir(utils.imports_path)
 
@@ -47,10 +47,10 @@ class Package:
             except:
                 warnings.warn(path + " does not describe a yaml file")
                 
-            if (name in importable_files):
-                importable_files[name].add(path)
+            if (name in self.importable_files):
+                self.importable_files[name].add(path)
             else:
-                importable_files[name] = set(path)
+                self.importable_files[name] = set(path)
 
         if len(list(files)) < 1:
             raise exceptions.BadInputError("cannot instantiate a Package with no Files")
@@ -68,9 +68,9 @@ class Package:
             self.imports.extend(copy.deepcopy(file.imports))
 
         for imp in set(self.imports):
-            if imp not in importable_files:
+            if imp not in self.importable_files:
                 raise exceptions.BadInputError(f"invalid import: {imp}")
-            files.append(top.File(importable_files[imp]))
+            files.extend(top.File(self.importable_files[imp]))
 
         # consolidate entry information from files
         for file in files:

@@ -9,7 +9,7 @@ def test_import_modification():
 
     pack = top.Package([file])
 
-    assert len(importable_files) != 0
+    assert len(pack.importable_files) != 0
 
 def test_package_storage():
     file = top.File(utils.example_path)
