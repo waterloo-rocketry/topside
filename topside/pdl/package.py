@@ -10,11 +10,6 @@ from topside.pdl import exceptions, utils
 # imports is a dict of {package name: path to file}, used to locate files to load
 # on requested import.
 
-# outside a predefined library. Likely involves a function that traipses through the
-# imports folder for new files and stores them in this dict whenever new Packages are instantiated.
-
-IMPORTS = dict()
-
 class Package:
     """Package represents a collection of files that make a coherent plumbing system."""
 
@@ -33,20 +28,22 @@ class Package:
             files is an iterable (usually a list) of one or more Files whose contents should go
             into the Package.
         """
-        imports = os.listdir(utils.imports_path)
+        importable_files = dict()
+        
+        imports_folder = os.listdir(utils.imports_path)
 
-        for imported_file in imports:
+        for imported_file in imports_folder:
 
             path = os.path.join(utils.imports_path, imported_file)
             try:
                 name = yaml.safe_load(open(path, 'r'))['name']
             except:
                 warnings.warn(path + " does not describe a yaml file")
-            if (name in IMPORTS):
-                warnings.warn("There are multiple files in the imports folder with the name " + name)
-                #Maybe we could make this into one of the custom exceptions that the Exceptions file is for
+                
+            if (name in importable_files):
+                importable_files[name].add(path)
             else:
-                IMPORTS[name] = path
+                importable_files[name] = set(path)
 
         if len(list(files)) < 1:
             raise exceptions.BadInputError("cannot instantiate a Package with no Files")
@@ -64,9 +61,9 @@ class Package:
             self.imports.extend(copy.deepcopy(file.imports))
 
         for imp in set(self.imports):
-            if imp not in IMPORTS:
+            if imp not in importable_files:
                 raise exceptions.BadInputError(f"invalid import: {imp}")
-            files.append(top.File(IMPORTS[imp]))
+            files.append(top.File(importable_files[imp]))
 
         # consolidate entry information from files
         for file in files:
