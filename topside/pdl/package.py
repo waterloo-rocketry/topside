@@ -48,7 +48,7 @@ class Package:
             if (name in self.importable_files):
                 self.importable_files[name].add(path)
             else:
-                self.importable_files[name] = set(path)
+                self.importable_files[name] = {path}
 
         if len(list(files)) < 1:
             raise exceptions.BadInputError("cannot instantiate a Package with no Files")
