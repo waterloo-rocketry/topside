@@ -30,10 +30,10 @@ class MiscAction:
 
     Members
     -------
-    action_Type: str
+    action_type: str
         The string specifies which type of action it is.
     """
-    action_Type: str
+    action_type: str
 
 
 @dataclass
@@ -76,10 +76,14 @@ class ProcedureStep:
         procedure. This list is expected to be ordered in terms of
         condition priority; if multiple conditions are satisfied, the
         first one will be selected.
+
+    operator: str
+        The person who performs the step
     """
     step_id: str
     action: StateChangeAction
     conditions: list
+    operator: str
 
 
 class Procedure:

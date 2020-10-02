@@ -29,16 +29,20 @@ def build_test_procedure_suite():
     # Add miscellaneous action
     misc_action = top.MiscAction('Approach the tower')
 
-    s1 = top.ProcedureStep('s1', open_action_1, [(top.Immediate(), top.Transition('p1', 's2'))])
-    s2 = top.ProcedureStep('s2', open_action_2, [(top.Immediate(), top.Transition('p1', 's5'))])
-
+    s1 = top.ProcedureStep('s1', open_action_1, [(
+        top.Immediate(), top.Transition('p1', 's2'))], 'PRIMARY')
+    s2 = top.ProcedureStep('s2', open_action_2, [(
+        top.Immediate(), top.Transition('p2', 's3'))], 'CONTROL')
+    
     # The step contain misc action
-    s5 = top.ProcedureStep('s5', misc_action, [(top.Immediate(), top.Transition('p2', 's3'))])
+    s5 = top.ProcedureStep('s5', misc_action, [(top.Immediate(), top.Transition('p2', 's3'))], 'MISCELLANEOUS ACTION')
 
     p1 = top.Procedure('p1', [s1, s2, s5])
 
-    s3 = top.ProcedureStep('s3', close_action_1, [(top.Immediate(), top.Transition('p2', 's4'))])
-    s4 = top.ProcedureStep('s4', close_action_2, [(top.Immediate(), top.Transition('p1', 's1'))])
+    s3 = top.ProcedureStep('s3', close_action_1, [(
+        top.Immediate(), top.Transition('p2', 's4'))], 'OPS')
+    s4 = top.ProcedureStep('s4', close_action_2, [(
+        top.Immediate(), top.Transition('p1', 's1'))], 'SECONDARY')
 
     p2 = top.Procedure('p2', [s3, s4])
 
@@ -80,14 +84,14 @@ class ProcedureStepsModel(QAbstractListModel):
         except IndexError:
             return 'Invalid Index'
         if role == ProcedureStepsModel.PersonRoleIdx:
-            return 'Primary Technician'
+            return step.operator
         elif role == ProcedureStepsModel.StepRoleIdx:
             action = step.action
             # Check if misc action or not
             if type(action) == top.StateChangeAction:
                 return f'Set {action.component} to {action.state}'
             elif type(action) == top.MiscAction:
-                return f'{action.action_Type}'
+                return f'{action.action_type}'
         return None
 
 
