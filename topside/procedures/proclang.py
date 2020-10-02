@@ -17,8 +17,9 @@ document: procedure*
 procedure: name ":" step+
 name: STRING
 
-step: step_id "." [condition] action deviation*
+step: step_id "." personnel ":" [condition] action deviation*
 step_id: STRING
+personnel: STRING
 
 action: "set" component "to" state
 component: STRING
@@ -202,21 +203,22 @@ class ProcedureTransformer(Transformer):
 
         data will look like one of these, depending on if the step has
         an attached entry condition:
-            [id, step entry condition, action, deviation1, deviation2, ...]
-            [id, action, deviation1, deviation2, ...]
+            [id, personnel, step entry condition, action, deviation1, deviation2, ...]
+            [id, personnel, action, deviation1, deviation2, ...]
         """
         step_info = {}
         step_info['id'] = data[0]
+        step_info['personnel'] = data[1]
         step_info['conditions_out'] = []
 
-        if type(data[1]) == top.StateChangeAction:  # Step has no attached entry condition
+        if type(data[2]) == top.StateChangeAction:  # Step has no attached entry condition
             step_info['condition_in'] = top.Immediate()
-            step_info['action'] = data[1]
-            deviations = data[2:]
-        else:  # Step has an attached entry condition
-            step_info['condition_in'] = data[1]
             step_info['action'] = data[2]
             deviations = data[3:]
+        else:  # Step has an attached entry condition
+            step_info['condition_in'] = data[2]
+            step_info['action'] = data[3]
+            deviations = data[4:]
 
         for cond, transition in deviations:
             step_info['conditions_out'].append((cond, transition))
@@ -249,7 +251,7 @@ class ProcedureTransformer(Transformer):
                                    top.Transition(name, successor['id'])))
             successor = step_info
             new_step = top.ProcedureStep(
-                step_info['id'], step_info['action'], conditions, 'PRIMARY')
+                step_info['id'], step_info['action'], conditions, step_info['personnel'])
             steps.insert(0, new_step)
 
         return top.Procedure(name, steps)
@@ -275,6 +277,7 @@ class ProcedureTransformer(Transformer):
 
     name = handle_string
     step_id = handle_string
+    personnel = handle_string
 
 
 def parse(text):
