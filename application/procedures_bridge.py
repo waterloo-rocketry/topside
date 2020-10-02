@@ -33,9 +33,10 @@ def build_test_procedure_suite():
         top.Immediate(), top.Transition('p1', 's2'))], 'PRIMARY')
     s2 = top.ProcedureStep('s2', open_action_2, [(
         top.Immediate(), top.Transition('p2', 's3'))], 'CONTROL')
-    
+
     # The step contain misc action
-    s5 = top.ProcedureStep('s5', misc_action, [(top.Immediate(), top.Transition('p2', 's3'))], 'MISCELLANEOUS ACTION')
+    s5 = top.ProcedureStep('s5', misc_action, [(
+        top.Immediate(), top.Transition('p2', 's3'))], 'MISCELLANEOUS ACTION')
 
     p1 = top.Procedure('p1', [s1, s2, s5])
 

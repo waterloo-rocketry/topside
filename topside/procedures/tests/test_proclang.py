@@ -263,13 +263,15 @@ def test_parse_from_file():
             top.ProcedureStep('5', top.StateChangeAction('remote_fill_valve', 'closed'), [
                 (top.Immediate(), top.Transition('main', '6'))
             ], 'PRIMARY'),
-            top.ProcedureStep('6', top.StateChangeAction('remote_vent_valve', 'open'), [], 'PRIMARY')
+            top.ProcedureStep('6', top.StateChangeAction(
+                'remote_vent_valve', 'open'), [], 'PRIMARY')
         ]),
         top.Procedure('abort_1', [
             top.ProcedureStep('1', top.StateChangeAction('supply_valve', 'closed'), [
                 (top.WaitUntil(10e6), top.Transition('abort_1', '2'))
             ], 'SECONDARY'),
-            top.ProcedureStep('2', top.StateChangeAction('remote_vent_valve', 'open'), [], 'SECONDARY')
+            top.ProcedureStep('2', top.StateChangeAction(
+                'remote_vent_valve', 'open'), [], 'SECONDARY')
         ]),
         top.Procedure('abort_2', [
             top.ProcedureStep('1', top.StateChangeAction('supply_valve', 'closed'), [
