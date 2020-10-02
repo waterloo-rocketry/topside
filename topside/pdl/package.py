@@ -15,8 +15,6 @@ from topside.pdl import exceptions, utils
 
 #TODO; Make the importing code more unit testable
 
-#CRITICAL TODO: Adjust rest of code to handel sets of import files rather than expecting strings
-
 class Package:
     """Package represents a collection of files that make a coherent plumbing system."""
 
@@ -70,7 +68,9 @@ class Package:
         for imp in set(self.imports):
             if imp not in self.importable_files:
                 raise exceptions.BadInputError(f"invalid import: {imp}")
-            files.extend(top.File(self.importable_files[imp]))
+            #files.append(top.File(self.importable_files[imp]))
+            for path in self.importable_files[imp]:
+                files.append(top.File(path))
 
         # consolidate entry information from files
         for file in files:
