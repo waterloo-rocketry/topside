@@ -229,6 +229,7 @@ def test_duplicate_procedure_name_throws():
     with pytest.raises(Exception):
         top.proclang.parse(proclang)
 
+
 def test_no_personnel_throws():
     proclang = '''
     main:
@@ -237,6 +238,7 @@ def test_no_personnel_throws():
     '''
     with pytest.raises(Exception):
         top.proclang.parse(proclang)
+
 
 def test_parse_from_file():
     filepath = os.path.join(os.path.dirname(__file__), 'example.proc')
