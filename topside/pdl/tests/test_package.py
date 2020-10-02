@@ -4,12 +4,14 @@ import topside as top
 import topside.pdl.exceptions as exceptions
 import topside.pdl.utils as utils
 
+
 def test_import_modification():
     file = top.File(utils.example_path)
 
     pack = top.Package([file])
 
     assert len(pack.importable_files) != 0
+
 
 def test_package_storage():
     file = top.File(utils.example_path)
