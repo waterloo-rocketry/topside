@@ -69,7 +69,6 @@ class Package:
         for imp in set(self.imports):
             if imp not in self.importable_files:
                 raise exceptions.BadInputError(f"invalid import: {imp}")
-            # files.append(top.File(self.importable_files[imp]))
             for path in self.importable_files[imp]:
                 files.append(top.File(path))
 
