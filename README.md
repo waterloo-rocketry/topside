@@ -6,7 +6,7 @@ Waterloo Rocketry's operations simulator is a tool for modelling and simulating 
 
 #### Requirements
 
-If you just want to use or develop the Topside core libraries, Python 3.7 or newer is required. If you want to build a standalone application, currently _only_ Python 3.7 releases are supported, as PyInstaller requires <=3.7 and dataclasses require >=3.7.
+Python 3.7 or newer is required.
 
 Required Python packages can be installed using `pip install -r requirements.txt`.
 
