@@ -94,10 +94,10 @@ def branching_procedure_suite_two_options():
 
 
 def test_load_suite():
-    p1s1 = top.ProcedureStep('p1s1', top.Action('injector_valve', 'open'), [])
+    p1s1 = top.ProcedureStep('p1s1', top.Action('injector_valve', 'open'), [], 'PRIMARY')
     suite_1 = top.ProcedureSuite([top.Procedure('p1', [p1s1])], 'p1')
 
-    p2s1 = top.ProcedureStep('p2s1', top.Action('injector_valve', 'closed'), [])
+    p2s1 = top.ProcedureStep('p2s1', top.Action('injector_valve', 'closed'), [], 'SECONDARY')
     suite_2 = top.ProcedureSuite([top.Procedure('p2', [p2s1])], 'p2')
 
     proc_eng = top.ProceduresEngine(None, suite_1)
