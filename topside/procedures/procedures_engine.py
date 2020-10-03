@@ -35,8 +35,9 @@ class ProceduresEngine:
             self.current_step = self._suite[self.current_procedure_id].step_list[0]
 
     def execute(self, action):
-        """Execute an action on the managed PlumbingEngine."""
-        self._plumb.set_component_state(action.component, action.state)
+        """Execute an action on the managed PlumbingEngine if it is not a Miscellaneous Action"""
+        if type(action) == top.StateChangeAction:
+            self._plumb.set_component_state(action.component, action.state)
 
     def update_conditions(self):
         """
@@ -82,7 +83,6 @@ class ProceduresEngine:
 
         Parameters
         ----------
-
         timestep: int
             The number of microseconds that the managed plumbing engine
             should be stepped in time by.

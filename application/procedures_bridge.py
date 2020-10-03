@@ -21,17 +21,24 @@ class MockPlumbingEngine:
 
 
 def build_test_procedure_suite():
-    open_action_1 = top.Action('c1', 'open')
-    open_action_2 = top.Action('c2', 'open')
-    close_action_1 = top.Action('c1', 'closed')
-    close_action_2 = top.Action('c2', 'closed')
+    open_action_1 = top.StateChangeAction('c1', 'open')
+    open_action_2 = top.StateChangeAction('c2', 'open')
+    close_action_1 = top.StateChangeAction('c1', 'closed')
+    close_action_2 = top.StateChangeAction('c2', 'closed')
+
+    # Add miscellaneous action
+    misc_action = top.MiscAction('Approach the tower')
 
     s1 = top.ProcedureStep('s1', open_action_1, [(
         top.Immediate(), top.Transition('p1', 's2'))], 'PRIMARY')
     s2 = top.ProcedureStep('s2', open_action_2, [(
         top.Immediate(), top.Transition('p2', 's3'))], 'CONTROL')
 
-    p1 = top.Procedure('p1', [s1, s2])
+    # The step contain misc action
+    s5 = top.ProcedureStep('s5', misc_action, [(
+        top.Immediate(), top.Transition('p2', 's3'))], 'MISCELLANEOUS ACTION')
+
+    p1 = top.Procedure('p1', [s1, s2, s5])
 
     s3 = top.ProcedureStep('s3', close_action_1, [(
         top.Immediate(), top.Transition('p2', 's4'))], 'OPS')
@@ -81,7 +88,11 @@ class ProcedureStepsModel(QAbstractListModel):
             return step.operator
         elif role == ProcedureStepsModel.StepRoleIdx:
             action = step.action
-            return f'Set {action.component} to {action.state}'
+            # Check if misc action or not
+            if type(action) == top.StateChangeAction:
+                return f'Set {action.component} to {action.state}'
+            elif type(action) == top.MiscAction:
+                return f'{action.action_type}'
         return None
 
 

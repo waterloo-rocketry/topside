@@ -35,8 +35,8 @@ def one_component_engine():
 
 
 def single_procedure_suite():
-    open_action = top.Action('c1', 'open')
-    close_action = top.Action('c1', 'closed')
+    open_action = top.StateChangeAction('c1', 'open')
+    close_action = top.StateChangeAction('c1', 'closed')
 
     s1 = top.ProcedureStep('s1', None, [(top.Immediate(), top.Transition('p1', 's2'))], 'PRIMARY')
     s2 = top.ProcedureStep('s2', open_action, [(
@@ -49,8 +49,8 @@ def single_procedure_suite():
 
 
 def branching_procedure_suite_no_options():
-    open_action = top.Action('c1', 'open')
-    halfway_open_action = top.Action('c1', 'halfway_open')
+    open_action = top.StateChangeAction('c1', 'open')
+    halfway_open_action = top.StateChangeAction('c1', 'halfway_open')
 
     s1 = top.ProcedureStep('s1', None, [(NeverSatisfied(), top.Transition('p1', 's2')),
                                         (NeverSatisfied(), top.Transition('p2', 's3'))], 'PRIMARY')
@@ -64,8 +64,8 @@ def branching_procedure_suite_no_options():
 
 
 def branching_procedure_suite_one_option():
-    open_action = top.Action('c1', 'open')
-    halfway_open_action = top.Action('c1', 'halfway_open')
+    open_action = top.StateChangeAction('c1', 'open')
+    halfway_open_action = top.StateChangeAction('c1', 'halfway_open')
 
     s1 = top.ProcedureStep('s1', None, [(NeverSatisfied(), top.Transition('p1', 's2')),
                                         (top.Immediate(), top.Transition('p2', 's3'))], 'PRIMARY')
@@ -79,8 +79,8 @@ def branching_procedure_suite_one_option():
 
 
 def branching_procedure_suite_two_options():
-    open_action = top.Action('c1', 'open')
-    halfway_open_action = top.Action('c1', 'halfway_open')
+    open_action = top.StateChangeAction('c1', 'open')
+    halfway_open_action = top.StateChangeAction('c1', 'halfway_open')
 
     s1 = top.ProcedureStep('s1', None, [(top.Immediate(), top.Transition('p1', 's2')),
                                         (top.Immediate(), top.Transition('p2', 's3'))], 'PRIMARY')
@@ -97,10 +97,14 @@ def test_execute_custom_action():
     plumb_eng = one_component_engine()
     proc_eng = top.ProceduresEngine(plumb_eng)
 
-    action = top.Action('c1', 'open')
+    action = top.StateChangeAction('c1', 'open')
 
     assert plumb_eng.current_state('c1') == 'closed'
     proc_eng.execute(action)
+    assert plumb_eng.current_state('c1') == 'open'
+
+    misc_action = top.MiscAction('Approach the tower')
+    proc_eng.execute(misc_action)
     assert plumb_eng.current_state('c1') == 'open'
 
 
@@ -178,7 +182,7 @@ def test_next_step_follows_highest_priority_condition():
 def test_transitions_respects_procedure_identifier():
     plumb_eng = one_component_engine()
 
-    action = top.Action('c1', 'open')
+    action = top.StateChangeAction('c1', 'open')
 
     s1 = top.ProcedureStep('s1', None, [(NeverSatisfied(), top.Transition('p1', 'same_name')),
                                         (top.Immediate(), top.Transition('p2', 'same_name'))], 'PRIMARY')
