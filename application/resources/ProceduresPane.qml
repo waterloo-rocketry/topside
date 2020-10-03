@@ -74,6 +74,7 @@ ColumnLayout {
             property string stepHighlightBorder: "#800000"
             property string stepEvenIdxBg: "#f2f2f2"
             property string stepOddIdxBg: "#f9f9f9"
+            property string stepOperatorTxt: "#002060"
 
             id: wrapper
             width: proceduresList.width
@@ -102,7 +103,7 @@ ColumnLayout {
 
                     Text {
                         text: operator + ":"
-                        color: "navy"
+                        color: stepOperatorTxt
                         font.weight: Font.Bold
                         font.pointSize: 11
                         Layout.alignment: Qt.AlignTop
