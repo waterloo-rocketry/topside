@@ -4,14 +4,14 @@ main:
         - [p1 < 600] abort_1.1
         - [p1 > 1000] abort_2.1
     3. PRIMARY: set series_fill_valve to open
-    4. PRIMARY: set remote_fill_valve to open
-    5. PRIMARY: [180s] set remote_fill_valve to closed
-    6. PRIMARY: set remote_vent_valve to open
+    4. CONTROL: set remote_fill_valve to open
+    5. CONTROL: [180s] set remote_fill_valve to closed
+    6. CONTROL: set remote_vent_valve to open
 
 abort_1:
-    1. SECONDARY: set supply_valve to closed
-    2. SECONDARY: set remote_vent_valve to open
+    1. PRIMARY: set supply_valve to closed
+    2. CONTROL: set remote_vent_valve to open
 
 abort_2:
-    1. CONTROL: set supply_valve to closed
+    1. PRIMARY: set supply_valve to closed
     2. CONTROL: set remote_vent_valve to open
