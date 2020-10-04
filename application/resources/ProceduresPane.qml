@@ -187,7 +187,7 @@ ColumnLayout {
                 icon.source: "themes/default/play_backwards.png"
                 icon.color: "transparent"
 
-                onClicked: proceduresBridge.playBackwards()
+                onClicked: proceduresBridge.procPlayBackwards()
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
@@ -196,7 +196,7 @@ ColumnLayout {
                 icon.source: "themes/default/undo.png"
                 icon.color: "transparent"
 
-                onClicked: proceduresBridge.undo()
+                onClicked: proceduresBridge.procUndo()
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
@@ -208,9 +208,9 @@ ColumnLayout {
                 
                 onClicked: {
                     if (is_play) {
-                        proceduresBridge.play()
+                        proceduresBridge.procPlay()
                     } else {
-                        proceduresBridge.pause()
+                        proceduresBridge.procPause()
                     }
                     is_play = !is_play
                 }
@@ -222,7 +222,7 @@ ColumnLayout {
                 icon.source: "themes/default/stop.png"
                 icon.color: "transparent"
 
-                onClicked: proceduresBridge.stop()
+                onClicked: proceduresBridge.procStop()
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
@@ -231,7 +231,7 @@ ColumnLayout {
                 icon.source: "themes/default/step_forward.png"
                 icon.color: "transparent"
 
-                onClicked: proceduresBridge.stepForward()
+                onClicked: proceduresBridge.procStepForward()
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
@@ -240,7 +240,7 @@ ColumnLayout {
                 icon.source: "themes/default/advance.png"
                 icon.color: "transparent"
 
-                onClicked: proceduresBridge.advance()
+                onClicked: proceduresBridge.procAdvance()
             }
         }
     }
