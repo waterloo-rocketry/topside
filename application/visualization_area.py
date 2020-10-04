@@ -40,6 +40,79 @@ def make_engine():
     return top.PlumbingEngine(component_dict, mapping, pressures, initial_states)
 
 
+def get_positioning_params(coords, canvas_width, canvas_height, fill_percentage=1.0):
+    """
+    Determine the scale and offset required to center coordinates in a box.
+
+    The returned parameters will always ensure that the coordinates are
+    within the limits of the box and that aspect ratio is preserved.
+
+    Parameters
+    ----------
+
+    coords: iterable
+        Each value in coords should be a tuple (x, y)
+
+    canvas_width: float
+    canvas_height: float
+        The dimensions of the canvas that the coordinates will be
+        positioned on.
+
+    fill_percentage: float [default=1.0]
+        If set to a value less than 1.0, the coordinates will only fill
+        a percentage of the canvas. For example, a canvas height of 10
+        and fill percentage of 0.8 will scale the y-values from 1 to 9;
+        this range (8) covers 80% of the canvas height and still
+        centers the coordinates in the overall canvas.
+
+    Returns
+    -------
+
+    scale: float
+    x_offset: float
+    y_offset: float
+
+        In order to position the points appropriately, apply the
+        following transformation:
+
+        (x, y) -> ((scale * x) + x_offset, (scale * y) + y_offset)
+    """
+    if fill_percentage <= 0:
+        raise ValueError(f"fill percentage must be >0, got {fill_percentage}")
+    elif fill_percentage > 1:
+        raise ValueError(f"fill percentage must be <=1, got {fill_percentage}")
+
+    width = canvas_width * fill_percentage
+    height = canvas_height * fill_percentage
+
+    x_vals = []
+    y_vals = []
+    for x_val, y_val in coords:
+        x_vals.append(x_val)
+        y_vals.append(y_val)
+
+    x_min = min(x_vals)
+    x_max = max(x_vals)
+    y_min = min(y_vals)
+    y_max = max(y_vals)
+
+    dx = x_max - x_min
+    dy = y_max - y_min
+
+    if dx > 0 and dy > 0:
+        scale = min(width / dx, height / dy)
+    else:
+        scale = 1
+
+    x_center = (x_min + x_max) / 2
+    y_center = (y_min + y_max) / 2
+
+    x_offset = (canvas_width / 2) - x_center * scale
+    y_offset = (canvas_height / 2) - y_center * scale
+
+    return scale, x_offset, y_offset
+
+
 class VisualizationArea(QQuickPaintedItem):
     """
     A QML-accessible item that will draw the state of the engine.
@@ -59,7 +132,7 @@ class VisualizationArea(QQuickPaintedItem):
 
         # Configures local variables for drawing
         self.engine_instance = None
-        self.scaling_factor = 10
+        self.scaling_factor = 0.8
         self.scaled = False
         self.color_property = QColor()
 
@@ -103,6 +176,9 @@ class VisualizationArea(QQuickPaintedItem):
             t = self.terminal_graph
             pos = self.layout_pos
 
+            scale, x_offset, y_offset = get_positioning_params(pos.values(), self.width(),
+                                                               self.height(), self.scaling_factor)
+
             for node in t.nodes:
                 pt = pos[node]
 
@@ -111,11 +187,11 @@ class VisualizationArea(QQuickPaintedItem):
 
                 if not self.scaled:
                     # Adjusts the coordinates so they fall onto the draw surface
-                    pt[0] += self.scaling_factor*8
-                    pt[0] *= self.scaling_factor/2
+                    pt[0] *= scale
+                    pt[0] += x_offset
 
-                    pt[1] += self.scaling_factor*2
-                    pt[1] *= self.scaling_factor/2
+                    pt[1] *= scale
+                    pt[1] += y_offset
 
                 painter.drawEllipse(QPointF(pt[0], pt[1]), 5, 5)
                 painter.drawText(pt[0] + 5, pt[1] + 10, str(node))
