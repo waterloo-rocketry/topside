@@ -1,3 +1,5 @@
+import pytest
+
 from ..visualization_area import get_positioning_params
 
 
@@ -66,3 +68,15 @@ def test_get_positioning_params_fill_percentage_width():
     assert scale == 3
     assert x_offset == 0.5
     assert y_offset == 4
+
+
+def test_bad_fill_percentages():
+    coords = [(0, 0), (6, 5)]
+
+    w = 32
+    h = 20
+
+    with pytest.raises(Exception):
+        get_positioning_params(coords, w, h, 0)
+    with pytest.raises(Exception):
+        get_positioning_params(coords, w, h, 10)
