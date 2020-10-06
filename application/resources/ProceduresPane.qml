@@ -6,7 +6,9 @@ import QtQuick.Layouts 1.0
 ColumnLayout {
     spacing: 0
 
-    // TODO(jacob): Investigate if this connection logic can/should be moved into Python
+    property string procHeaderBg: "#888888"
+    property string procHeaderTxt: "#ffffff"
+
     Component.onCompleted: {
         proceduresBridge.gotoStep.connect(proceduresList.gotoStep)
     }
@@ -16,12 +18,13 @@ ColumnLayout {
         Layout.minimumHeight: 30
         Layout.preferredHeight: 30
         Layout.fillWidth: true
-        color: "#888888"
+        color: procHeaderBg
 
         Text {
             text: "PROCEDURES"
-            color: "white"
+            color: procHeaderTxt
             font.pointSize: 10
+            font.weight: Font.Bold
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
             anchors.leftMargin: 10
@@ -32,11 +35,8 @@ ColumnLayout {
         id: proceduresList
         Layout.fillHeight: true
         Layout.fillWidth: true
-        Layout.leftMargin: 10
-        Layout.rightMargin: 10
 
         orientation: Qt.Vertical
-        spacing: 10
         clip: true
 
         ScrollBar.vertical: ScrollBar {
@@ -52,14 +52,6 @@ ColumnLayout {
             height: 10
             Layout.fillWidth: true
         }
-        
-        highlight: Rectangle {
-            color: "lightgreen"
-        }
-
-        highlightResizeDuration: 0
-        highlightMoveDuration: 100
-        highlightMoveVelocity: -1
 
         boundsBehavior: Flickable.DragOverBounds
 
@@ -74,12 +66,115 @@ ColumnLayout {
         }
     }
 
+    Component {
+        id: procedureStepDelegate
+
+        Rectangle {
+            property string stepHighlightBg: "#d8fff7"
+            property string stepHighlightBorder: "#800000"
+            property string stepEvenIdxBg: "#f2f2f2"
+            property string stepOddIdxBg: "#f9f9f9"
+            property string stepOperatorTxt: "#002060"
+
+            id: wrapper
+            width: proceduresList.width
+            height: procedureColumn.height + 10
+            color: ListView.isCurrentItem ? stepHighlightBg : (index % 2 == 0 ? stepEvenIdxBg : stepOddIdxBg)
+            border.color: ListView.isCurrentItem ? stepHighlightBorder : "transparent"
+
+            Column {
+                id: procedureColumn
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.leftMargin: 10
+                anchors.rightMargin: 10
+
+                RowLayout {
+                    id: stepRow
+                    width: proceduresList.width
+
+                    Text {
+                        text: index + 1 + "."
+                        font.weight: Font.Bold
+                        font.pointSize: 11
+                        Layout.alignment: Qt.AlignTop
+                    }
+
+                    Text {
+                        text: operator + ":"
+                        color: stepOperatorTxt
+                        font.weight: Font.Bold
+                        font.pointSize: 11
+                        Layout.alignment: Qt.AlignTop
+                    }
+
+                    Text {
+                        text: action
+                        font.weight: wrapper.ListView.isCurrentItem ? Font.Bold : Font.Normal
+                        font.pointSize: 11
+                        wrapMode: Text.Wrap
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignTop
+                    }
+                }
+
+                // TODO(jacob): Do we really need a Loader here, or can we just insert the Repeater
+                // directly?
+                Loader {
+                    visible: wrapper.ListView.isCurrentItem
+                    sourceComponent: wrapper.ListView.isCurrentItem ? stepConditionsDelegate : null
+                    onStatusChanged: if (status == Loader.Ready) item.model = conditions
+                }
+            }
+        }
+    }
+
+    Component {
+        id: stepConditionsDelegate
+
+        Column {
+            property alias model : conditionRepeater.model
+
+            Rectangle {
+                height: 5
+                width: proceduresList.width
+                color: "transparent"
+            }
+
+            Repeater {
+                id: conditionRepeater
+
+                delegate: Rectangle {
+                    height: 30
+                    width: proceduresList.width
+                    color: "transparent"
+
+                    Text {
+                        property string condSatisfiedTxt: "#005000"
+                        property string condNotSatisfiedTxt: "#4d4d4d"
+
+                        // TODO(jacob): Figure out how to get this text to wrap
+                        anchors.verticalCenter: parent.verticalCenter
+                        x: 30
+                        font.pointSize: 10
+                        font.weight: modelData.satisfied ? Font.Bold : Font.Normal
+                        color: modelData.satisfied ? condSatisfiedTxt : condNotSatisfiedTxt
+                        text: "[" + modelData.condition + "] " + modelData.transition
+                    }
+                }
+            }
+        }
+    }
+
     Rectangle {
+        property string procFooterBg: "#007700"
+
         Layout.alignment: Qt.AlignBottom
         Layout.minimumHeight: 100
         Layout.preferredHeight: 100
         Layout.fillWidth: true
-        color: "green"
+        color: procFooterBg
 
         RowLayout {
             anchors.verticalCenter: parent.verticalCenter
@@ -136,14 +231,7 @@ ColumnLayout {
                 icon.source: "themes/default/step_forward.png"
                 icon.color: "transparent"
 
-                // TODO(jacob): We connect both clicked and doubleClicked to stepForward because
-                // there seems to be some sort of debouncing/delay built in that prevents clicking
-                // twice in quick succession from advancing steps twice. For now, we choose to
-                // explicitly recognize a double click as identical to a click. Investigate if this
-                // is really the best way to do things or if there's a better way to get rid of the
-                // delay.
                 onClicked: proceduresBridge.stepForward()
-                onDoubleClicked: proceduresBridge.stepForward()
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
@@ -153,38 +241,6 @@ ColumnLayout {
                 icon.color: "transparent"
 
                 onClicked: proceduresBridge.advance()
-            }
-        }
-    }
-
-    Component {
-        id: procedureStepDelegate
-
-        RowLayout {
-            width: proceduresList.width
-            spacing: 10
-
-            Text {
-                text: model.index + 1 + "."
-                font.bold: true
-                font.pointSize: 10
-                Layout.alignment: Qt.AlignTop
-            }
-            
-            Text {
-                text: model.person + ":"
-                font.bold: true
-                font.pointSize: 10
-                color: "blue"
-                Layout.alignment: Qt.AlignTop
-            }
-            
-            Text {
-                text: model.step
-                font.pointSize: 10
-                wrapMode: Text.Wrap
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignTop
             }
         }
     }

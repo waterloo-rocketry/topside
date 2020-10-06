@@ -22,6 +22,12 @@ ApplicationWindow {
             title: "&File"
 
             Action {
+                text: "&Open ProcLang"
+                shortcut: StandardKey.Open
+                onTriggered: proceduresBridge.loadProcedureSuite()
+            }
+
+            Action {
                 text: "&Quit"
                 shortcut: StandardKey.Quit
                 onTriggered: mainWindow.close()
