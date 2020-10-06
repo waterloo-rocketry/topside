@@ -10,7 +10,7 @@ from topside.pdl import exceptions, utils
 # imports is a dict of {package name: path to file}, used to locate files to load
 # on requested import.
 
-# TODO: make importing more efficent by having a YMAL file storing the self.importable_files dict and updating it
+# TODO: make importing more efficent by having a YAML file storing the self.importable_files dict and updating it
 # when ever a Package is made
 
 # TODO; Make the importing code more unit testable
