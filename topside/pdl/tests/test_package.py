@@ -26,7 +26,7 @@ def test_package_storage():
     assert len(pack.component_dict['stdlib']) == 0
     assert len(pack.components()) == 6
 
-    assert len(pack.typedefs[namespace]) == 1
+    assert len(pack.typedefs[namespace]) == 2
     assert len(pack.typedefs['stdlib']) == 1
 
     assert len(pack.graph_dict[namespace]) == 2
@@ -77,7 +77,7 @@ def test_files_unchanged():
 
     top.Package([file])
 
-    assert len(file.typedefs) == 1
+    assert len(file.typedefs) == 2
     assert len(file.components) == 6
     assert len(file.graphs) == 2
 

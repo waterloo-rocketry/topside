@@ -11,7 +11,7 @@ def test_valid_pdl():
     assert file.namespace == 'example'
     assert file.imports == ['stdlib']
 
-    assert len(file.typedefs) == 1
+    assert len(file.typedefs) == 2
     assert len(file.components) == 6
     assert len(file.graphs) == 2
 
@@ -101,7 +101,7 @@ body:
         _ = top.File(no_state_no_teq, input_type='s')
 
 
-def test_invalide_param_missing():
+def test_invalid_param_missing():
     param_missing =\
         """
 name: example

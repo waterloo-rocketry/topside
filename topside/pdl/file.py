@@ -136,7 +136,7 @@ class File:
 
         # TODO(wendi): support default arguments
         params = self.typedefs[def_type]['params']
-        if len(params) != len(entry):
+        if len(params) != len(entry['params']):
             raise exceptions.BadInputError(f"not all params ({params}) present in component "
                                            "declaration")
 

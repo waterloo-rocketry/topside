@@ -15,6 +15,18 @@ body:
       closed:
         edge_name: closed_teq
 
+- typedef:
+    params: [teq_1, teq_2]
+    name: two_setting_valve
+    edges:
+      edge1:
+        nodes: [0, 1]
+    states:
+      position_1:
+        edge1: teq_1
+      position_2:
+        edge1: teq_2
+
 - component:
     name: fill_valve
     edges:
