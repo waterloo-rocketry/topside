@@ -17,8 +17,7 @@ class PlumbingBridge(QObject):
         self.engineLoaded.emit(new_engine)
 
     def load_from_file(self, filepath):
-        pdl_file = top.pdl.File(filepath)
-        parser = top.pdl.Parser([pdl_file])
+        parser = top.pdl.Parser([filepath])
         new_engine = parser.make_engine()
 
         self.load_engine(new_engine)
