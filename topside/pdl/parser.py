@@ -9,7 +9,7 @@ class Parser:
 
     def __init__(self, files, input_type='f'):
         """
-        Initialize a parser from one or more Files.
+        Initialize a parser from one or more pdl files.
 
         A Parser contains a Package; most of its functionality lies in restructuring the data
         contained in its Package into output suitable for loading a plumbing engine.
