@@ -9,7 +9,7 @@ class Parser:
 
     def __init__(self, files, input_type='f'):
         """
-        Initialize a parser from one or more pdl files.
+        Initialize a parser from one or more PDL files.
 
         A Parser contains a Package; most of its functionality lies in restructuring the data
         contained in its Package into output suitable for loading a plumbing engine.
@@ -18,9 +18,9 @@ class Parser:
         ----------
 
         files: iterable
-            files is the iterable (usually a list) of one or more paths of the pdl files we
+            files is the iterable (usually a list) of one or more paths of the PDL files we
             want parsed. Alternatively, it can also be a list of strings that are each a valid
-            pdl file.
+            PDL file.
 
         input_type: char
             input_type indicates whether the argument provided to "files" is
