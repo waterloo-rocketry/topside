@@ -1,7 +1,5 @@
 import copy
 
-import pytest
-
 import topside as top
 from topside.procedures.tests.testing_utils import NeverSatisfied
 
