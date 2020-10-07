@@ -1,5 +1,6 @@
 import copy
 import os
+import warnings
 
 import yaml
 
@@ -9,12 +10,10 @@ from topside.pdl import exceptions, utils
 # imports is a dict of {package name: path to file}, used to locate files to load
 # on requested import.
 
-# TODO(wendi): make imports more dynamic, so that users can add importable files
-# outside a predefined library. Likely involves a function that traipses through the
-# imports folder for new files and stores them in this dict whenever new Packages are instantiated.
-IMPORTS = {
-    'stdlib': os.path.join(utils.imports_path, 'stdlib.yaml')
-}
+# TODO: make importing more efficent by having a YAML file storing the self.importable_files dict and updating it
+# when ever a Package is made
+
+# TODO; Make the importing code more unit testable
 
 
 class Package:
@@ -35,6 +34,23 @@ class Package:
             files is an iterable (usually a list) of one or more Files whose contents should go
             into the Package.
         """
+        self.importable_files = dict()
+
+        imports_folder = os.listdir(utils.imports_path)
+
+        for imported_file in imports_folder:
+
+            path = os.path.join(utils.imports_path, imported_file)
+            try:
+                name = yaml.safe_load(open(path, 'r'))['name']
+
+                if (name in self.importable_files):
+                    self.importable_files[name].add(path)
+                else:
+                    self.importable_files[name] = {path}
+            except:
+                warnings.warn(path + " does not describe a yaml file")
+
 
         if len(list(files)) < 1:
             raise exceptions.BadInputError("cannot instantiate a Package with no Files")
@@ -52,9 +68,10 @@ class Package:
             self.imports.extend(copy.deepcopy(file.imports))
 
         for imp in set(self.imports):
-            if imp not in IMPORTS:
+            if imp not in self.importable_files:
                 raise exceptions.BadInputError(f"invalid import: {imp}")
-            files.append(top.File(IMPORTS[imp]))
+            for path in self.importable_files[imp]:
+                files.append(top.File(path))
 
         # consolidate entry information from files
         for file in files:
