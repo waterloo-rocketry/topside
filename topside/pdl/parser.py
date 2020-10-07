@@ -1,5 +1,3 @@
-import copy
-
 import topside as top
 import topside.pdl.exceptions as exceptions
 
