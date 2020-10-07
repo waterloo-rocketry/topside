@@ -43,13 +43,14 @@ class Package:
             path = os.path.join(utils.imports_path, imported_file)
             try:
                 name = yaml.safe_load(open(path, 'r'))['name']
+
+                if (name in self.importable_files):
+                    self.importable_files[name].add(path)
+                else:
+                    self.importable_files[name] = {path}
             except:
                 warnings.warn(path + " does not describe a yaml file")
 
-            if (name in self.importable_files):
-                self.importable_files[name].add(path)
-            else:
-                self.importable_files[name] = {path}
 
         if len(list(files)) < 1:
             raise exceptions.BadInputError("cannot instantiate a Package with no Files")
