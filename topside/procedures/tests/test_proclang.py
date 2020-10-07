@@ -178,7 +178,7 @@ def test_whitespace_is_irrelevant():
     main: 1. CONTROL: set injector_valve to open
     - [p1    <    500] abort.1
     - [300 s] abort.2
-    2. CONTROL: 
+    2. CONTROL:
     set vent_valve to closed
     '''
     suite = top.proclang.parse(proclang)

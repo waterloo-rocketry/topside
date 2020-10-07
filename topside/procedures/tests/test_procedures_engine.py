@@ -1,7 +1,5 @@
 import copy
 
-import pytest
-
 import topside as top
 from topside.procedures.tests.testing_utils import NeverSatisfied
 
@@ -223,7 +221,8 @@ def test_transitions_respects_procedure_identifier():
     action = top.StateChangeAction('c1', 'open')
 
     s1 = top.ProcedureStep('s1', None, [(NeverSatisfied(), top.Transition('p1', 'same_name')),
-                                        (top.Immediate(), top.Transition('p2', 'same_name'))], 'PRIMARY')
+                                        (top.Immediate(), top.Transition('p2', 'same_name'))],
+                           'PRIMARY')
     same_name_1 = top.ProcedureStep('same_name', action, [], 'PRIMARY')
     same_name_2 = top.ProcedureStep('same_name', action, [], 'PRIMARY')
 

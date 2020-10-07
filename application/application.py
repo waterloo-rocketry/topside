@@ -5,7 +5,6 @@ from PySide2.QtGui import QIcon
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 from PySide2.QtWidgets import QApplication
 
-import topside as top
 from .visualization_area import VisualizationArea
 from .procedures_bridge import ProceduresBridge
 

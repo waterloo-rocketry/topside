@@ -10,10 +10,10 @@ from topside.pdl import exceptions, utils
 # imports is a dict of {package name: path to file}, used to locate files to load
 # on requested import.
 
-# TODO: make importing more efficent by having a YAML file storing the self.importable_files dict and updating it
-# when ever a Package is made
+# TODO: make importing more efficent by having a YAML file storing the self.importable_files dict
+# and updating whenever a Package is instantiated
 
-# TODO; Make the importing code more unit testable
+# TODO: Make the importing code more unit testable
 
 
 class Package:
@@ -44,13 +44,12 @@ class Package:
             try:
                 name = yaml.safe_load(open(path, 'r'))['name']
 
-                if (name in self.importable_files):
+                if name in self.importable_files:
                     self.importable_files[name].add(path)
                 else:
                     self.importable_files[name] = {path}
-            except:
-                warnings.warn(path + " does not describe a yaml file")
-
+            except KeyError:
+                warnings.warn(path + " does not describe a pdl file")
 
         if len(list(files)) < 1:
             raise exceptions.BadInputError("cannot instantiate a Package with no Files")
