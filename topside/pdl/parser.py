@@ -7,9 +7,9 @@ import topside.pdl.exceptions as exceptions
 class Parser:
     """Produces plumbing engine input that's representative of its given files."""
 
-    def __init__(self, files):
+    def __init__(self, files, input_type='f'):
         """
-        Initialize a parser from one or more Files.
+        Initialize a parser from one or more PDL files.
 
         A Parser contains a Package; most of its functionality lies in restructuring the data
         contained in its Package into output suitable for loading a plumbing engine.
@@ -18,10 +18,19 @@ class Parser:
         ----------
 
         files: iterable
-            files is the iterable (usually a list) of one or more Files whose contents should go
-            into the Parser.
+            files is the iterable (usually a list) of one or more paths of the PDL files we
+            want parsed. Alternatively, it can also be a list of strings that are each a valid
+            PDL file.
+
+        input_type: char
+            input_type indicates whether the argument provided to "files" is
+            a list of file paths (f) or a list of strings (s).
+
         """
-        self.package = top.Package(files)
+        file_list = []
+        for file in files:
+            file_list.append(top.File(file, input_type))
+        self.package = top.Package(file_list)
 
         self.components = {}
         self.mapping = {}

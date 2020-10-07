@@ -6,9 +6,8 @@ import topside.pdl.utils as utils
 
 
 def test_valid_file():
-    file = top.File(utils.example_path)
 
-    parsed = top.Parser([file])
+    parsed = top.Parser([utils.example_path])
 
     assert len(parsed.components) == 6
     for component in parsed.components.values():
@@ -108,9 +107,8 @@ body:
     states:
         fill_valve: open
 """
-    no_main_file = top.File(no_main_graph, 's')
     with pytest.raises(exceptions.BadInputError):
-        top.Parser([no_main_file])
+        top.Parser([no_main_graph], 's')
 
 
 def test_invalid_component():
@@ -144,9 +142,8 @@ body:
       fill_valve: open
     """
 
-    teq_low_file = top.File(teq_too_low, 's')
     # this shouldn't raise an error, invalid components are legal
-    parse = top.Parser([teq_low_file])
+    parse = top.Parser([teq_too_low], 's')
 
     plumb = parse.make_engine()
     assert not plumb.is_valid()
