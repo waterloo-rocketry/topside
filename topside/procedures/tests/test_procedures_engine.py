@@ -269,3 +269,4 @@ def test_step_updates_conditions():
     proc_eng.step(1e6)
 
     assert proc_eng.ready_to_advance() is True
+
