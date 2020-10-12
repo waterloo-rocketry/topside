@@ -51,7 +51,9 @@ def get_positioning_params(coords, canvas_width, canvas_height, fill_percentage=
     ----------
 
     coords: iterable
-        Each value in coords should be a tuple (x, y)
+        Each value in coords is a tuple (x, y) representing a point from
+        the original set of coordinates that require adjustment. The
+        original iterable will not be modified.
 
     canvas_width: float
     canvas_height: float
