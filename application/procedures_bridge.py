@@ -27,6 +27,11 @@ class ProcedureConditionWrapper(QObject):
     def transition(self):
         return str(self._transition)
 
+    def __eq__(self, other):
+        return type(self) == type(other) and \
+            self._condition == other._condition and \
+            self._transition == other._transition
+
 
 class ProcedureStepsModel(QAbstractListModel):
     ActionRoleIdx = Qt.UserRole + 1
@@ -36,7 +41,7 @@ class ProcedureStepsModel(QAbstractListModel):
     def __init__(self, procedure=None, parent=None):
         QAbstractListModel.__init__(self, parent)
         self.procedure = None
-        self.condition_wrappers = None
+        self.condition_wrappers = []
         self.change_procedure(procedure)
 
     def change_procedure(self, new_procedure):
@@ -48,7 +53,9 @@ class ProcedureStepsModel(QAbstractListModel):
         # able to notify the Qt engine when a condition ticks from
         # unsatisfied to satisfied or vice-versa. This isn't the
         # cleanest way to do it - is there a better alternative?
-        if self.procedure is not None:
+        if self.procedure is None:
+            self.condition_wrappers = []
+        else:
             self.condition_wrappers = [
                 [ProcedureConditionWrapper(cond, trans, self) for cond, trans in step.conditions]
                 for step in self.procedure.step_list
@@ -132,12 +139,15 @@ class ProceduresBridge(QObject):
 
         self._proc_steps.refresh(idx)
 
+    def load_suite(self, suite):
+        self._proc_eng.load_suite(suite)
+        self._refresh_procedure_view()
+
     def load_from_file(self, filepath):
         with open(filepath) as f:
             proclang = f.read()
         suite = top.proclang.parse(proclang)
-        self._proc_eng.load_suite(suite)
-        self._refresh_procedure_view()
+        self.load_suite(suite)
 
     @Property(QObject, notify=steps_changed_sig)
     def steps(self):
