@@ -31,7 +31,7 @@ class StateChangeAction:
             else:
                 return "Set " + self.component + " to " + self.state
         else:
-            raise NotImplementedError("")
+            raise NotImplementedError(f'Format \"{fmt}\" not supported')
 
 
 @dataclass
@@ -104,7 +104,7 @@ class ProcedureStep:
             retval += self.action.export(fmt)
             return retval
         else:
-            raise NotImplementedError("")
+            raise NotImplementedError(f'Format \"{fmt}\" not supported')
 
 
 class Procedure:
@@ -186,7 +186,7 @@ class Procedure:
                 export_val += "\n\\end{checklist}"
             return export_val
         else:
-            raise NotImplementedError("")
+            raise NotImplementedError(f'Format \"{fmt}\" not supported')
 
 
 class ProcedureSuite:
