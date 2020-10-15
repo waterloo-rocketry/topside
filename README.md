@@ -1,7 +1,7 @@
 ## Topside: Technical Operations Procedures Simulator & Integrated Development Environment
 
-![](https://github.com/waterloo-rocketry/topside/workflows/Build%20and%20Test/badge.svg)
-![](https://codecov.io/gh/waterloo-rocketry/topside/branch/master/graph/badge.svg)
+[![](https://github.com/waterloo-rocketry/topside/workflows/Build%20and%20Test/badge.svg)](https://github.com/waterloo-rocketry/topside/actions?query=workflow%3A%22Build+and+Test%22)
+[![](https://codecov.io/gh/waterloo-rocketry/topside/branch/master/graph/badge.svg)](https://codecov.io/gh/waterloo-rocketry/topside)
 
 Waterloo Rocketry's operations simulator is a tool for modelling and simulating rocket launch systems and procedures.
 
