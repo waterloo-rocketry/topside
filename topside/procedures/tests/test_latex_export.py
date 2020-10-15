@@ -1,5 +1,6 @@
 import pytest
 import topside as top
+import os
 
 
 def test_procedure_latex_export():
@@ -31,8 +32,6 @@ def test_procedure_suite_latex_export():
 
     export = suite.export('latex')
 
-    print(export)
-
     expected_export = r'''\subsection{main}
 \begin{checklist}
     \item \PRIMARY{} Open remote fill valve
@@ -43,5 +42,43 @@ def test_procedure_suite_latex_export():
 \begin{checklist}
     \item \SECONDARY{} Close remote vent valve
 \end{checklist}'''
+
+    assert export == expected_export
+
+
+def test_waituntil_latex_export():
+    suite = top.ProcedureSuite([
+        top.Procedure('main', [
+            top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
+                (top.WaitUntil(10e6), top.Transition('main', '2'))
+            ], 'PRIMARY'),
+            top.ProcedureStep('2', top.StateChangeAction('vent_valve', 'closed'), [], 'PRIMARY')
+        ])
+    ])
+
+    export = suite.export('latex')
+
+    print(export)
+
+    expected_export = r'''\subsection{main}
+\begin{checklist}
+    \item \PRIMARY{} Open injector\_valve
+    \item Wait 10 seconds
+    \item \PRIMARY{} Close vent\_valve
+\end{checklist}'''
+
+    assert export == expected_export
+
+
+def test_proclang_file_latex_export():
+    filepath = os.path.join(os.path.dirname(__file__), 'example.proc')
+    export = top.proclang.parse_from_file(filepath).export('latex')
+
+    # Need to add newline to export since the tex file ends with a newline
+    export += '\n'
+
+    expected_export = ''
+    with open('example.tex', 'r') as f:
+        expected_export = f.read()
 
     assert export == expected_export

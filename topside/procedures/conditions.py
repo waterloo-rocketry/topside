@@ -147,6 +147,12 @@ class WaitUntil:
     def __eq__(self, other):
         return type(self) == type(other) and self.target_t == other.target_t
 
+    def export(self, fmt):
+        if fmt == 'latex':
+            return f'{round(self.target_t / 1e6)} seconds'
+        else:
+            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+
 
 class Comparison:
     """Base class for conditions comparing a pressure to a reference."""
@@ -256,6 +262,12 @@ class Less(Comparison):
         """Compare pressures using less-than."""
         return current_pressure < reference_pressure
 
+    def export(self, fmt):
+        if fmt == 'latex':
+            return self.node + " is less than " + str(round(self.reference_pressure)) + "psi"
+        else:
+            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+
 
 class Greater(Comparison):
     """Condition that tests if a pressure is greater than a reference."""
@@ -263,6 +275,12 @@ class Greater(Comparison):
     def compare(self, current_pressure, reference_pressure):
         """Compare pressures using greater-than."""
         return current_pressure > reference_pressure
+
+    def export(self, fmt):
+        if fmt == 'latex':
+            return self.node + " is greater than " + str(round(self.reference_pressure)) + "psi"
+        else:
+            raise NotImplementedError(f'Format \"{fmt}\" not supported')
 
 
 class LessEqual(Comparison):

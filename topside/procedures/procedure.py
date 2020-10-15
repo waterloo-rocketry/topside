@@ -166,8 +166,23 @@ class Procedure:
             export_val = f"\\subsection{{{self.procedure_id}}}"
             if len(self.step_list) > 0:
                 export_val += "\n\\begin{checklist}"
-                for i in self.step_list:
+                for index, i in enumerate(self.step_list):
                     export_val += "\n    \\item " + i.export(fmt)
+                    wait_condition = ""
+                    jump_conditions = ""
+                    for t in i.conditions:
+                        if type(t[0]).__name__ != 'Immediate' and \
+                           t[1].procedure == self.procedure_id and \
+                           t[1].step == self.step_list[index + 1].step_id:
+                            wait_condition = "\n    \\item Wait " + t[0].export(fmt)
+                        elif type(t[0]).__name__ != 'Immediate':
+                            cond = "\n    \\item If " + t[0].export(fmt)
+                            beg = "\n    \\begin{checklist}"
+                            action = "\n        \\item Begin " + t[1].procedure + " procedure"
+                            end = "\n    \\end{checklist}"
+                            jump_conditions += cond + beg + action + end
+                    export_val += jump_conditions
+                    export_val += wait_condition
                 export_val += "\n\\end{checklist}"
             return export_val
         else:
@@ -226,7 +241,7 @@ class ProcedureSuite:
                 if proc == self.starting_procedure_id:
                     continue
                 exported_procedures.append(self.procedures[proc].export(fmt))
-            return '\n\n'.join(exported_procedures)
-            return '\n'.join([self.procedures[proc].export(fmt) for proc in sorted(self.procedures)])
+            # TODO(aaron): properly sanitize latex characters, not just escaping _'s
+            return '\n\n'.join(exported_procedures).replace('_', '\\_')
         else:
             raise NotImplementedError(f'Format \"{fmt}\" not supported')
