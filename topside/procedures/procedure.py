@@ -98,7 +98,11 @@ class ProcedureStep:
 
     def export(self, fmt):
         if fmt == "latex":
-            return self.action.export(fmt)
+            retval = ''
+            if self.operator != '':
+                retval += '\\' + self.operator + '{} '
+            retval += self.action.export(fmt)
+            return retval
         else:
             raise NotImplementedError("")
 
@@ -214,8 +218,15 @@ class ProcedureSuite:
     def __getitem__(self, key):
         return self.procedures[key]
 
-    def export(self, fmt="ProcLang"):
-        if fmt == "ProcLang":
-            return "\n".join([self.procedures[proc].export(fmt) for proc in self.procedures])
+    def export(self, fmt):
+        if fmt == 'latex':
+            exported_procedures = []
+            exported_procedures.append(self.procedures[self.starting_procedure_id].export(fmt))
+            for proc in self.procedures:
+                if proc == self.starting_procedure_id:
+                    continue
+                exported_procedures.append(self.procedures[proc].export(fmt))
+            return '\n\n'.join(exported_procedures)
+            return '\n'.join([self.procedures[proc].export(fmt) for proc in sorted(self.procedures)])
         else:
-            raise NotImplementedError(f"Format \"{fmt}\" not supported")
+            raise NotImplementedError(f'Format \"{fmt}\" not supported')
