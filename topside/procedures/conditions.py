@@ -58,6 +58,12 @@ class And:
     def __eq__(self, other):
         return type(self) == type(other) and self._conditions == other._conditions
 
+    def export(self, fmt):
+        if fmt == 'latex':
+            return ' and '.join([cond.export(fmt) for cond in self._conditions])
+        else:
+            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+
 
 class Or:
     """
@@ -103,6 +109,12 @@ class Or:
 
     def __eq__(self, other):
         return type(self) == type(other) and self._conditions == other._conditions
+
+    def export(self, fmt):
+        if fmt == 'latex':
+            return ' or '.join([cond.export(fmt) for cond in self._conditions])
+        else:
+            raise NotImplementedError(f'Format \"{fmt}\" not supported')
 
 
 class WaitUntil:
@@ -254,6 +266,12 @@ class Equal(Comparison):
             self.reference_pressure == other.reference_pressure and \
             self.eps == other.eps
 
+    def export(self, fmt):
+        if fmt == 'latex':
+            return self.node + " is equal to " + str(round(self.reference_pressure)) + "psi"
+        else:
+            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+
 
 class Less(Comparison):
     """Condition that tests if a pressure is less than a reference."""
@@ -290,6 +308,12 @@ class LessEqual(Comparison):
         """Compare pressures using less-than-or-equal."""
         return current_pressure <= reference_pressure
 
+    def export(self, fmt):
+        if fmt == 'latex':
+            return self.node + " is less than or equal to " + str(round(self.reference_pressure)) + "psi"
+        else:
+            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+
 
 class GreaterEqual(Comparison):
     """Condition that tests if a pressure is greater than or equal to a reference."""
@@ -297,3 +321,9 @@ class GreaterEqual(Comparison):
     def compare(self, current_pressure, reference_pressure):
         """Compare pressures using greater-than-or-equal."""
         return current_pressure >= reference_pressure
+
+    def export(self, fmt):
+        if fmt == 'latex':
+            return self.node + " is greater than or equal to " + str(round(self.reference_pressure)) + "psi"
+        else:
+            raise NotImplementedError(f'Format \"{fmt}\" not supported')

@@ -82,3 +82,28 @@ def test_proclang_file_latex_export():
         expected_export = f.read()
 
     assert export == expected_export
+
+
+def test_waituntil_latex_export():
+    suite = top.ProcedureSuite([
+        top.Procedure('main', [
+            top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
+                (top.And([top.WaitUntil(10e6), top.Or([top.Less('p1', 400.0),
+                                                       top.GreaterEqual('p2', 17.0)])]), top.Transition('main', '2'))
+            ], 'PRIMARY'),
+            top.ProcedureStep('2', top.StateChangeAction('vent_valve', 'closed'), [], 'PRIMARY')
+        ])
+    ])
+
+    export = suite.export('latex')
+
+    print(export)
+
+    expected_export = r'''\subsection{main}
+\begin{checklist}
+    \item \PRIMARY{} Open injector\_valve
+    \item Wait 10 seconds and p1 is less than 400psi or p2 is greater than or equal to 17psi
+    \item \PRIMARY{} Close vent\_valve
+\end{checklist}'''
+
+    assert export == expected_export
