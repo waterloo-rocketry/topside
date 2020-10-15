@@ -7,6 +7,7 @@ from PySide2.QtWidgets import QApplication
 
 from .visualization_area import VisualizationArea
 from .procedures_bridge import ProceduresBridge
+from .plumbing_bridge import PlumbingBridge
 
 
 # NOTE(jacob): `__file__` isn't defined for the frozen application,
@@ -24,11 +25,12 @@ def find_resource(filename):
 class Application:
 
     def __init__(self, argv):
-        self.procedures_bridge = ProceduresBridge()
+        self.plumbing_bridge = PlumbingBridge()
+        self.procedures_bridge = ProceduresBridge(self.plumbing_bridge)
 
         self.app = QApplication(argv)
 
-        # ALL custom built QQuickItems have to be registed as QML objects in this way:
+        # ALL custom built QQuickItems have to be registered as QML objects in this way:
         qmlRegisterType(VisualizationArea, 'VisualizationArea', 1, 0, 'VisualizationArea')
 
         self.app.setWindowIcon(QIcon(find_resource('icon.ico')))
@@ -39,9 +41,17 @@ class Application:
         self.qml_engine = QQmlApplicationEngine()
 
         self.context = self.qml_engine.rootContext()
+        self.context.setContextProperty('plumbingBridge', self.plumbing_bridge)
         self.context.setContextProperty('proceduresBridge', self.procedures_bridge)
 
         self.qml_engine.load(find_resource('application.qml'))
+
+        # TODO(jacob): Currently we load these example files at startup
+        # to make testing turnaround a bit faster. Figure out how to
+        # make the application remember the last file opened, and open
+        # that instead.
+        self.plumbing_bridge.load_from_files([find_resource('example.pdl')])
+        self.procedures_bridge.load_from_file(find_resource('example.proc'))
 
     def ready(self):
         return len(self.qml_engine.rootObjects()) != 0

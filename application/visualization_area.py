@@ -1,43 +1,8 @@
 from PySide2.QtQuick import QQuickPaintedItem
 from PySide2.QtGui import QColor, QPen, QFont
-from PySide2.QtCore import Qt, Property, QPointF
+from PySide2.QtCore import Qt, Property, QPointF, Slot
 
 import topside as top
-
-# NOTE: Copied from layout_demo to avoid using importlib
-
-
-def make_engine():
-    states = {
-        'static': {
-            (1, 2, 'A1'): 1,
-            (2, 1, 'A2'): 1
-        }
-    }
-    edges = [(1, 2, 'A1'), (2, 1, 'A2')]
-
-    mapping = {'c1': {1: 'atm', 2: 1},
-               'c2': {1: 1, 2: 2},
-               'c3': {1: 1, 2: 2},
-               'c4': {1: 2, 2: 3},
-               'c5': {1: 3, 2: 'atm'},
-               'c6': {1: 3, 2: 4},
-               'c7': {1: 4, 2: 5},
-               'c8': {1: 4, 2: 5},
-               'c9': {1: 5, 2: 6},
-               'c10': {1: 6, 2: 'atm'},
-               'c11': {1: 6, 2: 'atm'},
-               'c12': {1: 6, 2: 'atm'}}
-
-    pressures = {}
-    for k1, v1 in mapping.items():
-        for k2, v2 in v1.items():
-            pressures[v2] = (0, False)
-
-    component_dict = {k: top.PlumbingComponent(k, states, edges) for k in mapping.keys()}
-    initial_states = {k: 'static' for k in mapping.keys()}
-
-    return top.PlumbingEngine(component_dict, mapping, pressures, initial_states)
 
 
 def get_positioning_params(coords, canvas_width, canvas_height, fill_percentage=1.0):
@@ -137,8 +102,6 @@ class VisualizationArea(QQuickPaintedItem):
         self.scaling_factor = 0.8
         self.scaled = False
         self.color_property = QColor()
-
-        self.upload_engine_instance(make_engine())
 
         if self.DEBUG_MODE:
             print('VisualizationArea created!')
@@ -268,24 +231,6 @@ class VisualizationArea(QQuickPaintedItem):
             print('Hover track: ' + str(event.pos().x()) + ' ' + str(event.pos().y()))
         event.accept()
 
-    def upload_engine_instance(self, engine):
-        """
-        Sets the local engine to the input variable and initializes associated local objects.
-
-        Setter and initializer for uploading an engine to be displayed. After an engine is set,
-        the according layout and terminal graph is generated from the engine data.
-
-        Parameters
-        ----------
-
-        engine: topside.plumbing_engine
-            An instance of the topside engine to be displayed.
-        """
-
-        self.engine_instance = engine
-        self.terminal_graph = top.terminal_graph(self.engine_instance)
-        self.layout_pos = top.layout_plumbing_engine(self.engine_instance)
-
     def get_color(self):
         """
         Return the local color.
@@ -315,6 +260,26 @@ class VisualizationArea(QQuickPaintedItem):
             The local graphics QColor.
         """
         self.color_property = input_color
+
+    @Slot(top.PlumbingEngine)
+    def uploadEngineInstance(self, engine):
+        """
+        Sets the local engine to the input variable and initializes associated local objects.
+
+        Setter and initializer for uploading an engine to be displayed. After an engine is set,
+        the according layout and terminal graph is generated from the engine data.
+
+        Parameters
+        ----------
+
+        engine: topside.plumbing_engine
+            An instance of the topside engine to be displayed.
+        """
+
+        self.engine_instance = engine
+        self.terminal_graph = top.terminal_graph(self.engine_instance)
+        self.layout_pos = top.layout_plumbing_engine(self.engine_instance)
+        self.update()
 
     # Registers color as a QML-accessible property, along with directions for its getter and setter
     color = Property(QColor, get_color, set_color)

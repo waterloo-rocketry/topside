@@ -22,9 +22,15 @@ ApplicationWindow {
             title: "&File"
 
             Action {
-                text: "&Open ProcLang"
-                shortcut: StandardKey.Open
-                onTriggered: proceduresBridge.loadProcedureSuite()
+                text: "Open Procedure Suite"
+                shortcut: "Ctrl+O"
+                onTriggered: proceduresBridge.loadFromDialog()
+            }
+
+            Action {
+                text: "Open Plumbing Engine"
+                shortcut: "Ctrl+Shift+O"
+                onTriggered: plumbingBridge.loadFromDialog()
             }
 
             Action {
