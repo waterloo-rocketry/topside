@@ -4,10 +4,10 @@ from ..procedure_wrappers import ProcedureStepsModel, ProcedureConditionWrapper
 
 def test_condition_wrapper_wraps_condition():
     cond = top.WaitUntil(100)
-    
+
     wrapper = ProcedureConditionWrapper(cond, None)
     assert not wrapper.satisfied
-    
+
     cond.update({'time': 101})
     assert wrapper.satisfied
 

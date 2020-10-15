@@ -26,8 +26,7 @@ def test_proc_bridge_load_suite():
 
     procedure = top.Procedure('main', [
         top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
-            (top.Immediate(), top.Transition('main', '2'))
-        ], 'PRIMARY'),
+            (top.Immediate(), top.Transition('main', '2'))], 'PRIMARY'),
         top.ProcedureStep('2', top.MiscAction('Approach the launch tower'), [], 'SECONDARY')
     ])
 
@@ -39,17 +38,15 @@ def test_proc_bridge_load_suite():
     assert proc_b.steps.procedure == procedure
 
 
-def test_proc_bridge_procedure_controls():
+def test_proc_bridge_procedure_controls_advance_procedure():
     plumb_b = MockPlumbingBridge()
     proc_b = ProceduresBridge(plumb_b)
 
     procedure = top.Procedure('main', [
         top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
-            (top.Immediate(), top.Transition('main', '2'))
-        ], 'PRIMARY'),
+            (top.Immediate(), top.Transition('main', '2'))], 'PRIMARY'),
         top.ProcedureStep('2', top.StateChangeAction('vent_valve', 'closed'), [
-            (top.WaitUntil(100), top.Transition('main', '3'))
-        ], 'PRIMARY'),
+            (top.WaitUntil(100), top.Transition('main', '3'))], 'PRIMARY'),
         top.ProcedureStep('3', top.MiscAction('Approach the launch tower'), [], 'SECONDARY')
     ])
 
