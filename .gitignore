@@ -23,3 +23,4 @@ dist/
 Topside.spec
 
 .coverage
+coverage.xml

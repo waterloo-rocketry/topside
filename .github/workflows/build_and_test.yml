@@ -1,4 +1,4 @@
-name: Build Executable [PyInstaller]
+name: Build and Test
 
 on:
   push:
@@ -51,7 +51,11 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest --cov=topside
+        pytest --cov --cov-report=xml
+
+    - name: Upload coverage report
+      run: |
+        bash <(curl -s https://codecov.io/bash)
 
     - name: Build and run application
       run: |
