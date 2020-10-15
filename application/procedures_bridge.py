@@ -214,7 +214,6 @@ class ProceduresBridge(QObject):
     def timeStepForward(self):
         step_size = 0.1e6  # TODO(jacob): Add a UI field for this.
         self._proc_eng.step_time(step_size)
-        self._plumb.engine.current_pressures()
         self._refresh_procedure_view()
 
     @Slot()

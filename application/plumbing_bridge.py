@@ -16,8 +16,8 @@ class PlumbingBridge(QObject):
         self.engine = new_engine
         self.engineLoaded.emit(new_engine)
 
-    def load_from_file(self, filepath):
-        parser = top.pdl.Parser([filepath])
+    def load_from_files(self, filepaths):
+        parser = top.pdl.Parser(filepaths)
         new_engine = parser.make_engine()
 
         self.load_engine(new_engine)
@@ -25,6 +25,6 @@ class PlumbingBridge(QObject):
     @Slot()
     def loadFromDialog(self):
         # TODO(jacob): Make this menu remember the last file opened
-        filepath, _ = QFileDialog.getOpenFileName(self.parent(), 'Load PDL file')
-        if filepath != '':
-            self.load_from_file(filepath)
+        filepaths, _ = QFileDialog.getOpenFileNames(self.parent(), 'Load PDL files')
+        if len(filepaths) > 0:
+            self.load_from_files(filepaths)

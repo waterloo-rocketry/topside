@@ -50,7 +50,7 @@ class Application:
         # to make testing turnaround a bit faster. Figure out how to
         # make the application remember the last file opened, and open
         # that instead.
-        self.plumbing_bridge.load_from_file(find_resource('example.pdl'))
+        self.plumbing_bridge.load_from_files([find_resource('example.pdl')])
         self.procedures_bridge.load_from_file(find_resource('example.proc'))
 
     def ready(self):

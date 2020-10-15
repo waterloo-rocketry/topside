@@ -81,7 +81,7 @@ ColumnLayout {
                 icon.color: "transparent"
                 property bool is_play: true
                 icon.source: is_play ? "themes/default/play.png" : "themes/default/pause.png"
-                
+
                 onClicked: {
                     if (is_play) {
                         proceduresBridge.timePlay()
