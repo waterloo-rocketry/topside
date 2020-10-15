@@ -77,8 +77,9 @@ def test_proclang_file_latex_export():
     # Need to add newline to export since the tex file ends with a newline
     export += '\n'
 
+    filepath = os.path.join(os.path.dirname(__file__), 'example.tex')
     expected_export = ''
-    with open('example.tex', 'r') as f:
+    with open(filepath, 'r') as f:
         expected_export = f.read()
 
     assert export == expected_export
