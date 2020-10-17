@@ -42,5 +42,5 @@ def terminal_graph(plumbing_engine):
 
 
 def component_nodes(plumbing_engine):
-    return [[name + '.' + str(node) for node in c.component_graph]
-            for name, c in plumbing_engine.component_dict.items()]
+    return {name: [name + '.' + str(node) for node in c.component_graph]
+            for name, c in plumbing_engine.component_dict.items()}
