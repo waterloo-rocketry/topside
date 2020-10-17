@@ -130,7 +130,7 @@ def layout_plumbing_engine(plumbing_engine):
         that the node should be placed at.
     """
     t = top.terminal_graph(plumbing_engine)
-    components = top.component_nodes(plumbing_engine)
+    components = list(top.component_nodes(plumbing_engine).values())
 
     node_indices = {n: i for i, n in enumerate(t.nodes)}
 

@@ -1,3 +1,4 @@
+import numpy as np
 from PySide2.QtQuick import QQuickPaintedItem
 from PySide2.QtGui import QColor, QPen, QFont
 from PySide2.QtCore import Qt, Property, QPointF, Slot
@@ -103,6 +104,12 @@ class VisualizationArea(QQuickPaintedItem):
         self.scaled = False
         self.color_property = QColor()
 
+        self.big_font = QFont('Times', 25, QFont.Bold)
+        self.small_font = QFont('Arial', 7)
+
+        self.node_font = QFont('Arial', 8)
+        self.component_font = QFont('Arial', 8, QFont.Bold)
+
         if self.DEBUG_MODE:
             print('VisualizationArea created!')
 
@@ -118,19 +125,13 @@ class VisualizationArea(QQuickPaintedItem):
         painter: QPainter
             The painter instance which will draw all of the primitives.
         """
-        # Creates fonts
-        big_font = QFont('Times', 25, QFont.Bold)
-        small_font = QFont('Arial', 7)
-
         # Sets painter to use local color
         pen = QPen(self.color_property)
         painter.setPen(pen)
 
         if self.DEBUG_MODE:
-            painter.setFont(big_font)
+            painter.setFont(self.big_font)
             painter.drawText(100, 100, 'Display Functional')
-
-        painter.setFont(small_font)  # Sets font
 
         if self.engine_instance:
             if self.DEBUG_MODE:
@@ -151,7 +152,7 @@ class VisualizationArea(QQuickPaintedItem):
                     print('node: ' + str(pt[0]) + str(pt[1]))
 
                 if not self.scaled:
-                    # Adjusts the coordinates so they fall onto the draw surface
+                    # Adjust the coordinates so they fall onto the draw surface
                     pt[0] *= scale
                     pt[0] += x_offset
 
@@ -159,7 +160,6 @@ class VisualizationArea(QQuickPaintedItem):
                     pt[1] += y_offset
 
                 painter.drawEllipse(QPointF(pt[0], pt[1]), 5, 5)
-                painter.drawText(pt[0] + 5, pt[1] + 10, str(node))
 
             for edge in t.edges:
                 p1 = pos[edge[0]]
@@ -171,12 +171,41 @@ class VisualizationArea(QQuickPaintedItem):
 
                 painter.drawLine(p1[0], p1[1], p2[0], p2[1])
 
+            self.paint_labels(painter)
+
             # Scaling is done on the first draw while nodes are being accessed for the first time
             if not self.scaled:
                 self.scaled = True
 
             if self.DEBUG_MODE:
                 print('engine print complete')
+
+    def paint_labels(self, painter):
+        """
+        Draw labels for nodes and components on the canvas.
+
+        Parameters
+        ----------
+
+        painter: QPainter
+            The painter instance used to draw the labels.
+        """
+        # TODO(jacob): Smarter positioning of labels (ensure they
+        # don't overlap with the graph or with each other).
+        text_offset = np.array([5, 15])
+
+        painter.setFont(self.component_font)
+        for cname, cnodes in top.component_nodes(self.engine_instance).items():
+            node_centroid = np.mean([self.layout_pos[cn] for cn in cnodes], axis=0)
+            painter.drawText(node_centroid[0] + text_offset[0],
+                             node_centroid[1] + text_offset[1], cname)
+
+        painter.setFont(self.node_font)
+        for orig_node in self.engine_instance.nodes(data=False):
+            if orig_node != 'atm':
+                node_pos = self.layout_pos[orig_node]
+                painter.drawText(node_pos[0] + text_offset[0],
+                                 node_pos[1] + text_offset[1], str(orig_node))
 
     def mouseMoveEvent(self, event):
         """

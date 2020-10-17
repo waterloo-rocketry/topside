@@ -89,7 +89,7 @@ def test_component_nodes_one_component():
     p = one_component_engine()
     nodes = top.component_nodes(p)
 
-    expected_component_nodes = [['c1.1', 'c1.2']]
+    expected_component_nodes = {'c1': ['c1.1', 'c1.2']}
     assert nodes == expected_component_nodes
 
 
@@ -97,7 +97,7 @@ def test_component_nodes_series_components():
     p = series_component_engine()
     nodes = top.component_nodes(p)
 
-    expected_component_nodes = [['c1.1', 'c1.2'], ['c2.1', 'c2.2']]
+    expected_component_nodes = {'c1': ['c1.1', 'c1.2'], 'c2': ['c2.1', 'c2.2']}
     assert nodes == expected_component_nodes
 
 
@@ -105,5 +105,5 @@ def test_component_nodes_parallel_components():
     p = parallel_component_engine()
     nodes = top.component_nodes(p)
 
-    expected_component_nodes = [['c1.1', 'c1.2'], ['c2.1', 'c2.2']]
+    expected_component_nodes = {'c1': ['c1.1', 'c1.2'], 'c2': ['c2.1', 'c2.2']}
     assert nodes == expected_component_nodes
