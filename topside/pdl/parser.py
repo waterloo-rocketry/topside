@@ -28,7 +28,7 @@ class Parser:
         file_list = []
 
         # if a single element, put into list for processing
-        if not hasattr(files, '__iter__') or isinstance(files, str):
+        if isinstance(files, str):
             files = [files]
 
         for file in files:
