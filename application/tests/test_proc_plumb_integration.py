@@ -34,7 +34,7 @@ def make_plumbing_engine():
         states:
           injector_valve: closed
     """)
-    parser = top.Parser([pdl], 's')
+    parser = top.Parser(pdl, 's')
     return parser.make_engine()
 
 

@@ -110,8 +110,21 @@ class VisualizationArea(QQuickPaintedItem):
         self.node_font = QFont('Arial', 8)
         self.component_font = QFont('Arial', 8, QFont.Bold)
 
-        if self.DEBUG_MODE:
+        if self.DEBUG_MODE:  # pragma: no cover
             print('VisualizationArea created!')
+
+    def scale_and_center(self):
+        """
+        Scale coordinates to fill and center in the visualization pane.
+        """
+        scale, x_offset, y_offset = get_positioning_params(self.layout_pos.values(), self.width(),
+                                                           self.height(), self.scaling_factor)
+
+        for node in self.terminal_graph.nodes:
+            self.layout_pos[node][0] *= scale
+            self.layout_pos[node][0] += x_offset
+            self.layout_pos[node][1] *= scale
+            self.layout_pos[node][1] += y_offset
 
     def paint(self, painter):
         """
@@ -129,12 +142,12 @@ class VisualizationArea(QQuickPaintedItem):
         pen = QPen(self.color_property)
         painter.setPen(pen)
 
-        if self.DEBUG_MODE:
+        if self.DEBUG_MODE:  # pragma: no cover
             painter.setFont(self.big_font)
             painter.drawText(100, 100, 'Display Functional')
 
         if self.engine_instance:
-            if self.DEBUG_MODE:
+            if self.DEBUG_MODE:  # pragma: no cover
                 print('engine print active')
 
             # Uses the drawing algorithm from plotting.py to draw the graph using the painter
@@ -142,22 +155,16 @@ class VisualizationArea(QQuickPaintedItem):
             t = self.terminal_graph
             pos = self.layout_pos
 
-            scale, x_offset, y_offset = get_positioning_params(pos.values(), self.width(),
-                                                               self.height(), self.scaling_factor)
+            # Scaling is done on the first draw while nodes are being accessed for the first time
+            if not self.scaled:
+                self.scale_and_center()
+                self.scaled = True
 
             for node in t.nodes:
                 pt = pos[node]
 
-                if self.DEBUG_MODE:
+                if self.DEBUG_MODE:  # pragma: no cover
                     print('node: ' + str(pt[0]) + str(pt[1]))
-
-                if not self.scaled:
-                    # Adjust the coordinates so they fall onto the draw surface
-                    pt[0] *= scale
-                    pt[0] += x_offset
-
-                    pt[1] *= scale
-                    pt[1] += y_offset
 
                 painter.drawEllipse(QPointF(pt[0], pt[1]), 5, 5)
 
@@ -165,7 +172,7 @@ class VisualizationArea(QQuickPaintedItem):
                 p1 = pos[edge[0]]
                 p2 = pos[edge[1]]
 
-                if self.DEBUG_MODE:
+                if self.DEBUG_MODE:  # pragma: no cover
                     print('edge1: ' + str(p1[0]) + str(p1[1]))
                     print('edge2: ' + str(p2[0]) + str(p2[1]))
 
@@ -173,11 +180,7 @@ class VisualizationArea(QQuickPaintedItem):
 
             self.paint_labels(painter)
 
-            # Scaling is done on the first draw while nodes are being accessed for the first time
-            if not self.scaled:
-                self.scaled = True
-
-            if self.DEBUG_MODE:
+            if self.DEBUG_MODE:  # pragma: no cover
                 print('engine print complete')
 
     def paint_labels(self, painter):
@@ -221,7 +224,7 @@ class VisualizationArea(QQuickPaintedItem):
             The event which contains all of the data about where the move occurred.
         """
 
-        if self.DEBUG_MODE:
+        if self.DEBUG_MODE:  # pragma: no cover
             print('Drag Track:' + str(event.x()) + ' ' + str(event.y()))
         event.accept()
 
@@ -238,7 +241,7 @@ class VisualizationArea(QQuickPaintedItem):
         event: QMouseEvent
             The event which contains all of the data about where the press occurred.
         """
-        if self.DEBUG_MODE:
+        if self.DEBUG_MODE:  # pragma: no cover
             print('Press: ' + str(event.x()) + ' ' + str(event.y()))
         event.accept()
 
@@ -256,7 +259,7 @@ class VisualizationArea(QQuickPaintedItem):
         event: QHoverEvent
             The event which contains all of the data about where the hover move occurred.
         """
-        if self.DEBUG_MODE:
+        if self.DEBUG_MODE:  # pragma: no cover
             print('Hover track: ' + str(event.pos().x()) + ' ' + str(event.pos().y()))
         event.accept()
 
@@ -293,7 +296,7 @@ class VisualizationArea(QQuickPaintedItem):
     @Slot(top.PlumbingEngine)
     def uploadEngineInstance(self, engine):
         """
-        Sets the local engine to the input variable and initializes associated local objects.
+        Set the local engine to the input variable and initialize associated local objects.
 
         Setter and initializer for uploading an engine to be displayed. After an engine is set,
         the according layout and terminal graph is generated from the engine data.
