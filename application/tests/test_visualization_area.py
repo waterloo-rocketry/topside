@@ -1,6 +1,28 @@
 import pytest
 
-from ..visualization_area import get_positioning_params
+from ..visualization_area import get_positioning_params, VisualizationArea
+
+
+class MockPainter:
+    def __init__(self):
+        self.ellipses = []
+        self.lines = []
+        self.texts = []
+
+    def setPen(self, pen):
+        pass
+
+    def setFont(self, font):
+        pass
+
+    def drawEllipse(self, center, rx, ry):
+        self.ellipses.append((center, rx, ry))
+
+    def drawLine(self, x1, y1, x2, y2):
+        self.lines.append((x1, y1, x2, y2))
+
+    def drawText(self, x, y, text):
+        self.texts.append((x, y, text))
 
 
 def test_get_positioning_params_one_val():
@@ -80,3 +102,7 @@ def test_bad_fill_percentages():
         get_positioning_params(coords, w, h, 0)
     with pytest.raises(Exception):
         get_positioning_params(coords, w, h, 10)
+
+
+def test_upload_engine_instance():
+    va = VisualizationArea()
