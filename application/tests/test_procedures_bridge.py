@@ -52,10 +52,12 @@ def test_proc_bridge_procedure_controls_advance_procedure():
 
     proc_b.load_suite(top.ProcedureSuite([procedure]))
 
-    assert proc_b._proc_eng.current_step == procedure.step_list[0]
+    proc_eng = proc_b._proc_eng
+
+    assert proc_eng.current_step == procedure.step_list[0]
     proc_b.procStepForward()
-    assert proc_b._proc_eng.current_step == procedure.step_list[1]
+    assert proc_eng.current_step == procedure.step_list[1]
     proc_b.procStepForward()  # does nothing; condition is not satisfied
-    assert proc_b._proc_eng.current_step == procedure.step_list[1]
+    assert proc_eng.current_step == procedure.step_list[1]
     proc_b.procStop()
-    assert proc_b._proc_eng.current_step == procedure.step_list[0]
+    assert proc_eng.current_step == procedure.step_list[0]

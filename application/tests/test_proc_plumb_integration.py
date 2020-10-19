@@ -81,26 +81,31 @@ def test_time_step_forward():
     plumb_eng = make_plumbing_engine()
     plumb_b.load_engine(plumb_eng)
 
+    proc_eng = proc_b._proc_eng
+
     proc_b.procStepForward()  # advance to step 1
-    assert not proc_b._proc_eng.ready_to_advance()
+    assert not proc_eng.ready_to_advance()
+    # Time hasn't advanced yet, so pressures should be the same
     assert plumb_eng.current_pressures('A') == 100
     assert plumb_eng.current_pressures('B') == 0
 
     proc_b.timeStepForward()  # time == 0.1s
-    assert not proc_b._proc_eng.ready_to_advance()
+    assert not proc_eng.ready_to_advance()
+    # Valve is open, so pressures should start dropping
     assert plumb_eng.current_pressures('A') < 100
     assert plumb_eng.current_pressures('B') > 0
 
     proc_b.timeStepForward()  # time == 0.2s
-    assert proc_b._proc_eng.ready_to_advance()
+    assert proc_eng.ready_to_advance()
     pressures_at_02 = plumb_eng.current_pressures()
 
     proc_b.procStepForward()  # advance to step 2
-    assert not proc_b._proc_eng.ready_to_advance()
+    assert not proc_eng.ready_to_advance()
     assert plumb_eng.current_pressures() == pressures_at_02
 
     proc_b.timeStepForward()  # time == 0.3s
-    assert not proc_b._proc_eng.ready_to_advance()
+    assert not proc_eng.ready_to_advance()
+    # Valve is now closed, so pressures shouldn't change further
     assert plumb_eng.current_pressures() == pressures_at_02
 
 
@@ -122,12 +127,15 @@ def test_time_advance():
 
     tol = 0.01
 
+    proc_eng = proc_b._proc_eng
+
     proc_b.procStepForward()  # advance to step 1
-    assert not proc_b._proc_eng.ready_to_advance()
+    assert not proc_eng.ready_to_advance()
     assert plumb_eng.current_pressures('A') == 100
     assert plumb_eng.current_pressures('B') == 0
 
     proc_b.timeAdvance()
-    assert proc_b._proc_eng.ready_to_advance()
+    assert proc_eng.ready_to_advance()
+    # We expect pressures to equalize at 50 once the system is steady
     assert abs(plumb_eng.current_pressures('A') - 50) < tol
     assert abs(plumb_eng.current_pressures('B') - 50) < tol
