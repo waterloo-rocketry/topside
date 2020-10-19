@@ -202,7 +202,7 @@ class VisualizationArea(QQuickPaintedItem):
 
         painter.setFont(self.node_font)
         for orig_node in self.engine_instance.nodes(data=False):
-            if orig_node != 'atm':
+            if orig_node != top.ATM:
                 node_pos = self.layout_pos[orig_node]
                 painter.drawText(node_pos[0] + text_offset[0],
                                  node_pos[1] + text_offset[1], str(orig_node))
