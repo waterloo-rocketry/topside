@@ -1,5 +1,6 @@
-import pytest
 import textwrap
+
+import pytest
 
 import topside as top
 import topside.pdl.exceptions as exceptions
@@ -102,8 +103,9 @@ def test_invalid_import():
             edge1: closed_teq
     """)
     invalid_import_file = top.File(invalid_import, input_type='s')
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         top.Package([invalid_import_file])
+    assert "invalid import" in str(err)
 
 
 def test_invalid_bad_import_type():
@@ -124,13 +126,15 @@ def test_invalid_bad_import_type():
           closed_teq: closed
     """)
     bad_imported_type_file = top.File(bad_imported_type, input_type='s')
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         top.Package([bad_imported_type_file])
+    assert "invalid component" in str(err)
 
 
 def test_invalid_empty_package():
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         top.Package([])
+    assert "no Files" in str(err)
 
 
 def test_invalid_nested_import():
@@ -146,8 +150,9 @@ def test_invalid_nested_import():
           open_teq: 5
     """)
     nested_import_file = top.File(nested_import, input_type='s')
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(NotImplementedError) as err:
         top.Package([nested_import_file])
+    assert "nested imports" in str(err)
 
 
 def test_duplicate_names():
@@ -213,5 +218,6 @@ def test_invalid_graph_missing_states():
               - [fill_valve, 1]
     """)
     missing_states_file = top.File(missing_states, 's')
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         top.Package([missing_states_file])
+    assert "missing component" in str(err)

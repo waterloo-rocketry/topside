@@ -1,5 +1,6 @@
-import pytest
 import textwrap
+
+import pytest
 
 import topside as top
 import topside.pdl.exceptions as exceptions

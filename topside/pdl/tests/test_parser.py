@@ -1,5 +1,6 @@
-import pytest
 import textwrap
+
+import pytest
 
 import topside as top
 import topside.pdl.exceptions as exceptions
@@ -94,33 +95,34 @@ def test_invalid_main():
     - component:
         name: fill_valve
         edges:
-        edge1:
+          edge1:
             nodes: [0, 1]
         states:
-        open:
+          open:
             edge1: 6
-        closed:
+          closed:
             edge1: closed
     - graph:
         name: {not_main}
         nodes:
-        A:
+          A:
             fixed_pressure: 500
             components:
-            - [fill_valve, 0]
+              - [fill_valve, 0]
 
-        B:
+          B:
             components:
-            - [fill_valve, 1]
+              - [fill_valve, 1]
         states:
-            fill_valve: open
+          fill_valve: open
     """)
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         top.Parser([no_main_graph], 's')
+    assert "graph main" in str(err)
 
 
 def test_invalid_component():
-    low_teq = 0.000000001
+    low_teq = 1e-9
     teq_too_low = textwrap.dedent(f"""\
     name: example
     body:
@@ -221,8 +223,9 @@ def test_invalid_extract_edges():
         }
     }
 
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         top.extract_edges(too_many_nodes)
+    assert "malformed nodes" in str(err)
 
 
 def test_load_iterables():
