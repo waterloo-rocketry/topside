@@ -1,3 +1,5 @@
+import textwrap
+
 import pytest
 
 import topside as top
@@ -76,71 +78,78 @@ def test_valid_file():
     }
 
 
+def test_single_file():
+    parsed = top.Parser(utils.example_path)
+
+    # results should be identical to the above, just check that it loaded
+    # in at all.
+    assert len(parsed.components) == 6
+
+
 def test_invalid_main():
     not_main = "NOT_MAIN"
-    no_main_graph =\
-        f"""
-name: example
-import: [stdlib]
-body:
-- component:
-    name: fill_valve
-    edges:
-      edge1:
-        nodes: [0, 1]
-    states:
-      open:
-        edge1: 6
-      closed:
-        edge1: closed
-- graph:
-    name: {not_main}
-    nodes:
-      A:
-        fixed_pressure: 500
-        components:
-          - [fill_valve, 0]
+    no_main_graph = textwrap.dedent(f"""\
+    name: example
+    import: [stdlib]
+    body:
+    - component:
+        name: fill_valve
+        edges:
+          edge1:
+            nodes: [0, 1]
+        states:
+          open:
+            edge1: 6
+          closed:
+            edge1: closed
+    - graph:
+        name: {not_main}
+        nodes:
+          A:
+            fixed_pressure: 500
+            components:
+              - [fill_valve, 0]
 
-      B:
-        components:
-          - [fill_valve, 1]
-    states:
-        fill_valve: open
-"""
-    with pytest.raises(exceptions.BadInputError):
+          B:
+            components:
+              - [fill_valve, 1]
+        states:
+          fill_valve: open
+    """)
+    with pytest.raises(exceptions.BadInputError) as err:
         top.Parser([no_main_graph], 's')
+    assert "graph main" in str(err)
 
 
 def test_invalid_component():
-    low_teq = 0.000000001
-    teq_too_low =\
-        f"""
-name: example
-body:
-- component:
-    name: fill_valve
-    edges:
-      edge1:
-        nodes: [0, 1]
-    states:
-      open:
-        edge1: {low_teq}
-      closed:
-        edge1: closed
-- graph:
-    name: main
-    nodes:
-      A:
-        fixed_pressure: 500
-        components:
-          - [fill_valve, 0]
+    low_teq = 1e-9
+    teq_too_low = textwrap.dedent(f"""\
+    name: example
+    body:
+    - component:
+        name: fill_valve
+        edges:
+          edge1:
+            nodes: [0, 1]
+        states:
+          open:
+            edge1: {low_teq}
+          closed:
+            edge1: closed
+    - graph:
+        name: main
+        nodes:
+          A:
+            fixed_pressure: 500
+            components:
+              - [fill_valve, 0]
 
-      B:
-        components:
-          - [fill_valve, 1]
-    states:
-      fill_valve: open
-    """
+          B:
+            components:
+              - [fill_valve, 1]
+        states:
+          fill_valve: open
+    """)
 
     # this shouldn't raise an error, invalid components are legal
     parse = top.Parser([teq_too_low], 's')
@@ -214,5 +223,72 @@ def test_invalid_extract_edges():
         }
     }
 
-    with pytest.raises(exceptions.BadInputError):
+    with pytest.raises(exceptions.BadInputError) as err:
         top.extract_edges(too_many_nodes)
+    assert "malformed nodes" in str(err)
+
+
+def test_load_iterables():
+    file_1 = textwrap.dedent("""\
+    name: file1
+    body:
+    - component:
+        name: fill_valve
+        edges:
+          edge1:
+            nodes: [0, 1]
+        states:
+          open:
+            edge1: 1
+          closed:
+            edge1: closed
+    - graph:
+        name: main
+        nodes:
+          A:
+            fixed_pressure: 500
+            components:
+              - [fill_valve, 0]
+
+          B:
+            components:
+              - [fill_valve, 1]
+        states:
+          fill_valve: open
+    """)
+
+    file_2 = textwrap.dedent("""\
+    name: file2
+    body:
+    - component:
+        name: check_valve
+        edges:
+          edge1:
+            nodes: [0, 1]
+        states:
+          open:
+            edge1: 1
+          closed:
+            edge1: closed
+    - graph:
+        name: main
+        nodes:
+          C:
+            fixed_pressure: 500
+            components:
+              - [check_valve, 0]
+
+          D:
+            components:
+              - [check_valve, 1]
+        states:
+          check_valve: open
+    """)
+
+    parse_list = top.Parser([file_1, file_2], 's')
+    parse_tuple = top.Parser((file_1, file_2), 's')
+    parse_dict = top.Parser({file_1: True, file_2: True}, 's')
+
+    assert len(parse_list.components) == 2
+    assert len(parse_tuple.components) == 2
+    assert len(parse_dict.components) == 2
