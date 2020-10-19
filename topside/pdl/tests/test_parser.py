@@ -1,4 +1,5 @@
 import pytest
+import textwrap
 
 import topside as top
 import topside.pdl.exceptions as exceptions
@@ -78,69 +79,67 @@ def test_valid_file():
 
 def test_invalid_main():
     not_main = "NOT_MAIN"
-    no_main_graph =\
-        f"""
-name: example
-import: [stdlib]
-body:
-- component:
-    name: fill_valve
-    edges:
-      edge1:
-        nodes: [0, 1]
-    states:
-      open:
-        edge1: 6
-      closed:
-        edge1: closed
-- graph:
-    name: {not_main}
-    nodes:
-      A:
-        fixed_pressure: 500
-        components:
-          - [fill_valve, 0]
+    no_main_graph = textwrap.dedent(f"""\
+    name: example
+    import: [stdlib]
+    body:
+    - component:
+        name: fill_valve
+        edges:
+        edge1:
+            nodes: [0, 1]
+        states:
+        open:
+            edge1: 6
+        closed:
+            edge1: closed
+    - graph:
+        name: {not_main}
+        nodes:
+        A:
+            fixed_pressure: 500
+            components:
+            - [fill_valve, 0]
 
-      B:
-        components:
-          - [fill_valve, 1]
-    states:
-        fill_valve: open
-"""
+        B:
+            components:
+            - [fill_valve, 1]
+        states:
+            fill_valve: open
+    """)
     with pytest.raises(exceptions.BadInputError):
         top.Parser([no_main_graph], 's')
 
 
 def test_invalid_component():
     low_teq = 0.000000001
-    teq_too_low =\
-        f"""
-name: example
-body:
-- component:
-    name: fill_valve
-    edges:
-      edge1:
-        nodes: [0, 1]
-    states:
-      open:
-        edge1: {low_teq}
-      closed:
-        edge1: closed
-- graph:
-    name: main
-    nodes:
-      A:
-        fixed_pressure: 500
-        components:
-          - [fill_valve, 0]
+    teq_too_low = textwrap.dedent(f"""\
+    name: example
+    body:
+    - component:
+        name: fill_valve
+        edges:
+          edge1:
+            nodes: [0, 1]
+        states:
+          open:
+            edge1: {low_teq}
+          closed:
+            edge1: closed
+    - graph:
+        name: main
+        nodes:
+          A:
+            fixed_pressure: 500
+            components:
+              - [fill_valve, 0]
 
-      B:
-        components:
-          - [fill_valve, 1]
-    states:
-      fill_valve: open
-    """
+          B:
+            components:
+              - [fill_valve, 1]
+        states:
+          fill_valve: open
+    """)
 
     # this shouldn't raise an error, invalid components are legal
     parse = top.Parser([teq_too_low], 's')

@@ -1,4 +1,5 @@
 import pytest
+import textwrap
 
 import topside as top
 import topside.pdl.exceptions as exceptions
@@ -84,23 +85,22 @@ def test_files_unchanged():
 
 def test_invalid_import():
     bad_import = "NONEXISTENT"
-    invalid_import =\
-        f"""
-name: example
-import: [stdlib, {bad_import}]
-body:
-- typedef:
-    params: [edge1, open_teq, closed_teq]
-    name: valve
-    edges:
-      edge1:
-        nodes: [0, 1]
-    states:
-      open:
-        edge1: open_teq
-      closed:
-        edge1: closed_teq
-"""
+    invalid_import = textwrap.dedent(f"""\
+    name: example
+    import: [stdlib, {bad_import}]
+    body:
+    - typedef:
+        params: [edge1, open_teq, closed_teq]
+        name: valve
+        edges:
+          edge1:
+            nodes: [0, 1]
+        states:
+          open:
+            edge1: open_teq
+          closed:
+            edge1: closed_teq
+    """)
     invalid_import_file = top.File(invalid_import, input_type='s')
     with pytest.raises(exceptions.BadInputError):
         top.Package([invalid_import_file])
@@ -111,19 +111,18 @@ def test_invalid_bad_import_type():
     # level, not at the file one. We can look at changing this if we change the implementation of
     # how importable files are stored.
     bad_type = "NONEXISTENT_TYPE"
-    bad_imported_type =\
-        f"""
-name: example
-import: [stdlib]
-body:
-- component:
-    name: vent_valve
-    type: stdlib.{bad_type}
-    params:
-      edge_name: fav_edge
-      open_teq: 5
-      closed_teq: closed
-"""
+    bad_imported_type = textwrap.dedent(f"""\
+    name: example
+    import: [stdlib]
+    body:
+    - component:
+        name: vent_valve
+        type: stdlib.{bad_type}
+        params:
+          edge_name: fav_edge
+          open_teq: 5
+          closed_teq: closed
+    """)
     bad_imported_type_file = top.File(bad_imported_type, input_type='s')
     with pytest.raises(exceptions.BadInputError):
         top.Package([bad_imported_type_file])
@@ -135,88 +134,84 @@ def test_invalid_empty_package():
 
 
 def test_invalid_nested_import():
-    nested_import =\
-        """
-name: example
-import: [stdlib]
-body:
-- component:
-    name: vent_valve
-    type: stdlib.NEST.hole
-    params:
-      edge_name: fav_edge
-      open_teq: 5
-"""
+    nested_import = textwrap.dedent("""\
+    name: example
+    import: [stdlib]
+    body:
+    - component:
+        name: vent_valve
+        type: stdlib.NEST.hole
+        params:
+          edge_name: fav_edge
+          open_teq: 5
+    """)
     nested_import_file = top.File(nested_import, input_type='s')
     with pytest.raises(NotImplementedError):
         top.Package([nested_import_file])
 
 
 def test_duplicate_names():
-    file_1 =\
-        """
-name: name1
-body:
-- component:
-    name: fill_valve
-    edges:
-      edge1:
-        nodes: [0, 1]
-    states:
-      open:
-        edge1: 6
-      closed:
-        edge1: closed
-"""
+    file_1 = textwrap.dedent("""\
+    name: name1
+    body:
+    - component:
+        name: fill_valve
+        edges:
+          edge1:
+            nodes: [0, 1]
+        states:
+          open:
+            edge1: 6
+          closed:
+            edge1: closed
+    """)
 
-    file_2 =\
-        """
-name: name2
-body:
-- component:
-    name: fill_valve
-    edges:
-      edge1:
-        nodes: [0, 1]
-    states:
-      open:
-        edge1: 6
-      closed:
-        edge1: closed
-"""
+    file_2 = textwrap.dedent("""\
+    name: name2
+    body:
+    - component:
+        name: fill_valve
+        edges:
+          edge1:
+            nodes: [0, 1]
+        states:
+          open:
+            edge1: 6
+          closed:
+            edge1: closed
+    """)
     duplicate_pack = top.Package([top.File(file_1, 's'), top.File(file_2, 's')])
     assert duplicate_pack.component_dict["name1"][0]['name'] == "name1.fill_valve"
     assert duplicate_pack.component_dict["name2"][0]['name'] == "name2.fill_valve"
 
 
 def test_invalid_graph_missing_states():
-    missing_states =\
-        """
-name: example
-import: [stdlib]
-body:
-- component:
-    name: fill_valve
-    edges:
-      edge1:
-        nodes: [0, 1]
-    states:
-      open:
-        edge1: 6
-      closed:
-        edge1: closed
-- graph:
-    name: main
-    nodes:
-      A:
-        fixed_pressure: 500
-        components:
-          - [fill_valve, 0]
+    missing_states = textwrap.dedent("""\
+    name: example
+    import: [stdlib]
+    body:
+    - component:
+        name: fill_valve
+        edges:
+          edge1:
+            nodes: [0, 1]
+        states:
+          open:
+            edge1: 6
+          closed:
+            edge1: closed
+    - graph:
+        name: main
+        nodes:
+          A:
+            fixed_pressure: 500
+            components:
+              - [fill_valve, 0]
 
-      B:
-        components:
-          - [fill_valve, 1]
-"""
+          B:
+            components:
+              - [fill_valve, 1]
+    """)
     missing_states_file = top.File(missing_states, 's')
     with pytest.raises(exceptions.BadInputError):
         top.Package([missing_states_file])
