@@ -18,7 +18,7 @@ class Parser:
         files: iterable
             files is the iterable (usually a list) of one or more paths of the PDL files we
             want parsed. Alternatively, it can also be a list of strings that are each a valid
-            PDL file.
+            PDL file. Alternatively, a single string or file path is also acceptable.
 
         input_type: char
             input_type indicates whether the argument provided to "files" is
@@ -26,6 +26,11 @@ class Parser:
 
         """
         file_list = []
+
+        # if a single element, put into list for processing
+        if not hasattr(files, '__iter__') or isinstance(files, str):
+            files = [files]
+
         for file in files:
             file_list.append(top.File(file, input_type))
         self.package = top.Package(file_list)

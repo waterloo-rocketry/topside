@@ -64,7 +64,7 @@ def test_invalid_typedef():
 
 
 def test_invalid_no_component_name():
-    no_name =textwrap.dedent("""\
+    no_name = textwrap.dedent("""\
     name: example
     import: [stdlib]
     body:
