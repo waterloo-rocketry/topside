@@ -1,4 +1,11 @@
 from dataclasses import dataclass
+import enum
+
+import topside as top
+
+
+class ExportFormat(enum.Enum):
+    Latex = 1
 
 
 @dataclass
@@ -23,15 +30,15 @@ class StateChangeAction:
     state: str
 
     def export(self, fmt):
-        if fmt == "latex":
-            if self.state == "open":
-                return "Open " + self.component
-            elif self.state == "closed":
-                return "Close " + self.component
+        if fmt == top.ExportFormat.Latex:
+            if self.state == 'open':
+                return 'Open ' + self.component
+            elif self.state == 'closed':
+                return 'Close ' + self.component
             else:
-                return "Set " + self.component + " to " + self.state
+                return 'Set ' + self.component + ' to ' + self.state
         else:
-            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+            raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
 @dataclass
@@ -45,6 +52,12 @@ class MiscAction:
         The string specifies which type of action it is.
     """
     action_type: str
+
+    def export(self, fmt):
+        if fmt == top.ExportFormat.Latex:
+            return self.action_type
+        else:
+            raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
 @dataclass
@@ -97,14 +110,14 @@ class ProcedureStep:
     operator: str
 
     def export(self, fmt):
-        if fmt == "latex":
+        if fmt == top.ExportFormat.Latex:
             retval = ''
             if self.operator != '':
                 retval += '\\' + self.operator + '{} '
             retval += self.action.export(fmt)
             return retval
         else:
-            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+            raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
 class Procedure:
@@ -162,31 +175,31 @@ class Procedure:
             self.step_list == other.step_list
 
     def export(self, fmt):
-        if fmt == "latex":
-            export_val = f"\\subsection{{{self.procedure_id}}}"
+        if fmt == top.ExportFormat.Latex:
+            export_val = f'\\subsection{{{self.procedure_id}}}'
             if len(self.step_list) > 0:
-                export_val += "\n\\begin{checklist}"
-                for index, i in enumerate(self.step_list):
-                    export_val += "\n    \\item " + i.export(fmt)
-                    wait_condition = ""
-                    jump_conditions = ""
-                    for t in i.conditions:
-                        if type(t[0]).__name__ != 'Immediate' and \
+                export_val += '\n\\begin{checklist}'
+                for index, step in enumerate(self.step_list):
+                    export_val += '\n    \\item ' + step.export(fmt)
+                    wait_condition = ''
+                    jump_conditions = ''
+                    for t in step.conditions:
+                        if not isinstance(t[0], top.Immediate) and \
                            t[1].procedure == self.procedure_id and \
                            t[1].step == self.step_list[index + 1].step_id:
-                            wait_condition = "\n    \\item Wait " + t[0].export(fmt)
-                        elif type(t[0]).__name__ != 'Immediate':
-                            cond = "\n    \\item If " + t[0].export(fmt)
-                            beg = "\n    \\begin{checklist}"
-                            action = "\n        \\item Begin " + t[1].procedure + " procedure"
-                            end = "\n    \\end{checklist}"
+                            wait_condition = '\n    \\item Wait ' + t[0].export(fmt)
+                        elif not isinstance(t[0], top.Immediate):
+                            cond = '\n    \\item If ' + t[0].export(fmt)
+                            beg = '\n    \\begin{checklist}'
+                            action = '\n        \\item Begin ' + t[1].procedure + ' procedure'
+                            end = '\n    \\end{checklist}'
                             jump_conditions += cond + beg + action + end
                     export_val += jump_conditions
                     export_val += wait_condition
-                export_val += "\n\\end{checklist}"
+                export_val += '\n\\end{checklist}'
             return export_val
         else:
-            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+            raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
 class ProcedureSuite:
@@ -234,7 +247,7 @@ class ProcedureSuite:
         return self.procedures[key]
 
     def export(self, fmt):
-        if fmt == 'latex':
+        if fmt == top.ExportFormat.Latex:
             exported_procedures = []
             exported_procedures.append(self.procedures[self.starting_procedure_id].export(fmt))
             for proc in self.procedures:
@@ -244,4 +257,4 @@ class ProcedureSuite:
             # TODO(aaron): properly sanitize latex characters, not just escaping _'s
             return '\n\n'.join(exported_procedures).replace('_', '\\_')
         else:
-            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+            raise NotImplementedError(f'Format "{fmt}" not supported')

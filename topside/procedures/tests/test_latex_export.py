@@ -1,6 +1,9 @@
-import pytest
-import topside as top
 import os
+
+import pytest
+import textwrap
+
+import topside as top
 
 
 def test_procedure_latex_export():
@@ -10,13 +13,14 @@ def test_procedure_latex_export():
 
     proc = top.Procedure('p1', [s1, s2])
 
-    export = proc.export('latex')
+    export = proc.export(top.ExportFormat.Latex)
 
-    expected_export = r'''\subsection{p1}
-\begin{checklist}
-    \item \PRIMARY{} Open remote fill valve
-    \item \SECONDARY{} Close remote vent valve
-\end{checklist}'''
+    expected_export = textwrap.dedent(r'''        \subsection{p1}
+        \begin{checklist}
+            \item \PRIMARY{} Open remote fill valve
+            \item \SECONDARY{} Close remote vent valve
+        \end{checklist}''')
+
     assert export == expected_export
 
 
@@ -30,18 +34,18 @@ def test_procedure_suite_latex_export():
 
     suite = top.ProcedureSuite([proc_main, proc_abort])
 
-    export = suite.export('latex')
+    export = suite.export(top.ExportFormat.Latex)
 
-    expected_export = r'''\subsection{main}
-\begin{checklist}
-    \item \PRIMARY{} Open remote fill valve
-    \item \SECONDARY{} Close remote vent valve
-\end{checklist}
+    expected_export = textwrap.dedent(r'''        \subsection{main}
+        \begin{checklist}
+            \item \PRIMARY{} Open remote fill valve
+            \item \SECONDARY{} Close remote vent valve
+        \end{checklist}
 
-\subsection{abort}
-\begin{checklist}
-    \item \SECONDARY{} Close remote vent valve
-\end{checklist}'''
+        \subsection{abort}
+        \begin{checklist}
+            \item \SECONDARY{} Close remote vent valve
+        \end{checklist}''')
 
     assert export == expected_export
 
@@ -56,23 +60,23 @@ def test_waituntil_latex_export():
         ])
     ])
 
-    export = suite.export('latex')
+    export = suite.export(top.ExportFormat.Latex)
 
     print(export)
 
-    expected_export = r'''\subsection{main}
-\begin{checklist}
-    \item \PRIMARY{} Open injector\_valve
-    \item Wait 10 seconds
-    \item \PRIMARY{} Close vent\_valve
-\end{checklist}'''
+    expected_export = textwrap.dedent(r'''        \subsection{main}
+        \begin{checklist}
+            \item \PRIMARY{} Open injector\_valve
+            \item Wait 10 seconds
+            \item \PRIMARY{} Close vent\_valve
+        \end{checklist}''')
 
     assert export == expected_export
 
 
 def test_proclang_file_latex_export():
     filepath = os.path.join(os.path.dirname(__file__), 'example.proc')
-    export = top.proclang.parse_from_file(filepath).export('latex')
+    export = top.proclang.parse_from_file(filepath).export(top.ExportFormat.Latex)
 
     # Need to add newline to export since the tex file ends with a newline
     export += '\n'
@@ -96,15 +100,15 @@ def test_waituntil_latex_export():
         ])
     ])
 
-    export = suite.export('latex')
+    export = suite.export(top.ExportFormat.Latex)
 
     print(export)
 
-    expected_export = r'''\subsection{main}
-\begin{checklist}
-    \item \PRIMARY{} Open injector\_valve
-    \item Wait 10 seconds and p1 is less than 400psi or p2 is greater than or equal to 17psi
-    \item \PRIMARY{} Close vent\_valve
-\end{checklist}'''
+    expected_export = textwrap.dedent(r'''        \subsection{main}
+        \begin{checklist}
+            \item \PRIMARY{} Open injector\_valve
+            \item Wait 10 seconds and p1 is less than 400psi or p2 is greater than or equal to 17psi
+            \item \PRIMARY{} Close vent\_valve
+        \end{checklist}''')
 
     assert export == expected_export

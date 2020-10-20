@@ -1,3 +1,6 @@
+import topside as top
+
+
 class Immediate:
     """Condition that is always satisfied."""
 
@@ -59,10 +62,10 @@ class And:
         return type(self) == type(other) and self._conditions == other._conditions
 
     def export(self, fmt):
-        if fmt == 'latex':
+        if fmt == top.ExportFormat.Latex:
             return ' and '.join([cond.export(fmt) for cond in self._conditions])
         else:
-            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+            raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
 class Or:
@@ -111,10 +114,10 @@ class Or:
         return type(self) == type(other) and self._conditions == other._conditions
 
     def export(self, fmt):
-        if fmt == 'latex':
+        if fmt == top.ExportFormat.Latex:
             return ' or '.join([cond.export(fmt) for cond in self._conditions])
         else:
-            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+            raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
 class WaitUntil:
@@ -160,10 +163,10 @@ class WaitUntil:
         return type(self) == type(other) and self.target_t == other.target_t
 
     def export(self, fmt):
-        if fmt == 'latex':
+        if fmt == top.ExportFormat.Latex:
             return f'{round(self.target_t / 1e6)} seconds'
         else:
-            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+            raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
 class Comparison:
@@ -267,10 +270,10 @@ class Equal(Comparison):
             self.eps == other.eps
 
     def export(self, fmt):
-        if fmt == 'latex':
-            return self.node + " is equal to " + str(round(self.reference_pressure)) + "psi"
+        if fmt == top.ExportFormat.Latex:
+            return f'{self.node} is equal to {round(self.reference_pressure)}psi'
         else:
-            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+            raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
 class Less(Comparison):
@@ -281,10 +284,10 @@ class Less(Comparison):
         return current_pressure < reference_pressure
 
     def export(self, fmt):
-        if fmt == 'latex':
-            return self.node + " is less than " + str(round(self.reference_pressure)) + "psi"
+        if fmt == top.ExportFormat.Latex:
+            return f'{self.node} is less than {round(self.reference_pressure)}psi'
         else:
-            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+            raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
 class Greater(Comparison):
@@ -295,10 +298,10 @@ class Greater(Comparison):
         return current_pressure > reference_pressure
 
     def export(self, fmt):
-        if fmt == 'latex':
-            return self.node + " is greater than " + str(round(self.reference_pressure)) + "psi"
+        if fmt == top.ExportFormat.Latex:
+            return f'{self.node} is greater than {round(self.reference_pressure)}psi'
         else:
-            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+            raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
 class LessEqual(Comparison):
@@ -309,10 +312,10 @@ class LessEqual(Comparison):
         return current_pressure <= reference_pressure
 
     def export(self, fmt):
-        if fmt == 'latex':
-            return self.node + " is less than or equal to " + str(round(self.reference_pressure)) + "psi"
+        if fmt == top.ExportFormat.Latex:
+            return f'{self.node} is less than or equal to {round(self.reference_pressure)}psi'
         else:
-            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+            raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
 class GreaterEqual(Comparison):
@@ -323,7 +326,7 @@ class GreaterEqual(Comparison):
         return current_pressure >= reference_pressure
 
     def export(self, fmt):
-        if fmt == 'latex':
-            return self.node + " is greater than or equal to " + str(round(self.reference_pressure)) + "psi"
+        if fmt == top.ExportFormat.Latex:
+            return f'{self.node} is greater than or equal to {round(self.reference_pressure)}psi'
         else:
-            raise NotImplementedError(f'Format \"{fmt}\" not supported')
+            raise NotImplementedError(f'Format "{fmt}" not supported')
