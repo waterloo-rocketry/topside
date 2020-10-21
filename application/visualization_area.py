@@ -110,7 +110,7 @@ class VisualizationArea(QQuickPaintedItem):
         self.node_font = QFont('Arial', 8)
         self.component_font = QFont('Arial', 8, QFont.Bold)
 
-        if self.DEBUG_MODE:  # pragma: no cover
+        if self.DEBUG_MODE:
             print('VisualizationArea created!')
 
     def scale_and_center(self):
@@ -142,12 +142,12 @@ class VisualizationArea(QQuickPaintedItem):
         pen = QPen(self.color_property)
         painter.setPen(pen)
 
-        if self.DEBUG_MODE:  # pragma: no cover
+        if self.DEBUG_MODE:
             painter.setFont(self.big_font)
             painter.drawText(100, 100, 'Display Functional')
 
         if self.engine_instance:
-            if self.DEBUG_MODE:  # pragma: no cover
+            if self.DEBUG_MODE:
                 print('engine print active')
 
             # Uses the drawing algorithm from plotting.py to draw the graph using the painter
@@ -163,7 +163,7 @@ class VisualizationArea(QQuickPaintedItem):
             for node in t.nodes:
                 pt = pos[node]
 
-                if self.DEBUG_MODE:  # pragma: no cover
+                if self.DEBUG_MODE:
                     print('node: ' + str(pt[0]) + str(pt[1]))
 
                 painter.drawEllipse(QPointF(pt[0], pt[1]), 5, 5)
@@ -172,7 +172,7 @@ class VisualizationArea(QQuickPaintedItem):
                 p1 = pos[edge[0]]
                 p2 = pos[edge[1]]
 
-                if self.DEBUG_MODE:  # pragma: no cover
+                if self.DEBUG_MODE:
                     print('edge1: ' + str(p1[0]) + str(p1[1]))
                     print('edge2: ' + str(p2[0]) + str(p2[1]))
 
@@ -180,7 +180,7 @@ class VisualizationArea(QQuickPaintedItem):
 
             self.paint_labels(painter)
 
-            if self.DEBUG_MODE:  # pragma: no cover
+            if self.DEBUG_MODE:
                 print('engine print complete')
 
     def paint_labels(self, painter):
@@ -224,7 +224,7 @@ class VisualizationArea(QQuickPaintedItem):
             The event which contains all of the data about where the move occurred.
         """
 
-        if self.DEBUG_MODE:  # pragma: no cover
+        if self.DEBUG_MODE:
             print('Drag Track:' + str(event.x()) + ' ' + str(event.y()))
         event.accept()
 
@@ -241,7 +241,7 @@ class VisualizationArea(QQuickPaintedItem):
         event: QMouseEvent
             The event which contains all of the data about where the press occurred.
         """
-        if self.DEBUG_MODE:  # pragma: no cover
+        if self.DEBUG_MODE:
             print('Press: ' + str(event.x()) + ' ' + str(event.y()))
         event.accept()
 
@@ -259,7 +259,7 @@ class VisualizationArea(QQuickPaintedItem):
         event: QHoverEvent
             The event which contains all of the data about where the hover move occurred.
         """
-        if self.DEBUG_MODE:  # pragma: no cover
+        if self.DEBUG_MODE:
             print('Hover track: ' + str(event.pos().x()) + ' ' + str(event.pos().y()))
         event.accept()
 

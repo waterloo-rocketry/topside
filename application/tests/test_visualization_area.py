@@ -20,8 +20,9 @@ class MockLine:
     p2: tuple
 
     def __eq__(self, other):
-        return (self.p1 == other.p1 and self.p2 == other.p2) or \
-               (self.p1 == other.p2 and self.p2 == other.p1)
+        return (type(self) == type(other)) and \
+               ((self.p1 == other.p1 and self.p2 == other.p2) or \
+                (self.p1 == other.p2 and self.p2 == other.p1))
 
     def __lt__(self, other):
         """
