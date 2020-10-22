@@ -126,6 +126,7 @@ class File:
         """Validate typedef implementation components specifically."""
         check_fields(entry, ['name', 'type', 'params'])
         def_type = entry['type']
+
         # a '.' indicates it's an import, which will be checked later.
         if '.' in def_type:
             self.components.append(entry)
@@ -134,15 +135,25 @@ class File:
             raise exceptions.BadInputError(f"typedef {def_type} not found; typedef must "
                                            "be defined before being referenced")
 
-        # TODO(wendi): support default arguments
         params = self.typedefs[def_type]['params']
         if len(params) != len(entry):
             raise exceptions.BadInputError(f"not all params ({params}) present in component "
                                            "declaration")
 
+        # default arguments using syntax (parameter=default_value) 
         for param in params:
-            if param not in entry['params']:
-                raise exceptions.BadInputError(f"param {param} not found")
+            if '=' in param:
+                default_param = param.split('=')
+                if not default_param[1]:
+                    raise exceptions.BadInputError("default argument operator ('=') used for "
+                                                    f"param {param} but no argument found")
+                
+                if param not in entry['params']:
+                    entry['params'][default_param[0]] = default_param[1]
+
+            elif param not in entry['params']:
+                raise exceptions.BadInputError(f"param {param} not found and default argument "
+                                                "not specified")
 
         self.components.append(entry)
 

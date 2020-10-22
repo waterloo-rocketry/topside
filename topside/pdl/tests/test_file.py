@@ -101,7 +101,7 @@ body:
         _ = top.File(no_state_no_teq, input_type='s')
 
 
-def test_invalide_param_missing():
+def test_invalid_param_missing_no_default_arg():
     param_missing =\
         """
 name: example
@@ -127,6 +127,34 @@ body:
 """
     with pytest.raises(exceptions.BadInputError):
         _ = top.File(param_missing, input_type='s')
+
+def test_invalid_no_default_arg():
+    no_default_arg =\
+        """
+name: example
+import: [stdlib]
+body:
+- typedef:
+    params: [edge1, open_teq, closed_teq=]
+    name: valve
+    edges:
+      edge1:
+        nodes: [0, 1]
+    states:
+      open:
+        edge1: open_teq
+      closed:
+        edge1: closed_teq
+- component:
+    name: vent_valve
+    type: valve
+    params:
+      edge1: fav_edge
+      open_teq: 1
+      closed_teq: closed
+"""
+    with pytest.raises(exceptions.BadInputError):
+        _ = top.File(no_default_arg, input_type='s')
 
 
 def test_invalid_no_hoisting():
