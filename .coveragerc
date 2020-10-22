@@ -7,3 +7,8 @@ omit =
     */__init__.py
     */tests/*
     topside/release_info.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if self.DEBUG_MODE:
