@@ -22,6 +22,18 @@ ApplicationWindow {
             title: "&File"
 
             Action {
+                text: "Open Procedure Suite"
+                shortcut: "Ctrl+O"
+                onTriggered: proceduresBridge.loadFromDialog()
+            }
+
+            Action {
+                text: "Open Plumbing Engine"
+                shortcut: "Ctrl+Shift+O"
+                onTriggered: plumbingBridge.loadFromDialog()
+            }
+
+            Action {
                 text: "&Quit"
                 shortcut: StandardKey.Quit
                 onTriggered: mainWindow.close()

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from functools import partial
+from warnings import warn
 
 import numpy as np
 from scipy.optimize import minimize, NonlinearConstraint
@@ -129,7 +130,7 @@ def layout_plumbing_engine(plumbing_engine):
         that the node should be placed at.
     """
     t = top.terminal_graph(plumbing_engine)
-    components = top.component_nodes(plumbing_engine)
+    components = list(top.component_nodes(plumbing_engine).values())
 
     node_indices = {n: i for i, n in enumerate(t.nodes)}
 
@@ -150,7 +151,8 @@ def layout_plumbing_engine(plumbing_engine):
     # to try other methods (trust-exact, trust-krylov, etc.).
     initial_positioning_res = minimize(cost_fn, initial_pos, jac=True, method='BFGS',
                                        args=stage_1_args, options={'maxiter': 400})
-    print(initial_positioning_res)
+    if not initial_positioning_res.success:
+        warn('Initial positioning optimization stage was unsuccessful!')
 
     constraints = make_constraints(components, node_indices)
 
@@ -162,7 +164,8 @@ def layout_plumbing_engine(plumbing_engine):
     fine_tuning_res = minimize(cost_fn, initial_positioning_res.x, jac=True, method='SLSQP',
                                constraints=constraints, args=stage_2_args,
                                options={'maxiter': 200})
-    print(fine_tuning_res)
+    if not fine_tuning_res.success:
+        warn('Fine-tuning optimization stage was unsuccessful!')
 
     pos = top.vector_to_pos_dict(fine_tuning_res.x, node_indices)
 

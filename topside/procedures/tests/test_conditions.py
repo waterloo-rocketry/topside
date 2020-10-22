@@ -1,5 +1,3 @@
-import pytest
-
 import topside as top
 from topside.procedures.tests.testing_utils import NeverSatisfied
 
@@ -18,7 +16,7 @@ def test_immediate_equality():
     cond2 = top.Immediate()
 
     assert cond1 == cond2
-    assert cond1 != None
+    assert cond1 is not None
 
 
 def test_wait_until_condition_exact():
@@ -57,7 +55,7 @@ def test_wait_until_equality():
     assert cond1 != cond3
 
     assert cond1 != 100
-    assert cond1 != None
+    assert cond1 is not None
 
 
 def test_equal_condition_equal():
@@ -102,7 +100,7 @@ def test_equal_condition_equality():
     assert cond1 != cond6
 
     assert cond1 != 100
-    assert cond1 != None
+    assert cond1 is not None
 
 
 def test_less_condition_equal():
@@ -288,7 +286,7 @@ def test_and_equality():
     assert and_1 != and_3
 
     assert and_1 != 10
-    assert and_1 != None
+    assert and_1 is not None
 
 
 def test_or_one_condition():
@@ -353,7 +351,7 @@ def test_or_equality():
     assert or_1 != or_3
 
     assert or_1 != 10
-    assert or_1 != None
+    assert or_1 is not None
 
 
 def test_nested_logic_works():

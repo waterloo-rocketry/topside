@@ -1,0 +1,184 @@
+name: example
+
+body:
+
+### TYPEDEFS
+
+- typedef:
+    params: [open_teq, closed_teq]
+    name: valve
+    edges:
+      edge:
+        nodes: [0, 1]
+    states:
+      open:
+        edge: open_teq
+      closed:
+        edge: closed_teq
+
+### COMPONENTS
+
+- component:
+    name: SC_001
+    type: valve
+    params:
+      open_teq: 1
+      closed_teq: closed
+
+- component:
+    name: BA_001
+    type: valve
+    params:
+      open_teq: 1
+      closed_teq: closed
+
+- component:
+    name: O_MV_1
+    type: valve
+    params:
+      open_teq: 1
+      closed_teq: closed
+
+- component:
+    name: BA_002
+    type: valve
+    params:
+      open_teq: 1
+      closed_teq: closed
+
+- component:
+    name: BA_003
+    type: valve
+    params:
+      open_teq: 1
+      closed_teq: closed
+
+- component:
+    name: TK_001
+    edges:
+      edge1:
+        nodes: [bottom, top]
+        teq: {fwd: 30, back: 3}
+
+- component:
+    name: O_MV_2
+    type: valve
+    params:
+      open_teq: 1800
+      closed_teq: closed
+
+- component:
+    name: O_PR_1
+    type: valve
+    params:
+      open_teq: 1
+      closed_teq: closed
+
+- component:
+    name: O_MV_3
+    type: valve
+    params:
+      open_teq: 1
+      closed_teq: closed
+
+- component:
+    name: BA_004
+    type: valve
+    params:
+      open_teq: 1
+      closed_teq: closed
+
+- component:
+    name: BA_005
+    type: valve
+    params:
+      open_teq: 1
+      closed_teq: closed
+
+- component:
+    name: TK_002
+    edges:
+      edge1:
+        nodes: [bottom, top]
+        teq: {fwd: 30, back: 3}
+
+- component:
+    name: O_MV_4
+    type: valve
+    params:
+      open_teq: 1800
+      closed_teq: closed
+
+- component:
+    name: O_PR_2
+    type: valve
+    params:
+      open_teq: 1
+      closed_teq: closed
+
+### GRAPHS
+
+- graph:
+    name: main
+    nodes:
+      SUPPLY:
+        fixed_pressure: 500
+        components:
+          - [SC_001, 0]
+      A:
+        components:
+          - [SC_001, 1]
+          - [BA_001, 0]
+          - [BA_002, 0]
+      B:
+        components:
+          - [BA_001, 1]
+          - [O_MV_1, 0]
+      C:
+        components:
+          - [O_MV_1, 1]
+          - [BA_002, 1]
+          - [BA_003, 0]
+          - [TK_001, bottom]
+          - [O_MV_3, 0]
+      D:
+        components:
+          - [TK_001, top]
+          - [O_MV_2, 0]
+          - [O_PR_1, 0]
+      E:
+        components:
+          - [O_MV_3, 1]
+          - [BA_005, 0]
+          - [BA_004, 0]
+      F:
+        components:
+          - [BA_005, 1]
+          - [TK_002, bottom]
+      G:
+        components:
+          - [TK_002, top]
+          - [O_MV_4, 0]
+          - [O_PR_2, 0]
+      atm:
+        components:
+          - [BA_003, 1]
+          - [BA_004, 1]
+          - [O_MV_2, 1]
+          - [O_PR_1, 1]
+          - [O_MV_4, 1]
+          - [O_PR_2, 1]
+
+    states:
+        SC_001: closed
+        BA_001: open
+        O_MV_1: closed
+        BA_002: closed
+        BA_003: closed
+        O_MV_2: open
+        O_PR_1: closed
+        O_MV_3: closed
+        BA_004: closed
+        BA_005: closed
+        O_MV_4: open
+        O_PR_2: closed

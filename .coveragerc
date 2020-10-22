@@ -1,0 +1,9 @@
+[run]
+branch = True
+source =
+    application
+    topside
+omit =
+    */__init__.py
+    */tests/*
+    topside/release_info.py

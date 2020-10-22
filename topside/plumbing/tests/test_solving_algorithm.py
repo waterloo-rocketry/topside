@@ -72,9 +72,9 @@ def test_closed_engine():
 # Scenario based tests - these are meaty. Abbreviated descriptions come before the tests, but
 # for an in depth description match the test number to what's on this doc:
 # https://docs.google.com/document/d/1LwhcKiIn0qAECpmaBOFtkG4EBmUxXTU9uzSczCwrvpo/edit?usp=sharing
-# Each solve test has a value in micros, steady_by, which indicates the point at which it should be steady.
-# To test solve(), its result is compared against that of plumb.step(steady_by). Solve must converge
-# within 2*steady_by seconds.
+# Each solve test has a value in micros, steady_by, which indicates the point at which it should
+# be steady. To test solve(), its result is compared against that of plumb.step(steady_by). Solve
+# must converge within 2*steady_by seconds.
 
 
 def test_misc_engine():

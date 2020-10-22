@@ -1,7 +1,5 @@
 import copy
 
-import pytest
-
 import topside as top
 from topside.procedures.tests.testing_utils import NeverSatisfied
 
@@ -91,6 +89,44 @@ def branching_procedure_suite_two_options():
     proc_2 = top.Procedure('p2', [s1, s2, s3])
 
     return top.ProcedureSuite([proc_1, proc_2], 'p1')
+
+
+def test_load_suite():
+    p1s1 = top.ProcedureStep('p1s1', top.StateChangeAction('injector_valve', 'open'), [], 'PRIMARY')
+    suite_1 = top.ProcedureSuite([top.Procedure('p1', [p1s1])], 'p1')
+
+    p2s1 = top.ProcedureStep('p2s1', top.StateChangeAction('injector_valve', 'closed'), [],
+                             'SECONDARY')
+    suite_2 = top.ProcedureSuite([top.Procedure('p2', [p2s1])], 'p2')
+
+    proc_eng = top.ProceduresEngine(None, suite_1)
+
+    assert proc_eng._suite == suite_1
+    assert proc_eng.current_procedure_id == 'p1'
+    assert proc_eng.current_step == p1s1
+
+    proc_eng.load_suite(suite_2)
+
+    assert proc_eng._suite == suite_2
+    assert proc_eng.current_procedure_id == 'p2'
+    assert proc_eng.current_step == p2s1
+
+
+def test_reset():
+    plumb_eng = one_component_engine()
+    proc_eng = top.ProceduresEngine(plumb_eng, branching_procedure_suite_one_option())
+
+    assert proc_eng.current_procedure_id == 'p1'
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'closed'
+    proc_eng.next_step()
+    assert proc_eng.current_procedure_id == 'p2'
+    assert proc_eng.current_step.step_id == 's3'
+    assert plumb_eng.current_state('c1') == 'open'
+    proc_eng.reset()
+    assert proc_eng.current_procedure_id == 'p1'
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'open'  # Plumbing engine is unaffected by reset()
 
 
 def test_execute_custom_action():
@@ -185,7 +221,8 @@ def test_transitions_respects_procedure_identifier():
     action = top.StateChangeAction('c1', 'open')
 
     s1 = top.ProcedureStep('s1', None, [(NeverSatisfied(), top.Transition('p1', 'same_name')),
-                                        (top.Immediate(), top.Transition('p2', 'same_name'))], 'PRIMARY')
+                                        (top.Immediate(), top.Transition('p2', 'same_name'))],
+                           'PRIMARY')
     same_name_1 = top.ProcedureStep('same_name', action, [], 'PRIMARY')
     same_name_2 = top.ProcedureStep('same_name', action, [], 'PRIMARY')
 

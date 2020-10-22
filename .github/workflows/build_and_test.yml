@@ -1,4 +1,4 @@
-name: Build Executable [PyInstaller]
+name: Build and Test
 
 on:
   push:
@@ -37,6 +37,7 @@ jobs:
         pip install wheel
         pip install flake8
         pip install pytest-cov
+        pip install codecov
         pip install -r requirements.txt
 
     - name: Lint with flake8
@@ -45,13 +46,15 @@ jobs:
         # error codes shown by `--select` can be found
         # here (F): https://flake8.pycqa.org/en/latest/user/error-codes.html
         # and here (E): https://pycodestyle.pycqa.org/en/latest/intro.html#error-codes
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings.
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
+        flake8 . --select=E9,F63,F7,F82
 
     - name: Test with pytest
       run: |
-        pytest --cov=topside
+        pytest --cov --cov-report=xml:coverage.xml
+
+    - name: Upload coverage report
+      run: |
+        codecov
 
     - name: Build and run application
       run: |

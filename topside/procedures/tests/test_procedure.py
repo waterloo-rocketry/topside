@@ -53,7 +53,7 @@ def test_procedure_equality_different_type():
 
     assert proc_1 != 'proc_1'
     assert proc_1 != 10
-    assert proc_1 != None
+    assert proc_1 is not None
 
 
 def test_procedure_equality_equal():
@@ -166,7 +166,7 @@ def test_procedure_suite_equality_different_type():
 
     assert suite_1 != 'suite_1'
     assert suite_1 != 10
-    assert suite_1 != None
+    assert suite_1 is not None
 
 
 def test_procedure_suite_equality_equal():

@@ -146,7 +146,7 @@ def test_multiple_errors():
 def test_component_dicts_remain_unchanged():
     teq = 5
     pc_states, edges = two_edge_states_edges(teq, teq, teq, teq)
-    pc = top.PlumbingComponent('valve', pc_states, edges)
+    _ = top.PlumbingComponent('valve', pc_states, edges)
 
     assert pc_states == two_edge_states_edges(teq, teq, teq, teq)[0]
     assert pc_states != {
