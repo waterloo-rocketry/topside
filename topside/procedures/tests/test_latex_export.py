@@ -1,7 +1,7 @@
 import os
+import textwrap
 
 import pytest
-import textwrap
 
 import topside as top
 
@@ -62,8 +62,6 @@ def test_waituntil_latex_export():
 
     export = suite.export(top.ExportFormat.Latex)
 
-    print(export)
-
     expected_export = textwrap.dedent(r'''        \subsection{main}
         \begin{checklist}
             \item \PRIMARY{} Open injector\_valve
@@ -101,8 +99,6 @@ def test_waituntil_latex_export():
     ])
 
     export = suite.export(top.ExportFormat.Latex)
-
-    print(export)
 
     expected_export = textwrap.dedent(r'''        \subsection{main}
         \begin{checklist}
