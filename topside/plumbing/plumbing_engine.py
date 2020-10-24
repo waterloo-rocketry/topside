@@ -50,12 +50,38 @@ class PlumbingEngine:
         if not initial_states:
             initial_states = {}
 
+        self.initial_components = components
+        self.initial_mapping = mapping
+        self.initial_pressure = initial_pressures
+        self.initial_state = initial_states
         self.time_res = utils.DEFAULT_TIME_RESOLUTION_MICROS
         self.time = 0
         self.plumbing_graph = nx.MultiDiGraph()
         self.error_set = set()
         self.fixed_pressures = {}
         self.load_graph(components, mapping, initial_pressures, initial_states)
+
+    def reset(self):
+        """
+
+        Reset the Plumbing Engine
+
+        """
+
+        for name in self.initial_state:
+            if name not in self.current_state():
+                self.add_component(self.initial_components[name], self.initial_mapping[name],
+                                   self.initial_state[name])
+
+        for name in self.current_state():
+            if name not in self.initial_state:
+                self.remove_component(name)
+            else:
+                self.set_component_state(name, self.initial_state[name])
+
+        for node in self.current_pressures():
+            if node in self.initial_pressure:
+                self.set_pressure(node, self.initial_pressure[node][0])
 
     def load_graph(self, components, mapping, initial_pressures, initial_states):
         """
