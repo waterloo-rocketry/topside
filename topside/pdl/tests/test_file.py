@@ -197,7 +197,7 @@ def test_bad_entry():
     body:
     - {nonexistent}:
         name: a
-    
+
     - graph:
         name: main
         nodes:
