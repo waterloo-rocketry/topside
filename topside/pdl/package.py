@@ -150,21 +150,13 @@ class Package:
             name = fields[-1]
         if name not in self.typedefs[namespace]:
             raise exceptions.BadInputError(f"invalid component type: {name}")
-        
-        # default arguments using syntax (parameter=default_value) 
+
+        # default arguments using syntax (parameter=default_value)
         for param in self.typedefs[namespace][name]['params']:
             if '=' in param:
                 default_param = param.split('=')
-                if not default_param[1]:
-                    raise exceptions.BadInputError("default argument operator ('=') used for "
-                                                    f"param {param} but no argument found")
-                
-                if param not in component['params']:
+                if default_param[0] not in component['params']:
                     component['params'][default_param[0]] = default_param[1]
-
-            elif param not in component['params']:
-                raise exceptions.BadInputError(f"param {param} not found and default argument "
-                                                "not specified")
 
         params = component['params']
         body = yaml.dump(self.typedefs[namespace][name])

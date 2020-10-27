@@ -50,6 +50,7 @@ body:
     params:
       edge_name: fav_edge
       open_teq: 5
+      closed_teq: 100
 
 - component:
     name: three_way_valve
