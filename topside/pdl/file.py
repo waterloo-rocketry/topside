@@ -136,6 +136,9 @@ class File:
                                            "be defined before being referenced")
 
         params = self.typedefs[def_type]['params']
+        if len(params) < len(entry['params']):
+            raise exceptions.BadInputError(f"params ({entry['params']}) present in component "
+                                           "declaration not found in typedef decleration")
 
         # default arguments using syntax (parameter=default_value)
         for param in params:
