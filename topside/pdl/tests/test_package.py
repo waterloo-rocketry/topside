@@ -62,6 +62,63 @@ def test_package_typedefs():
             assert var_open not in component['states']['open']
 
 
+def test_default_arg_overwritten():
+    default_arg_overwritten = textwrap.dedent("""\
+    name: example
+    import: [stdlib]
+    body:
+    - typedef:
+        params: [edge1=default, open_teq, closed_teq]
+        name: valve
+        edges:
+          edge1:
+            nodes: [0, 1]
+        states:
+          open:
+            edge1: open_teq
+          closed:
+            edge1: closed_teq
+    - component:
+        name: vent_valve
+        type: valve
+        params:
+          edge1: fav_edge
+          open_teq: 1
+          closed_teq: closed
+    """)
+
+    pack = top.Package([top.File(default_arg_overwritten, 's')])
+    assert 'fav_edge' in pack.component_dict['example'][0]['edges']
+
+
+def test_default_arg_inserted():
+    default_arg_inserted = textwrap.dedent("""\
+    name: example
+    import: [stdlib]
+    body:
+    - typedef:
+        params: [edge1=default, open_teq, closed_teq]
+        name: valve
+        edges:
+          edge1:
+            nodes: [0, 1]
+        states:
+          open:
+            edge1: open_teq
+          closed:
+            edge1: closed_teq
+    - component:
+        name: vent_valve
+        type: valve
+        params:
+          open_teq: 1
+          closed_teq: closed
+    """)
+
+    pack = top.Package([top.File(default_arg_inserted, 's')])
+    assert 'default' in pack.component_dict['example'][0]['edges']
+
+
 def test_package_shortcuts():
     file = top.File(utils.example_path)
     namespace = file.namespace
