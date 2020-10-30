@@ -47,9 +47,8 @@ def make_constraints(components, node_indices):
 
         cons_f = partial(top.right_angle_cons_f, i, j)
         cons_j = partial(top.right_angle_cons_j, i, j)
-        cons_h = partial(top.right_angle_cons_h, i, j)
 
-        cons = NonlinearConstraint(cons_f, 0, 0, jac=cons_j, hess=cons_h)
+        cons = NonlinearConstraint(cons_f, 0, 0, jac=cons_j)
 
         constraints.append(cons)
 

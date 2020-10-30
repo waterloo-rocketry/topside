@@ -113,6 +113,19 @@ class VisualizationArea(QQuickPaintedItem):
         if self.DEBUG_MODE:
             print('VisualizationArea created!')
 
+    def scale_and_center(self):
+        """
+        Scale coordinates to fill and center in the visualization pane.
+        """
+        scale, x_offset, y_offset = get_positioning_params(self.layout_pos.values(), self.width(),
+                                                           self.height(), self.scaling_factor)
+
+        for node in self.terminal_graph.nodes:
+            self.layout_pos[node][0] *= scale
+            self.layout_pos[node][0] += x_offset
+            self.layout_pos[node][1] *= scale
+            self.layout_pos[node][1] += y_offset
+
     def paint(self, painter):
         """
         Detail the instruction for how the item is to be rendered in the application.
@@ -142,22 +155,16 @@ class VisualizationArea(QQuickPaintedItem):
             t = self.terminal_graph
             pos = self.layout_pos
 
-            scale, x_offset, y_offset = get_positioning_params(pos.values(), self.width(),
-                                                               self.height(), self.scaling_factor)
+            # Scaling is done on the first draw while nodes are being accessed for the first time
+            if not self.scaled:
+                self.scale_and_center()
+                self.scaled = True
 
             for node in t.nodes:
                 pt = pos[node]
 
                 if self.DEBUG_MODE:
                     print('node: ' + str(pt[0]) + str(pt[1]))
-
-                if not self.scaled:
-                    # Adjust the coordinates so they fall onto the draw surface
-                    pt[0] *= scale
-                    pt[0] += x_offset
-
-                    pt[1] *= scale
-                    pt[1] += y_offset
 
                 painter.drawEllipse(QPointF(pt[0], pt[1]), 5, 5)
 
@@ -172,10 +179,6 @@ class VisualizationArea(QQuickPaintedItem):
                 painter.drawLine(p1[0], p1[1], p2[0], p2[1])
 
             self.paint_labels(painter)
-
-            # Scaling is done on the first draw while nodes are being accessed for the first time
-            if not self.scaled:
-                self.scaled = True
 
             if self.DEBUG_MODE:
                 print('engine print complete')
@@ -293,7 +296,7 @@ class VisualizationArea(QQuickPaintedItem):
     @Slot(top.PlumbingEngine)
     def uploadEngineInstance(self, engine):
         """
-        Sets the local engine to the input variable and initializes associated local objects.
+        Set the local engine to the input variable and initialize associated local objects.
 
         Setter and initializer for uploading an engine to be displayed. After an engine is set,
         the according layout and terminal graph is generated from the engine data.
