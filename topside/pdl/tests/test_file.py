@@ -154,6 +154,35 @@ def test_invalid_no_default_arg():
         _ = top.File(no_default_arg, input_type='s')
 
 
+def test_invalid_undefined_component_param():
+    undefined_component_param = textwrap.dedent("""\
+    name: example
+    import: [stdlib]
+    body:
+    - typedef:
+        params: [edge1, open_teq, closed_teq]
+        name: valve
+        edges:
+          edge1:
+            nodes: [0, 1]
+        states:
+          open:
+            edge1: open_teq
+          closed:
+            edge1: closed_teq
+    - component:
+        name: vent_valve
+        type: valve
+        params:
+          edge1: fav_edge
+          open_teq: 1
+          closed_teq: closed
+          extra_param: 100
+    """)
+    with pytest.raises(exceptions.BadInputError):
+        _ = top.File(undefined_component_param, input_type='s')
+
+
 def test_invalid_no_hoisting():
     no_hoisting = textwrap.dedent("""\
     name: example
