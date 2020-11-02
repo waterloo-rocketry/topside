@@ -18,7 +18,7 @@ procedure: name ":" step+
 name: NAME
 
 step: step_id "." personnel ":" [condition] action deviation*
-step_id: NAME
+step_id: (LETTER | DIGIT | "_")+
 personnel: NAME
 
 action: state_change_action | misc_action
@@ -27,7 +27,7 @@ state_change_action: ( "set" | "Set" ) component "to" state
 component: NAME
 state: NAME
 
-misc_action: STRING
+misc_action: SENTENCE
 
 deviation: "-" condition transition
 transition: name "." step_id
@@ -57,8 +57,8 @@ operator: "<"    -> lt
         | ">="   -> ge
         | "=="   -> eq
 
-NAME: (LETTER | DIGIT) (LETTER | DIGIT | "_")*
-STRING: (LETTER) (LETTER | DIGIT | "_" | " ")*
+NAME: (LETTER | "_") (LETTER | DIGIT | "_")*
+SENTENCE: (LETTER) (LETTER | DIGIT | "_" | " ")*
 '''
 
 parser = Lark(grammar, start='document')
