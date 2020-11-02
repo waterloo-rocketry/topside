@@ -15,15 +15,19 @@ grammar = '''
 
 document: procedure*
 procedure: name ":" step+
-name: STRING
+name: NAME
 
 step: step_id "." personnel ":" [condition] action deviation*
-step_id: STRING
-personnel: STRING
+step_id: NAME
+personnel: NAME
 
-action: "set" component "to" state
-component: STRING
-state: STRING
+action: state_change_action | misc_action
+
+state_change_action: ( "set" | "Set" ) component "to" state
+component: NAME
+state: NAME
+
+misc_action: STRING
 
 deviation: "-" condition transition
 transition: name "." step_id
@@ -45,7 +49,7 @@ logic_and : "and" | "&&" | "AND"
 logic_or  : "or" | "||" | "OR"
 
 // TODO(jacob): Add support for tolerance in equality comparison.
-node: STRING
+node: NAME
 value: NUMBER
 operator: "<"    -> lt
         | ">"    -> gt
@@ -53,7 +57,8 @@ operator: "<"    -> lt
         | ">="   -> ge
         | "=="   -> eq
 
-STRING: (LETTER | DIGIT) (LETTER | DIGIT | "_")*
+NAME: (LETTER | DIGIT) (LETTER | DIGIT | "_")*
+STRING: (LETTER) (LETTER | DIGIT | "_" | " ")*
 '''
 
 parser = Lark(grammar, start='document')
@@ -176,7 +181,7 @@ class ProcedureTransformer(Transformer):
 
     def transition(self, data):
         """
-        Process `waituntil` nodes in the parse tree.
+        Process `transition` nodes in the parse tree.
 
         `data` is a tuple of the form (procedure, step).
         """
@@ -185,12 +190,28 @@ class ProcedureTransformer(Transformer):
 
     def action(self, data):
         """
-        Process `waituntil` nodes in the parse tree.
+        Process `action` nodes in the parse tree.
+
+        `data` is a list of the form [action].
+        """
+        return data[0]
+
+    def state_change_action(self, data):
+        """
+        Process `state_change_action` nodes in the parse tree.
 
         `data` is a tuple of the form (component, state).
         """
         component, state = data
         return top.StateChangeAction(component, state)
+
+    def misc_action(self, data):
+        """
+        Process `misc_action` nodes in the parse tree.
+
+        `data` is a list of the form [action].
+        """
+        return top.MiscAction(data[0])
 
     def step(self, data):
         """
@@ -211,7 +232,7 @@ class ProcedureTransformer(Transformer):
         step_info['personnel'] = data[1]
         step_info['conditions_out'] = []
 
-        if type(data[2]) == top.StateChangeAction:  # Step has no attached entry condition
+        if isinstance(data[2], top.Action):  # Step has no attached entry condition
             step_info['condition_in'] = top.Immediate()
             step_info['action'] = data[2]
             deviations = data[3:]
