@@ -8,8 +8,14 @@ class ExportFormat(enum.Enum):
     Latex = 1
 
 
+# TODO(jacob): Investigate whether this would be better as a variant
+# rather than a base class.
+class Action:
+    pass
+
+
 @dataclass
-class StateChangeAction:
+class StateChangeAction(Action):
     """
     A state change for a single component in the plumbing engine.
 
@@ -42,7 +48,7 @@ class StateChangeAction:
 
 
 @dataclass
-class MiscAction:
+class MiscAction(Action):
     """
     A procedure action that does not fit into any other category.
 
@@ -105,7 +111,7 @@ class ProcedureStep:
         The person who performs the step
     """
     step_id: str
-    action: StateChangeAction
+    action: Action
     conditions: list
     operator: str
 

@@ -236,3 +236,11 @@ def test_procedure_suite_indexing():
     suite = top.ProcedureSuite([proc_1, proc_2], 'p1')
 
     assert suite['p1'] == proc_1
+
+
+def test_action_types():
+    a1 = top.StateChangeAction('p1', 'open')
+    a2 = top.MiscAction('approach the tower')
+
+    assert isinstance(a1, top.Action)
+    assert isinstance(a2, top.Action)
