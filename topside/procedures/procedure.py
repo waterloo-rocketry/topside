@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import enum
-import typing
 
 import topside as top
 
