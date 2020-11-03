@@ -99,8 +99,8 @@ def test_invalid_no_state_no_teq():
         _ = top.File(no_state_no_teq, input_type='s')
 
 
-def test_invalid_param_missing():
-    param_missing = textwrap.dedent("""\
+def test_invalid_param_missing_no_default_arg():
+    param_missing_no_default_arg = textwrap.dedent("""\
     name: example
     import: [stdlib]
     body:
@@ -123,7 +123,64 @@ def test_invalid_param_missing():
           closed_teq: closed
     """)
     with pytest.raises(exceptions.BadInputError):
-        _ = top.File(param_missing, input_type='s')
+        _ = top.File(param_missing_no_default_arg, input_type='s')
+
+
+def test_invalid_no_default_arg():
+    no_default_arg = textwrap.dedent("""\
+    name: example
+    import: [stdlib]
+    body:
+    - typedef:
+        params: [edge1, open_teq, closed_teq=]
+        name: valve
+        edges:
+          edge1:
+            nodes: [0, 1]
+        states:
+          open:
+            edge1: open_teq
+          closed:
+            edge1: closed_teq
+    - component:
+        name: vent_valve
+        type: valve
+        params:
+          edge1: fav_edge
+          open_teq: 1
+          closed_teq: closed
+    """)
+    with pytest.raises(exceptions.BadInputError):
+        _ = top.File(no_default_arg, input_type='s')
+
+
+def test_invalid_undefined_component_param():
+    undefined_component_param = textwrap.dedent("""\
+    name: example
+    import: [stdlib]
+    body:
+    - typedef:
+        params: [edge1, open_teq, closed_teq]
+        name: valve
+        edges:
+          edge1:
+            nodes: [0, 1]
+        states:
+          open:
+            edge1: open_teq
+          closed:
+            edge1: closed_teq
+    - component:
+        name: vent_valve
+        type: valve
+        params:
+          edge1: fav_edge
+          open_teq: 1
+          closed_teq: closed
+          extra_param: 100
+    """)
+    with pytest.raises(exceptions.BadInputError):
+        _ = top.File(undefined_component_param, input_type='s')
 
 
 def test_invalid_no_hoisting():
@@ -178,3 +235,84 @@ def test_invalid_incomplete_node():
 
     with pytest.raises(exceptions.BadInputError):
         _ = top.File(incomplete_nodes, 's')
+
+
+def test_bad_input_type():
+    bad_format = 'p'
+    with pytest.raises(exceptions.BadInputError) as err:
+        _ = top.File("", bad_format)
+
+    assert "invalid input type" in str(err)
+
+
+def test_bad_entry():
+    nonexistent = 'parameter'
+
+    bad_entry = textwrap.dedent(f"""\
+    name: example
+    import: [stdlib]
+    body:
+    - {nonexistent}:
+        name: a
+
+    - graph:
+        name: main
+        nodes:
+          A:
+            fixed_pressure: 500
+
+          B:
+            components:
+              - [fill_valve, 1]
+
+        states:
+          fill_valve: closed
+          vent_valve: open
+          three_way_valve: left
+        """)
+
+    with pytest.raises(exceptions.BadInputError) as err:
+        _ = top.File(bad_entry, 's')
+
+    assert "invalid input type" in str(err)
+
+
+def test_invalid_param():
+    not_param = 'nonexistent'
+
+    invalid_param = textwrap.dedent(f"""\
+    name: example
+    import: [stdlib]
+    body:
+    - typedef:
+        params: [edge1, open_teq, closed_teq]
+        name: valve
+        edges:
+          edge1:
+            nodes: [0, 1]
+        states:
+          open:
+            edge1: open_teq
+          closed:
+            edge1: closed_teq
+
+    - component:
+        name: vent_valve
+        type: valve
+        params:
+          edge1: fav_edge
+          open_teq: 1
+          {not_param}: closed
+    """)
+
+    with pytest.raises(exceptions.BadInputError) as err:
+        _ = top.File(invalid_param, 's')
+
+    assert "not found" in str(err)
+
+
+def test_bad_check_entry():
+    with pytest.raises(exceptions.BadInputError) as err:
+        top.check_fields(None, [])
+
+    assert "empty entry" in str(err)

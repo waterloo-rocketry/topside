@@ -1,7 +1,7 @@
 name: stdlib
 body:
 - typedef:
-    params: [open_teq, closed_teq]
+    params: [open_teq, closed_teq=closed]
     name: hole
     edges:
       edge1:
