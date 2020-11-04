@@ -61,27 +61,31 @@ class PlumbingEngine:
         self.fixed_pressures = {}
         self.load_graph(components, mapping, initial_pressures, initial_states)
 
-    def reset(self):
+    def reset(self, reset_component=False):
         """
 
         Reset the Plumbing Engine
 
         """
+        if reset_component:
+            for name in self.initial_state:
+                if name not in self.current_state():
+                    self.add_component(self.initial_components[name], self.initial_mapping[name],
+                                       self.initial_state[name])
+            for name in self.current_state():
+                if name not in self.initial_state:
+                    self.remove_component(name)
 
-        for name in self.initial_state:
-            if name not in self.current_state():
-                self.add_component(self.initial_components[name], self.initial_mapping[name],
-                                   self.initial_state[name])
+        self.time = 0
 
         for name in self.current_state():
-            if name not in self.initial_state:
-                self.remove_component(name)
-            else:
-                self.set_component_state(name, self.initial_state[name])
+            self.set_component_state(name, self.initial_state[name])
 
         for node in self.current_pressures():
             if node in self.initial_pressure:
                 self.set_pressure(node, self.initial_pressure[node][0])
+            else:
+                self.set_pressure(node, 0)
 
     def load_graph(self, components, mapping, initial_pressures, initial_states):
         """
