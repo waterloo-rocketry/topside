@@ -4,7 +4,7 @@ import: [stdlib]
 
 body:
 - typedef:
-    params: [edge_name, open_teq, closed_teq]
+    params: [edge_name, open_teq, closed_teq=closed]
     name: valve
     edges:
       edge_name:
@@ -43,7 +43,6 @@ body:
     type: stdlib.hole
     params:
       open_teq: 1
-      closed_teq: closed
 
 - component:
     name: vent_valve
@@ -51,7 +50,7 @@ body:
     params:
       edge_name: fav_edge
       open_teq: 5
-      closed_teq: closed
+      closed_teq: 100
 
 - component:
     name: three_way_valve
