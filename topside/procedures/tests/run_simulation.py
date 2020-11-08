@@ -19,6 +19,7 @@ def make_procedures_engine(plumbing_eng, suite):
     procedures_eng = top.ProceduresEngine(plumbing_eng, suite)
     return procedures_eng
 
+
 def make_plot(pressures, time_res, nodes):
     """
     makes a graph based on the logged time and pressure of each node.
@@ -37,10 +38,12 @@ def make_plot(pressures, time_res, nodes):
 
     return t, node_pressures
 
+
 # read file paths from argument input
 # first file path: Proclang file path
 # second file path: Pdl file path
-arg_parser = argparse.ArgumentParser(description="A program that simulates a procedure from given plumbing engine and procedure suite.")
+arg_parser = argparse.ArgumentParser(
+    description="A program that simulates a procedure from given plumbing engine and procedure suite.")
 arg_parser.add_argument('procPath', type=str)
 arg_parser.add_argument('pdlPath', type=str)
 
@@ -74,7 +77,8 @@ while len(procedures_eng.current_step.conditions) > 0:
     procedures_eng.step_time()
     all_pressure.append(procedures_eng._plumb.current_pressures())
 
-tlist, node_plist = make_plot(all_pressure, procedures_eng._plumb.time_res, procedures_eng._plumb.nodes(data=False))
+tlist, node_plist = make_plot(all_pressure, procedures_eng._plumb.time_res,
+                              procedures_eng._plumb.nodes(data=False))
 
 for name, pressure in node_plist.items():
     plt.plot(tlist, pressure, label='node ' + str(name))
