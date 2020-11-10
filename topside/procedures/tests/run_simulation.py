@@ -7,18 +7,18 @@ import topside as top
 
 def generate_graph_data(pressures, time_res, nodes):
     """
-    Generates the data needed for graphing the pressure.
+    Generate the data needed for graphing the pressure.
 
     Parameters
     ----------
 
-    pressures: 
+    pressures:
         all pressures logged while running the procedures.
 
-    time_res:  
+    time_res:
         time interval for the plumbing engine.
 
-    nodes: 
+    nodes:
         all nodes in the plumbing engine.
     """
     node_pressures = {node: [] for node in nodes}
