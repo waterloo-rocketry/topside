@@ -1,9 +1,11 @@
 import os
 import sys
 
+from PySide2.QtCore import Qt, QUrl
 from PySide2.QtGui import QIcon
-from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
-from PySide2.QtWidgets import QApplication
+from PySide2.QtQml import QQmlEngine, qmlRegisterType
+from PySide2.QtWidgets import QApplication, QWidget, QMainWindow, QSplitter
+from PySide2.QtQuickWidgets import QQuickWidget
 
 from .visualization_area import VisualizationArea
 from .procedures_bridge import ProceduresBridge
@@ -22,8 +24,42 @@ def find_resource(filename):
     return os.path.join(datadir, 'resources', filename)
 
 
-class Application:
+def make_qml_widget(engine, resource_name):
+    widget = QQuickWidget(engine, None)
+    widget.setResizeMode(QQuickWidget.SizeRootObjectToView)
 
+    path = find_resource(f'{resource_name}.qml')
+    widget.setSource(QUrl.fromLocalFile(path))
+
+    return widget
+
+
+def make_main_window(qml_engine):
+    window = QMainWindow()
+
+    vert_splitter = QSplitter(Qt.Vertical)
+
+    horiz_splitter = QSplitter(Qt.Horizontal)
+
+    daq_widget = make_qml_widget(qml_engine, 'DAQPane')
+    plumb_widget = make_qml_widget(qml_engine, 'PlumbingPane')
+    proc_widget = make_qml_widget(qml_engine, 'ProceduresPane')
+
+    horiz_splitter.addWidget(daq_widget)
+    horiz_splitter.addWidget(plumb_widget)
+    horiz_splitter.addWidget(proc_widget)
+
+    controls_widget = make_qml_widget(qml_engine, 'ControlsPane')
+
+    vert_splitter.addWidget(horiz_splitter)
+    vert_splitter.addWidget(controls_widget)
+
+    window.setCentralWidget(vert_splitter)
+
+    return window
+
+
+class Application:
     def __init__(self, argv):
         self.plumbing_bridge = PlumbingBridge()
         self.procedures_bridge = ProceduresBridge(self.plumbing_bridge)
@@ -38,13 +74,12 @@ class Application:
         self.app.setOrganizationDomain('waterloorocketry.com')
         self.app.setApplicationName('Topside')
 
-        self.qml_engine = QQmlApplicationEngine()
+        self.qml_engine = QQmlEngine()
+        context = self.qml_engine.rootContext()
+        context.setContextProperty('plumbingBridge', self.plumbing_bridge)
+        context.setContextProperty('proceduresBridge', self.procedures_bridge)
 
-        self.context = self.qml_engine.rootContext()
-        self.context.setContextProperty('plumbingBridge', self.plumbing_bridge)
-        self.context.setContextProperty('proceduresBridge', self.procedures_bridge)
-
-        self.qml_engine.load(find_resource('application.qml'))
+        self.main_window = make_main_window(self.qml_engine)
 
         # TODO(jacob): Currently we load these example files at startup
         # to make testing turnaround a bit faster. Figure out how to
@@ -53,18 +88,17 @@ class Application:
         self.plumbing_bridge.load_from_files([find_resource('example.pdl')])
         self.procedures_bridge.load_from_file(find_resource('example.proc'))
 
-    def ready(self):
-        return len(self.qml_engine.rootObjects()) != 0
-
     def run(self):
         self.app.aboutToQuit.connect(self.shutdown)
+
+        self.main_window.showMaximized()
         app_return_code = self.app.exec_()
 
         return app_return_code
 
     def shutdown(self):
         # NOTE(jacob): We explicitly `del` this to suppress a TypeError
-        # that arises from the Bridge getting destroyed before the
+        # that arises from the bridges getting destroyed before the QML
         # engine, causing QML references to go invalid. We attach this
         # cleanup to the aboutToQuit signal because app.exec_ is not
         # guaranteed to return, and therefore placing it immediately
