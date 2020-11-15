@@ -79,7 +79,8 @@ class PlumbingEngine:
         self.time = 0
 
         for name in self.current_state():
-            self.set_component_state(name, self.initial_state[name])
+            if name in self.initial_state:
+                self.set_component_state(name, self.initial_state[name])
 
         for node in self.current_pressures():
             if node in self.initial_pressure:
