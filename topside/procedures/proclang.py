@@ -18,7 +18,7 @@ procedure: name ":" step+
 name: NAME
 
 step: step_id "." personnel ":" [condition] action deviation*
-step_id: (LETTER | DIGIT | "_")+
+step_id: NAME_OR_NUMBER
 personnel: NAME
 
 action: state_change_action | misc_action
@@ -58,7 +58,8 @@ operator: "<"    -> lt
         | "=="   -> eq
 
 NAME: (LETTER | "_") (LETTER | DIGIT | "_")*
-SENTENCE: (LETTER) (LETTER | DIGIT | "_" | " ")*
+NAME_OR_NUMBER: (LETTER | DIGIT | "_")+
+SENTENCE: (LETTER) (LETTER | DIGIT | "_" | " " | ",")*
 '''
 
 parser = Lark(grammar, start='document')
@@ -296,9 +297,11 @@ class ProcedureTransformer(Transformer):
     component = handle_string
     state = handle_string
 
-    name = handle_string
     step_id = handle_string
     personnel = handle_string
+
+    name = handle_string
+    name_or_number = handle_string
 
 
 def parse(text):
