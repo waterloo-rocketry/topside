@@ -219,6 +219,7 @@ def test_reset_keep_component():
     plumb.remove_component('valve2')
     plumb.reset()
 
+    assert plumb.time == 0
     assert plumb.is_valid()
     assert plumb.time_res == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert plumb.edges() == [
@@ -280,6 +281,7 @@ def test_rest_integration_and_keep_component():
     plumb.set_pressure(3, 150)
     plumb.reset()
 
+    assert plumb.time == 0
     assert plumb.is_valid()
     assert plumb.time_res == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
     assert plumb.edges() == [
