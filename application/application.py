@@ -2,9 +2,9 @@ import os
 import sys
 
 from PySide2.QtCore import Qt, QUrl
-from PySide2.QtGui import QIcon
+from PySide2.QtGui import QIcon, QKeySequence
 from PySide2.QtQml import QQmlEngine, qmlRegisterType
-from PySide2.QtWidgets import QApplication, QWidget, QMainWindow, QSplitter
+from PySide2.QtWidgets import QApplication, QMainWindow, QSplitter, QMenu, QAction
 from PySide2.QtQuickWidgets import QQuickWidget
 
 from .visualization_area import VisualizationArea
@@ -34,31 +34,6 @@ def make_qml_widget(engine, resource_name):
     return widget
 
 
-def make_main_window(qml_engine):
-    window = QMainWindow()
-
-    vert_splitter = QSplitter(Qt.Vertical)
-
-    horiz_splitter = QSplitter(Qt.Horizontal)
-
-    daq_widget = make_qml_widget(qml_engine, 'DAQPane')
-    plumb_widget = make_qml_widget(qml_engine, 'PlumbingPane')
-    proc_widget = make_qml_widget(qml_engine, 'ProceduresPane')
-
-    horiz_splitter.addWidget(daq_widget)
-    horiz_splitter.addWidget(plumb_widget)
-    horiz_splitter.addWidget(proc_widget)
-
-    controls_widget = make_qml_widget(qml_engine, 'ControlsPane')
-
-    vert_splitter.addWidget(horiz_splitter)
-    vert_splitter.addWidget(controls_widget)
-
-    window.setCentralWidget(vert_splitter)
-
-    return window
-
-
 class Application:
     def __init__(self, argv):
         self.plumbing_bridge = PlumbingBridge()
@@ -79,7 +54,7 @@ class Application:
         context.setContextProperty('plumbingBridge', self.plumbing_bridge)
         context.setContextProperty('proceduresBridge', self.procedures_bridge)
 
-        self.main_window = make_main_window(self.qml_engine)
+        self.main_window = self._make_main_window()
 
         # TODO(jacob): Currently we load these example files at startup
         # to make testing turnaround a bit faster. Figure out how to
@@ -87,6 +62,62 @@ class Application:
         # that instead.
         self.plumbing_bridge.load_from_files([find_resource('example.pdl')])
         self.procedures_bridge.load_from_file(find_resource('example.proc'))
+
+    def _make_main_window(self):
+        # TODO(jacob): Should we move this code somewhere else (maybe
+        # into a separate MainWindow class)?
+        window = QMainWindow()
+
+        vert_splitter = QSplitter(Qt.Vertical)
+        vert_splitter.setChildrenCollapsible(False)
+
+        horiz_splitter = QSplitter(Qt.Horizontal)
+        horiz_splitter.setChildrenCollapsible(False)
+
+        daq_widget = make_qml_widget(self.qml_engine, 'DAQPane')
+        daq_widget.setMinimumWidth(200)
+        daq_widget.setMinimumHeight(600)
+        horiz_splitter.addWidget(daq_widget)
+
+        plumb_widget = make_qml_widget(self.qml_engine, 'PlumbingPane')
+        plumb_widget.setMinimumWidth(400)
+        plumb_widget.setMinimumHeight(600)
+        horiz_splitter.addWidget(plumb_widget)
+
+        proc_widget = make_qml_widget(self.qml_engine, 'ProceduresPane')
+        proc_widget.setMinimumWidth(400)
+        proc_widget.setMinimumHeight(600)
+        horiz_splitter.addWidget(proc_widget)
+
+        vert_splitter.addWidget(horiz_splitter)
+
+        controls_widget = make_qml_widget(self.qml_engine, 'ControlsPane')
+        controls_widget.setMinimumHeight(200)
+
+        vert_splitter.addWidget(controls_widget)
+
+        window.setCentralWidget(vert_splitter)
+
+        file_menu = QMenu('&File')
+
+        open_proc_action = QAction('Open Procedure Suite', window)
+        open_proc_action.setShortcut(QKeySequence('Ctrl+O'))
+        open_proc_action.triggered.connect(self.procedures_bridge.loadFromDialog)
+        file_menu.addAction(open_proc_action)
+
+        open_plumb_action = QAction('Open Plumbing Engine', window)
+        open_plumb_action.setShortcut(QKeySequence('Ctrl+Shift+O'))
+        open_plumb_action.triggered.connect(self.plumbing_bridge.loadFromDialog)
+        file_menu.addAction(open_plumb_action)
+
+        exit_action = QAction('Exit', window)
+        exit_action.setShortcut(QKeySequence.Quit)
+        exit_action.triggered.connect(window.close)
+        file_menu.addAction(exit_action)
+
+        window.menuBar().addMenu(file_menu)
+
+        return window
 
     def run(self):
         self.app.aboutToQuit.connect(self.shutdown)
