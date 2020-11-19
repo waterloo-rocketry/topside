@@ -24,11 +24,11 @@ def find_resource(filename):
     return os.path.join(datadir, 'resources', filename)
 
 
-def make_qml_widget(engine, resource_name):
+def make_qml_widget(engine, qml_file):
     widget = QQuickWidget(engine, None)
     widget.setResizeMode(QQuickWidget.SizeRootObjectToView)
 
-    path = find_resource(f'{resource_name}.qml')
+    path = find_resource(qml_file)
     widget.setSource(QUrl.fromLocalFile(path))
 
     return widget
@@ -74,24 +74,24 @@ class Application:
         horiz_splitter = QSplitter(Qt.Horizontal)
         horiz_splitter.setChildrenCollapsible(False)
 
-        daq_widget = make_qml_widget(self.qml_engine, 'DAQPane')
+        daq_widget = make_qml_widget(self.qml_engine, 'DAQPane.qml')
         daq_widget.setMinimumWidth(200)
         daq_widget.setMinimumHeight(600)
         horiz_splitter.addWidget(daq_widget)
 
-        plumb_widget = make_qml_widget(self.qml_engine, 'PlumbingPane')
+        plumb_widget = make_qml_widget(self.qml_engine, 'PlumbingPane.qml')
         plumb_widget.setMinimumWidth(400)
         plumb_widget.setMinimumHeight(600)
         horiz_splitter.addWidget(plumb_widget)
 
-        proc_widget = make_qml_widget(self.qml_engine, 'ProceduresPane')
+        proc_widget = make_qml_widget(self.qml_engine, 'ProceduresPane.qml')
         proc_widget.setMinimumWidth(400)
         proc_widget.setMinimumHeight(600)
         horiz_splitter.addWidget(proc_widget)
 
         vert_splitter.addWidget(horiz_splitter)
 
-        controls_widget = make_qml_widget(self.qml_engine, 'ControlsPane')
+        controls_widget = make_qml_widget(self.qml_engine, 'ControlsPane.qml')
         controls_widget.setMinimumHeight(200)
 
         vert_splitter.addWidget(controls_widget)
