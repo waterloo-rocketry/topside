@@ -36,7 +36,11 @@ class Package:
         """
         self.importable_files = dict()
 
-        imports_folder = os.listdir(utils.imports_path)
+        try:
+            imports_folder = os.listdir(utils.imports_path)
+        except FileNotFoundError:
+            imports_folder = []
+            warnings.warn(f"import directory {utils.imports_path} could not be found")
 
         for imported_file in imports_folder:
 
