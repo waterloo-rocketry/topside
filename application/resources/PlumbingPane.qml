@@ -109,7 +109,6 @@ ColumnLayout {
 
                 onClicked: {
                     plumbingBridge.timeStepForward();
-                    proceduresBridge.refresh();
                 }
             }
             Button {
@@ -121,7 +120,6 @@ ColumnLayout {
 
                 onClicked: {
                     plumbingBridge.timeAdvance();
-                    proceduresBridge.refresh();
                 }
             }
         }

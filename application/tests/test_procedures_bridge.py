@@ -6,6 +6,7 @@ from ..procedures_bridge import ProceduresBridge
 
 class MockPlumbingBridge(QObject):
     engineLoaded = Signal(top.PlumbingEngine)
+    dataUpdated = Signal()
 
     def __init__(self):
         QObject.__init__(self)

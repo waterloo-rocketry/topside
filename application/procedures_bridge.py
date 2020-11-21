@@ -14,6 +14,7 @@ class ProceduresBridge(QObject):
 
         self._proc_eng = top.ProceduresEngine()
         plumb.engineLoaded.connect(self.updatePlumbingEngine)
+        plumb.dataUpdated.connect(self.refresh)
 
         self._proc_steps = ProcedureStepsModel()
         self._refresh_procedure_view()

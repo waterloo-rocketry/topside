@@ -6,6 +6,7 @@ import topside as top
 
 class PlumbingBridge(QObject):
     engineLoaded = Signal(top.PlumbingEngine)
+    dataUpdated = Signal()
 
     def __init__(self):
         QObject.__init__(self)
@@ -56,7 +57,9 @@ class PlumbingBridge(QObject):
     def timeStepForward(self):
         step_size = 0.1e6  # TODO(jacob): Add a UI field for this.
         self.engine.step(step_size)
+        self.dataUpdated.emit()
 
     @Slot()
     def timeAdvance(self):
         self.engine.solve()
+        self.dataUpdated.emit()
