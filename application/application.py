@@ -1,7 +1,7 @@
 import os
 import sys
 
-from PySide2.QtCore import Qt, QUrl
+from PySide2.QtCore import Qt, QUrl, QTimer
 from PySide2.QtGui import QIcon, QKeySequence
 from PySide2.QtQml import QQmlEngine, qmlRegisterType
 from PySide2.QtWidgets import QApplication, QMainWindow, QSplitter, QMenu, QAction
@@ -10,6 +10,7 @@ from PySide2.QtQuickWidgets import QQuickWidget
 from .visualization_area import VisualizationArea
 from .procedures_bridge import ProceduresBridge
 from .plumbing_bridge import PlumbingBridge
+from .daq import DAQBridge, DAQPlotWidget
 
 
 # NOTE(jacob): `__file__` isn't defined for the frozen application,
@@ -38,6 +39,7 @@ class Application:
     def __init__(self, argv):
         self.plumbing_bridge = PlumbingBridge()
         self.procedures_bridge = ProceduresBridge(self.plumbing_bridge)
+        self.daq_bridge = DAQBridge(self.plumbing_bridge)
 
         self.app = QApplication(argv)
 
@@ -55,6 +57,14 @@ class Application:
         context.setContextProperty('proceduresBridge', self.procedures_bridge)
 
         self.main_window = self._make_main_window()
+
+        self.daq_bridge.addChannel('A')
+        self.daq_bridge.addChannel('B')
+        self.daq_bridge.addChannel('C')
+        self.daq_bridge.addChannel('D')
+        self.daq_bridge.addChannel('E')
+        self.daq_bridge.addChannel('F')
+        self.daq_bridge.addChannel('G')
 
         # TODO(jacob): Currently we load these example files at startup
         # to make testing turnaround a bit faster. Figure out how to
@@ -74,9 +84,10 @@ class Application:
         horiz_splitter = QSplitter(Qt.Horizontal)
         horiz_splitter.setChildrenCollapsible(False)
 
-        daq_widget = make_qml_widget(self.qml_engine, 'DAQPane.qml')
-        daq_widget.setMinimumWidth(200)
-        daq_widget.setMinimumHeight(600)
+        daq_widget = DAQPlotWidget()
+        self.daq_bridge.channelAdded.connect(daq_widget.addChannel)
+        self.daq_bridge.channelRemoved.connect(daq_widget.removeChannel)
+        self.daq_bridge.dataUpdated.connect(daq_widget.updateData)
         horiz_splitter.addWidget(daq_widget)
 
         plumb_widget = make_qml_widget(self.qml_engine, 'PlumbingPane.qml')
