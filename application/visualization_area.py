@@ -110,6 +110,9 @@ class VisualizationArea(QQuickPaintedItem):
         self.node_font = QFont('Arial', 8)
         self.component_font = QFont('Arial', 8, QFont.Bold)
 
+        self.heightChanged.connect(self.setRescaleNeeded)
+        self.widthChanged.connect(self.setRescaleNeeded)
+
         if self.DEBUG_MODE:
             print('VisualizationArea created!')
 
@@ -312,6 +315,10 @@ class VisualizationArea(QQuickPaintedItem):
         self.terminal_graph = top.terminal_graph(self.engine_instance)
         self.layout_pos = top.layout_plumbing_engine(self.engine_instance)
         self.update()
+
+    @Slot()
+    def setRescaleNeeded(self):
+        self.scaled = False
 
     # Registers color as a QML-accessible property, along with directions for its getter and setter
     color = Property(QColor, get_color, set_color)
