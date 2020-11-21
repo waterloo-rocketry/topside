@@ -28,3 +28,35 @@ class PlumbingBridge(QObject):
         filepaths, _ = QFileDialog.getOpenFileNames(self.parent(), 'Load PDL files')
         if len(filepaths) > 0:
             self.load_from_files(filepaths)
+
+    # Time controls
+
+    @Slot()
+    def timePlayBackwards(self):
+        pass
+
+    @Slot()
+    def timeStepBackwards(self):
+        pass
+
+    @Slot()
+    def timePlay(self):
+        # TODO(jacob): Implement real-time simulation.
+        pass
+
+    @Slot()
+    def timePause(self):
+        pass
+
+    @Slot()
+    def timeStop(self):
+        pass
+
+    @Slot()
+    def timeStepForward(self):
+        step_size = 0.1e6  # TODO(jacob): Add a UI field for this.
+        self.engine.step(step_size)
+
+    @Slot()
+    def timeAdvance(self):
+        self.engine.solve()

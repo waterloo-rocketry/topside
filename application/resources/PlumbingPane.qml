@@ -63,7 +63,7 @@ ColumnLayout {
                 icon.source: "themes/default/play_backwards.png"
                 icon.color: "transparent"
 
-                onClicked: proceduresBridge.timePlayBackward()
+                onClicked: plumbingBridge.timePlayBackwards()
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
@@ -72,7 +72,7 @@ ColumnLayout {
                 icon.source: "themes/default/step_backwards.png"
                 icon.color: "transparent"
 
-                onClicked: proceduresBridge.timeStepBackwards()
+                onClicked: plumbingBridge.timeStepBackwards()
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
@@ -84,9 +84,9 @@ ColumnLayout {
 
                 onClicked: {
                     if (is_play) {
-                        proceduresBridge.timePlay()
+                        plumbingBridge.timePlay()
                     } else {
-                        proceduresBridge.timePause()
+                        plumbingBridge.timePause()
                     }
                     is_play = !is_play
                 }
@@ -98,7 +98,7 @@ ColumnLayout {
                 icon.source: "themes/default/stop.png"
                 icon.color: "transparent"
 
-                onClicked: proceduresBridge.timeStop()
+                onClicked: plumbingBridge.timeStop()
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
@@ -107,7 +107,10 @@ ColumnLayout {
                 icon.source: "themes/default/step_forward.png"
                 icon.color: "transparent"
 
-                onClicked: proceduresBridge.timeStepForward()
+                onClicked: {
+                    plumbingBridge.timeStepForward();
+                    proceduresBridge.refresh();
+                }
             }
             Button {
                 Layout.alignment: Qt.AlignVCenter
@@ -116,7 +119,10 @@ ColumnLayout {
                 icon.source: "themes/default/advance.png"
                 icon.color: "transparent"
 
-                onClicked: proceduresBridge.timeAdvance()
+                onClicked: {
+                    plumbingBridge.timeAdvance();
+                    proceduresBridge.refresh();
+                }
             }
         }
     }
