@@ -111,6 +111,7 @@ class DAQPlotWidget(pg.GraphicsLayoutWidget):
             return
         new_row_num = len(self.rows)
         plot = self.addPlot(row=new_row_num, col=0)
+        plot.setLimits(minYRange=1)
         self.plots[channel_name] = plot.plot()
         self.rows[channel_name] = new_row_num
 

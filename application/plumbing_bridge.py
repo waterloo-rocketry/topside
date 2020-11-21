@@ -1,4 +1,4 @@
-from PySide2.QtCore import QObject, Signal, Slot
+from PySide2.QtCore import QObject, Signal, Slot, QTimer
 from PySide2.QtWidgets import QFileDialog
 import numpy as np
 
@@ -14,6 +14,8 @@ class PlumbingBridge(QObject):
 
         self.engine = None
         self.step_size = 0.1e6  # TODO(jacob): Add a UI field for this.
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.timeStepForward)
 
     def load_engine(self, new_engine):
         self.engine = new_engine
@@ -44,15 +46,15 @@ class PlumbingBridge(QObject):
 
     @Slot()
     def timePlay(self):
-        # TODO(jacob): Implement real-time simulation.
-        pass
+        self.timer.start(50)
 
     @Slot()
     def timePause(self):
-        pass
+        self.timer.stop()
 
     @Slot()
     def timeStop(self):
+        self.timer.stop()
         self.engine.reset()
         self.dataUpdated.emit()
 
