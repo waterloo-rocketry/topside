@@ -12,6 +12,9 @@ class MockPlumbingEngine:
         self.time = 0
         self.pressures = {'n1': 0, 'n2': 0}
 
+    def current_pressures(self):
+        return self.pressures
+
     def step(self, step_size):
         self.time += step_size
         for node in self.pressures:
@@ -23,6 +26,10 @@ class MockPlumbingEngine:
         for i in range(5):
             states.append(self.step(return_resolution))
         return states
+
+    def reset(self):
+        self.time = 0
+        self.pressures = {node: 0 for node in self.pressures}
 
 
 def test_step_forward():
@@ -54,3 +61,23 @@ def test_advance():
 
     assert_equal(daq.times, [0.1, 0.2, 0.3, 0.4, 0.5])
     assert_equal(daq.data_values, {'n1': [1, 2, 3, 4, 5], 'n2': [1, 2, 3, 4, 5]})
+
+
+def test_stop():
+    plumb = PlumbingBridge()
+    plumb.engine = MockPlumbingEngine()
+    daq = DAQBridge(plumb)
+    daq.addChannel('n1')
+    daq.addChannel('n2')
+
+    plumb.timeStepForward()
+    plumb.timeStepForward()
+    plumb.timeStepForward()
+
+    assert_equal(daq.times, [0.1, 0.2, 0.3])
+    assert_equal(daq.data_values, {'n1': [1, 2, 3], 'n2': [1, 2, 3]})
+
+    plumb.timeStop()
+
+    assert_equal(daq.times, [0])
+    assert_equal(daq.data_values, {'n1': [0], 'n2': [0]})

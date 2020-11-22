@@ -64,3 +64,24 @@ def test_daq_model_update_rollover():
     assert_equal(m.times, [10, 15, 20])
     assert_equal(m.data_values['p1'], [11, 12, 13])
     assert_equal(m.data_values['p2'], [21, 22, 23])
+
+
+def test_daq_model_update_earlier_time():
+    m = DAQBridge(MockPlumbingBridge())
+
+    m.addChannel('p1')
+    m.addChannel('p2')
+
+    m.update({
+        'p1': np.array([10, 11, 12, 13]),
+        'p2': np.array([20, 21, 22, 23])
+    }, np.array([10e6, 11e6, 12e6, 13e6]))
+
+    m.update({
+        'p1': np.array([14, 15, 16, 17]),
+        'p2': np.array([24, 25, 26, 27])
+    }, np.array([5e6, 6e6, 7e6, 8e6]))
+
+    assert_equal(m.times, [5, 6, 7, 8])
+    assert_equal(m.data_values['p1'], [14, 15, 16, 17])
+    assert_equal(m.data_values['p2'], [24, 25, 26, 27])
