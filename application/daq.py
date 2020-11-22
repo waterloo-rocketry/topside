@@ -87,6 +87,12 @@ class DAQBridge(QObject):
         if len(times) == 0:
             return
 
+        if len(self.times) > 0 and top.micros_to_s(times[0]) < self.times[-1]:
+            # We stepped back in time, clear all existing time values.
+            # We don't need to clear data_values since they'll
+            # automatically be trimmed to the relevant data later on.
+            self.times = np.array([])
+
         trim_time = top.micros_to_s(times[-1]) - self.window_size_s
         appended = np.append(self.times, top.micros_to_s(times))
         self.times = trim_earlier(appended, trim_time)
