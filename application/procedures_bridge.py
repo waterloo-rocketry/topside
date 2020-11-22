@@ -17,7 +17,7 @@ class ProceduresBridge(QObject):
         plumb.dataUpdated.connect(self.refresh)
 
         self._proc_steps = ProcedureStepsModel()
-        self._refresh_procedure_view()
+        self.refresh()
 
     def _refresh_procedure_view(self):
         proc = self._proc_eng.current_procedure()
@@ -37,7 +37,7 @@ class ProceduresBridge(QObject):
 
     def load_suite(self, suite):
         self._proc_eng.load_suite(suite)
-        self._refresh_procedure_view()
+        self.refresh()
 
     def load_from_file(self, filepath):
         with open(filepath) as f:
@@ -86,12 +86,12 @@ class ProceduresBridge(QObject):
     @Slot()
     def procStop(self):
         self._proc_eng.reset()
-        self._refresh_procedure_view()
+        self.refresh()
 
     @Slot()
     def procStepForward(self):
         self._proc_eng.next_step()
-        self._refresh_procedure_view()
+        self.refresh()
 
     @Slot()
     def procAdvance(self):
