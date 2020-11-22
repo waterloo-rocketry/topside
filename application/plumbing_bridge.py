@@ -56,7 +56,7 @@ class PlumbingBridge(QObject):
     def timeStop(self):
         self.timer.stop()
         self.engine.reset()
-        self.dataUpdated.emit()
+        self.dataUpdated.emit(self.engine.current_pressures(), np.array([self.engine.time]))
 
     @Slot()
     def timeStepForward(self):
