@@ -58,14 +58,6 @@ class Application:
 
         self.main_window = self._make_main_window()
 
-        self.daq_bridge.addChannel('A')
-        self.daq_bridge.addChannel('B')
-        self.daq_bridge.addChannel('C')
-        # self.daq_bridge.addChannel('D')
-        # self.daq_bridge.addChannel('E')
-        # self.daq_bridge.addChannel('F')
-        # self.daq_bridge.addChannel('G')
-
         # TODO(jacob): Currently we load these example files at startup
         # to make testing turnaround a bit faster. Figure out how to
         # make the application remember the last file opened, and open
@@ -88,6 +80,8 @@ class Application:
         self.daq_bridge.channelAdded.connect(daq_widget.addChannel)
         self.daq_bridge.channelRemoved.connect(daq_widget.removeChannel)
         self.daq_bridge.dataUpdated.connect(daq_widget.updateData)
+        daq_widget.channelSelected.connect(self.daq_bridge.addChannel)
+        daq_widget.channelDeselected.connect(self.daq_bridge.removeChannel)
         horiz_splitter.addWidget(daq_widget)
 
         plumb_widget = make_qml_widget(self.qml_engine, 'PlumbingPane.qml')
