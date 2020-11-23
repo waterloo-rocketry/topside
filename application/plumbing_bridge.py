@@ -7,7 +7,7 @@ import topside as top
 
 class PlumbingBridge(QObject):
     engineLoaded = Signal(top.PlumbingEngine)
-    dataUpdated = Signal(dict, list)
+    dataUpdated = Signal(dict, np.ndarray)
 
     def __init__(self):
         QObject.__init__(self)
