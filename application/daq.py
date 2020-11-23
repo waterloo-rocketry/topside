@@ -38,7 +38,7 @@ def trim_earlier(array, t):
 class DAQBridge(QObject):
     channelAdded = Signal(str)
     channelRemoved = Signal(str)
-    dataUpdated = Signal(str, list, list)  # channel name, time vals, data vals
+    dataUpdated = Signal(str, np.ndarray, np.ndarray)  # channel name, time vals, data vals
 
     def __init__(self, plumbing_bridge):
         QObject.__init__(self)
@@ -60,7 +60,7 @@ class DAQBridge(QObject):
         del self.data_values[channel_name]
         self.channelRemoved.emit(channel_name)
 
-    @Slot(dict, list)
+    @Slot(dict, np.ndarray)
     def update(self, datapoints, times):
         """
         Update the tracked data channels with new data.
@@ -119,21 +119,21 @@ class DAQLayout(QWidget):
         self.graphs.ci.setBorder('w', width=2)
         self.layout().addWidget(self.graphs)
 
-        self.control_layout = QVBoxLayout()
-        control_widget = QWidget()
-        control_widget.setLayout(self.control_layout)
-        self.layout().addWidget(control_widget)
+        # self.control_layout = QVBoxLayout()
+        # control_widget = QWidget()
+        # control_widget.setLayout(self.control_layout)
+        # self.layout().addWidget(control_widget)
 
-        self.control_group = QButtonGroup()
-        self.control_group.setExclusive(False)
-        self.control_group.idToggled.connect(self.checkboxChecked)
-        self.ids_to_channels = {}
+        # self.control_group = QButtonGroup()
+        # self.control_group.setExclusive(False)
+        # self.control_group.idToggled.connect(self.checkboxChecked)
+        # self.ids_to_channels = {}
 
-        for i, channel in enumerate(['A', 'B', 'C', 'D']):
-            checkbox = QCheckBox(channel)
-            self.control_group.addButton(checkbox, i)
-            self.control_layout.addWidget(checkbox)
-            self.ids_to_channels[i] = channel
+        # for i, channel in enumerate(['A', 'B', 'C', 'D']):
+        #     checkbox = QCheckBox(channel)
+        #     self.control_group.addButton(checkbox, i)
+        #     self.control_layout.addWidget(checkbox)
+        #     self.ids_to_channels[i] = channel
 
     @Slot(int)
     def checkboxChecked(self, checkbox_id, is_checked):
@@ -161,7 +161,7 @@ class DAQLayout(QWidget):
         del self.plots[channel_name]
         del self.rows[channel_name]
 
-    @Slot(str, list, list)
+    @Slot(str, np.ndarray, np.ndarray)
     def updateData(self, channel_name, times, data_vals):
         plot = self.plots[channel_name]
         plot.setData(times, data_vals)
