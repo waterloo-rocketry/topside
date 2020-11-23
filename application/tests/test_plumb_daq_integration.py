@@ -47,6 +47,7 @@ class MockPlotter(QObject):
 
 def test_step_forward():
     plumb = PlumbingBridge()
+    plumb.step_size = 0.1e6
     plumb.engine = MockPlumbingEngine()
     daq = DAQBridge(plumb)
     plotter = MockPlotter(daq)
@@ -67,6 +68,7 @@ def test_step_forward():
 
 def test_track_new_channel():
     plumb = PlumbingBridge()
+    plumb.step_size = 0.1e6
     plumb.engine = MockPlumbingEngine()
     daq = DAQBridge(plumb)
     plotter = MockPlotter(daq)
@@ -85,6 +87,7 @@ def test_track_new_channel():
 
 def test_advance():
     plumb = PlumbingBridge()
+    plumb.step_size = 0.1e6
     plumb.engine = MockPlumbingEngine()
     daq = DAQBridge(plumb)
     plotter = MockPlotter(daq)
@@ -102,6 +105,7 @@ def test_advance():
 
 def test_stop():
     plumb = PlumbingBridge()
+    plumb.step_size = 0.1e6
     plumb.engine = MockPlumbingEngine()
     daq = DAQBridge(plumb)
     plotter = MockPlotter(daq)

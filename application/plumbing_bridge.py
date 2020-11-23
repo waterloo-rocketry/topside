@@ -1,4 +1,4 @@
-from PySide2.QtCore import QObject, Signal, Slot, QTimer
+from PySide2.QtCore import Qt, QObject, Signal, Slot, QTimer
 from PySide2.QtWidgets import QFileDialog
 import numpy as np
 
@@ -13,8 +13,9 @@ class PlumbingBridge(QObject):
         QObject.__init__(self)
 
         self.engine = None
-        self.step_size = 0.1e6  # TODO(jacob): Add a UI field for this.
+        self.step_size = 0.05e6  # TODO(jacob): Add a UI field for this.
         self.timer = QTimer()
+        self.timer.setTimerType(Qt.PreciseTimer)
         self.timer.timeout.connect(self.timeStepForward)
 
     def load_engine(self, new_engine):

@@ -1,7 +1,7 @@
 import warnings
 
 from PySide2.QtCore import Qt, QObject, Slot, Signal, Property
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QButtonGroup, QCheckBox
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QButtonGroup, QCheckBox
 import pyqtgraph as pg
 import numpy as np
 
@@ -119,9 +119,6 @@ class DAQBridge(QObject):
 
 
 class DAQLayout(QWidget):
-    channelSelected = Signal(str)
-    channelDeselected = Signal(str)
-
     def __init__(self):
         QWidget.__init__(self)
         self.setLayout(QVBoxLayout())
@@ -132,45 +129,46 @@ class DAQLayout(QWidget):
         self.graphs.ci.setBorder('w', width=2)
         self.layout().addWidget(self.graphs)
 
-        self.control_layout = QVBoxLayout()
-        control_widget = QWidget()
-        control_widget.setLayout(self.control_layout)
-        self.layout().addWidget(control_widget)
+        self.channel_selector = ChannelSelector()
+        self.layout().addWidget(self.channel_selector)
 
-        self.control_group = QButtonGroup()
-        self.control_group.setExclusive(False)
-        self.control_group.idToggled.connect(self.checkboxChecked)
-        self.ids_to_channels = {}
-
-        for i, channel in enumerate(['A', 'B', 'C', 'D']):
-            checkbox = QCheckBox(channel)
-            self.control_group.addButton(checkbox, i)
-            self.control_layout.addWidget(checkbox)
-            self.ids_to_channels[i] = channel
-
-    @Slot(int)
-    def checkboxChecked(self, checkbox_id, is_checked):
-        channel = self.ids_to_channels[checkbox_id]
-        if is_checked:
-            self.channelSelected.emit(channel)
-        else:
-            self.channelDeselected.emit(channel)
+        self.next_row = 0
 
     @Slot(str)
     def addChannel(self, channel_name):
         if channel_name in self.plot_items:
             warnings.warn('attempted to add a duplicate channel to DAQ')
             return
-        new_row_num = len(self.plot_items)
-        plot = self.graphs.addPlot(row=new_row_num, col=0, title=channel_name)
+        plot = self.graphs.addPlot(row=self.next_row, col=0, title=channel_name)
         plot.setLimits(minYRange=2)
         plot.showGrid(x=True, y=True)
         self.plot_items[channel_name] = plot
         self.plot_curves[channel_name] = plot.plot()
 
+        # NOTE(jacob): PyQtGraph doesn't adjust row numbers if an item
+        # is deleted from the layout, so we can't simply assume that the
+        # next row available is (number of plots + 1). Fortunately,
+        # the actual values of the assigned row numbers don't seem to
+        # matter, so we just need to make sure the "next row" is higher
+        # than all of the others so far.
+        self.next_row += 1
+
     @Slot(str)
     def removeChannel(self, channel_name):
-        self.graphs.removeItem(self.plot_items[channel_name])
+        item = self.plot_items[channel_name]
+
+        # NOTE(jacob): For some reason, PyQtGraph doesn't properly
+        # delete the border geometry for plot items when removeItem is
+        # called on a GraphicsLayout (or GraphicsLayoutWidget), so we
+        # need to explicitly delete it ourselves or we get weird lines
+        # left on the screen. I'm considering submitting a PR to fix
+        # this, if I can confirm that it's actually a bug.
+        border = self.graphs.ci.itemBorders[item]
+        self.graphs.ci.scene().removeItem(border)
+
+        self.graphs.removeItem(item)
+        item.deleteLater()
+
         del self.plot_items[channel_name]
         del self.plot_curves[channel_name]
 
@@ -178,3 +176,59 @@ class DAQLayout(QWidget):
     def updateData(self, channel_name, times, data_vals):
         curve = self.plot_curves[channel_name]
         curve.setData(times, data_vals)
+
+
+class ChannelSelector(QWidget):
+    channelSelected = Signal(str)
+    channelDeselected = Signal(str)
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self.setLayout(QGridLayout())
+
+        self.control_group = QButtonGroup()
+        self.control_group.setExclusive(False)
+        self.control_group.idToggled.connect(self.notifyChannel)
+        self.ids_to_channels = {}
+        self.checkboxes = {}
+
+        self.num_cols = 4
+        self.next_id = 0
+
+    def add_checkbox(self, channel_name):
+        if channel_name in self.checkboxes:
+            warnings.warn('attempted to add a duplicate checkbox to the DAQ channel selector')
+            return
+        checkbox = QCheckBox(channel_name)
+        self.checkboxes[channel_name] = checkbox
+
+        num_widgets = len(self.checkboxes)
+        row = (num_widgets - 1) // self.num_cols
+        col = (num_widgets - 1) % self.num_cols
+        self.layout().addWidget(checkbox, row, col)
+
+        self.control_group.addButton(checkbox, self.next_id)
+        self.ids_to_channels[self.next_id] = channel_name
+        self.next_id += 1
+
+    def clear_checkboxes(self):
+        for checkbox in self.checkboxes.values():
+            self.control_group.removeButton(checkbox)
+            self.layout().removeWidget(checkbox)
+            checkbox.deleteLater()
+        self.checkboxes = {}
+        self.ids_to_channels = {}
+
+    @Slot(top.PlumbingEngine)
+    def updateNodeList(self, plumb):
+        self.clear_checkboxes()
+        for node in plumb.nodes(data=False):
+            self.add_checkbox(node)
+
+    @Slot(int)
+    def notifyChannel(self, checkbox_id, is_checked):
+        channel = self.ids_to_channels[checkbox_id]
+        if is_checked:
+            self.channelSelected.emit(channel)
+        else:
+            self.channelDeselected.emit(channel)
