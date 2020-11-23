@@ -2,22 +2,15 @@ autopep8==1.5.4
 cx-freeze==6.1
 datatest==0.9.6
 lark-parser==0.10.0
-
-# NOTE(jacob): Matplotlib 3.3.0 does not work with PyInstaller, see
-# github.com/pyinstaller/pyinstaller/issues/5004
-matplotlib==3.2.2
-
+matplotlib==3.3.0
 networkx==2.4
 numpy==1.19.2
-PySide2==5.14.1
+pyinstaller==4.1
+PySide2==5.15.1
 pytest==5.4.2
 pyyaml==5.3.1
 scipy==1.5.2
 setuptools==41.2.0
-shiboken2==5.14.1
+shiboken2==5.15.1
 twine==3.1.1
 wheel==0.34.2
-
-# TODO(jacob): Install PyInstaller from PyPI rather than GitHub once a
-# new release is cut.
-https://codeload.github.com/pyinstaller/pyinstaller/tar.gz/81d7e6a761fada855eb9a4b7e29a12c1da8a6075
