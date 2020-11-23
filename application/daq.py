@@ -1,6 +1,7 @@
 import warnings
 
 from PySide2.QtCore import Qt, QObject, Slot, Signal, Property
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QButtonGroup, QCheckBox
 import pyqtgraph as pg
 import numpy as np
 
@@ -104,11 +105,43 @@ class DAQBridge(QObject):
                 self.dataUpdated.emit(channel, self.times, self.data_values[channel])
 
 
-class DAQPlotWidget(pg.GraphicsLayoutWidget):
-    def __init__(self, parent=None):
-        pg.GraphicsLayoutWidget.__init__(self, parent)
+class DAQLayout(QWidget):
+    channelSelected = Signal(str)
+    channelDeselected = Signal(str)
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self.setLayout(QVBoxLayout())
         self.plots = {}
         self.rows = {}
+
+        self.graphs = pg.GraphicsLayoutWidget()
+        self.graphs.ci.setBorder('w', width=2)
+        self.layout().addWidget(self.graphs)
+
+        self.control_layout = QVBoxLayout()
+        control_widget = QWidget()
+        control_widget.setLayout(self.control_layout)
+        self.layout().addWidget(control_widget)
+
+        self.control_group = QButtonGroup()
+        self.control_group.setExclusive(False)
+        self.control_group.idToggled.connect(self.checkboxChecked)
+        self.ids_to_channels = {}
+
+        for i, channel in enumerate(['A', 'B', 'C', 'D']):
+            checkbox = QCheckBox(channel)
+            self.control_group.addButton(checkbox, i)
+            self.control_layout.addWidget(checkbox)
+            self.ids_to_channels[i] = channel
+
+    @Slot(int)
+    def checkboxChecked(self, checkbox_id, is_checked):
+        channel = self.ids_to_channels[checkbox_id]
+        if is_checked:
+            self.channelSelected.emit(channel)
+        else:
+            self.channelDeselected.emit(channel)
 
     @Slot(str)
     def addChannel(self, channel_name):
@@ -116,14 +149,15 @@ class DAQPlotWidget(pg.GraphicsLayoutWidget):
             warnings.warn('attempted to add a duplicate channel to DAQ')
             return
         new_row_num = len(self.rows)
-        plot = self.addPlot(row=new_row_num, col=0)
-        plot.setLimits(minYRange=1)
+        plot = self.graphs.addPlot(row=new_row_num, col=0, title=channel_name)
+        plot.setLimits(minYRange=2)
+        plot.showGrid(x=True, y=True)
         self.plots[channel_name] = plot.plot()
         self.rows[channel_name] = new_row_num
 
     @Slot(str)
     def removeChannel(self, channel_name):
-        self.removeItem(self.rows[channel_name], 0)
+        self.graphs.removeItem(self.rows[channel_name], 0)
         del self.plots[channel_name]
         del self.rows[channel_name]
 

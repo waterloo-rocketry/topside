@@ -10,7 +10,7 @@ from PySide2.QtQuickWidgets import QQuickWidget
 from .visualization_area import VisualizationArea
 from .procedures_bridge import ProceduresBridge
 from .plumbing_bridge import PlumbingBridge
-from .daq import DAQBridge, DAQPlotWidget
+from .daq import DAQBridge, DAQLayout
 
 
 # NOTE(jacob): `__file__` isn't defined for the frozen application,
@@ -61,10 +61,10 @@ class Application:
         self.daq_bridge.addChannel('A')
         self.daq_bridge.addChannel('B')
         self.daq_bridge.addChannel('C')
-        self.daq_bridge.addChannel('D')
-        self.daq_bridge.addChannel('E')
-        self.daq_bridge.addChannel('F')
-        self.daq_bridge.addChannel('G')
+        # self.daq_bridge.addChannel('D')
+        # self.daq_bridge.addChannel('E')
+        # self.daq_bridge.addChannel('F')
+        # self.daq_bridge.addChannel('G')
 
         # TODO(jacob): Currently we load these example files at startup
         # to make testing turnaround a bit faster. Figure out how to
@@ -84,7 +84,7 @@ class Application:
         horiz_splitter = QSplitter(Qt.Horizontal)
         horiz_splitter.setChildrenCollapsible(False)
 
-        daq_widget = DAQPlotWidget()
+        daq_widget = DAQLayout()
         self.daq_bridge.channelAdded.connect(daq_widget.addChannel)
         self.daq_bridge.channelRemoved.connect(daq_widget.removeChannel)
         self.daq_bridge.dataUpdated.connect(daq_widget.updateData)
