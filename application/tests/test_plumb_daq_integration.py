@@ -1,5 +1,7 @@
 import copy
 
+from PySide2.QtCore import QObject, Slot
+import numpy as np
 from numpy.testing import assert_equal
 
 import topside as top
@@ -32,41 +34,78 @@ class MockPlumbingEngine:
         self.pressures = {node: 0 for node in self.pressures}
 
 
+class MockPlotter(QObject):
+    def __init__(self, daq_bridge):
+        QObject.__init__(self)
+        self.plot_data = {}
+        daq_bridge.dataUpdated.connect(self.updateData)
+
+    @Slot(str, np.ndarray, np.ndarray)
+    def updateData(self, channel_name, times, data_vals):
+        self.plot_data[channel_name] = (times, data_vals)
+
+
 def test_step_forward():
     plumb = PlumbingBridge()
     plumb.engine = MockPlumbingEngine()
     daq = DAQBridge(plumb)
+    plotter = MockPlotter(daq)
+
     daq.addChannel('n1')
     daq.addChannel('n2')
 
     plumb.timeStepForward()
 
-    assert_equal(daq.times, [0.1])
-    assert_equal(daq.data_values, {'n1': [1], 'n2': [1]})
+    assert_equal(plotter.plot_data, {'n1': ([0.1], [1]),
+                                     'n2': ([0.1], [1])})
 
     plumb.timeStepForward()
 
-    assert_equal(daq.times, [0.1, 0.2])
-    assert_equal(daq.data_values, {'n1': [1, 2], 'n2': [1, 2]})
+    assert_equal(plotter.plot_data, {'n1': ([0.1, 0.2], [1, 2]),
+                                     'n2': ([0.1, 0.2], [1, 2])})
+
+
+def test_track_new_channel():
+    plumb = PlumbingBridge()
+    plumb.engine = MockPlumbingEngine()
+    daq = DAQBridge(plumb)
+    plotter = MockPlotter(daq)
+
+    daq.addChannel('n1')
+    plumb.timeStepForward()
+
+    assert_equal(plotter.plot_data, {'n1': ([0.1], [1])})
+
+    daq.addChannel('n2')
+    plumb.timeStepForward()
+
+    assert_equal(plotter.plot_data, {'n1': ([0.1, 0.2], [1, 2]),
+                                     'n2': ([0.2], [2])})
 
 
 def test_advance():
     plumb = PlumbingBridge()
     plumb.engine = MockPlumbingEngine()
     daq = DAQBridge(plumb)
+    plotter = MockPlotter(daq)
+
     daq.addChannel('n1')
     daq.addChannel('n2')
 
     plumb.timeAdvance()
 
-    assert_equal(daq.times, [0.1, 0.2, 0.3, 0.4, 0.5])
-    assert_equal(daq.data_values, {'n1': [1, 2, 3, 4, 5], 'n2': [1, 2, 3, 4, 5]})
+    times = [0.1, 0.2, 0.3, 0.4, 0.5]
+    values = [1, 2, 3, 4, 5]
+    assert_equal(plotter.plot_data, {'n1': (times, values),
+                                     'n2': (times, values)})
 
 
 def test_stop():
     plumb = PlumbingBridge()
     plumb.engine = MockPlumbingEngine()
     daq = DAQBridge(plumb)
+    plotter = MockPlotter(daq)
+
     daq.addChannel('n1')
     daq.addChannel('n2')
 
@@ -74,10 +113,10 @@ def test_stop():
     plumb.timeStepForward()
     plumb.timeStepForward()
 
-    assert_equal(daq.times, [0.1, 0.2, 0.3])
-    assert_equal(daq.data_values, {'n1': [1, 2, 3], 'n2': [1, 2, 3]})
+    assert_equal(plotter.plot_data, {'n1': ([0.1, 0.2, 0.3], [1, 2, 3]),
+                                     'n2': ([0.1, 0.2, 0.3], [1, 2, 3])})
 
     plumb.timeStop()
 
-    assert_equal(daq.times, [0])
-    assert_equal(daq.data_values, {'n1': [0], 'n2': [0]})
+    assert_equal(plotter.plot_data, {'n1': ([0], [0]),
+                                     'n2': ([0], [0])})
