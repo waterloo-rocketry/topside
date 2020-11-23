@@ -77,11 +77,15 @@ class Application:
         horiz_splitter.setChildrenCollapsible(False)
 
         daq_widget = DAQLayout()
+
         self.daq_bridge.channelAdded.connect(daq_widget.addChannel)
         self.daq_bridge.channelRemoved.connect(daq_widget.removeChannel)
         self.daq_bridge.dataUpdated.connect(daq_widget.updateData)
-        daq_widget.channelSelected.connect(self.daq_bridge.addChannel)
-        daq_widget.channelDeselected.connect(self.daq_bridge.removeChannel)
+
+        self.plumbing_bridge.engineLoaded.connect(daq_widget.channel_selector.updateNodeList)
+        daq_widget.channel_selector.channelSelected.connect(self.daq_bridge.addChannel)
+        daq_widget.channel_selector.channelDeselected.connect(self.daq_bridge.removeChannel)
+
         horiz_splitter.addWidget(daq_widget)
 
         plumb_widget = make_qml_widget(self.qml_engine, 'PlumbingPane.qml')

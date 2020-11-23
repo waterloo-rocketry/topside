@@ -65,6 +65,7 @@ def test_proc_bridge_procedure_step_affects_plumbing():
 
 def test_time_step_forward():
     plumb_b = PlumbingBridge()
+    plumb_b.step_size = 0.1e6
     proc_b = ProceduresBridge(plumb_b)
 
     procedure = top.Procedure('main', [
@@ -143,6 +144,7 @@ def test_time_advance():
 
 def test_time_stop():
     plumb_b = PlumbingBridge()
+    plumb_b.step_size = 0.1e6
     proc_b = ProceduresBridge(plumb_b)
 
     procedure = top.Procedure('main', [
