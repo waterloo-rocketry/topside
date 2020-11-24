@@ -12,12 +12,12 @@ class ProceduresBridge(QObject):
     def __init__(self, plumb):
         QObject.__init__(self)
 
-        self._plumb = plumb
-        self._proc_eng = top.ProceduresEngine(self._plumb.engine)
-        self._plumb.engineLoaded.connect(self.updatePlumbingEngine)
+        self._proc_eng = top.ProceduresEngine()
+        plumb.engineLoaded.connect(self.updatePlumbingEngine)
+        plumb.dataUpdated.connect(self.refresh)
 
         self._proc_steps = ProcedureStepsModel()
-        self._refresh_procedure_view()
+        self.refresh()
 
     def _refresh_procedure_view(self):
         proc = self._proc_eng.current_procedure()
@@ -37,7 +37,7 @@ class ProceduresBridge(QObject):
 
     def load_suite(self, suite):
         self._proc_eng.load_suite(suite)
-        self._refresh_procedure_view()
+        self.refresh()
 
     def load_from_file(self, filepath):
         with open(filepath) as f:
@@ -55,6 +55,11 @@ class ProceduresBridge(QObject):
         filepath, _ = QFileDialog.getOpenFileName(self.parent(), 'Load ProcLang file')
         if filepath != '':
             self.load_from_file(filepath)
+
+    @Slot()
+    def refresh(self):
+        self._proc_eng.update_conditions()
+        self._refresh_procedure_view()
 
     # Procedure controls
 
@@ -80,50 +85,14 @@ class ProceduresBridge(QObject):
 
     @Slot()
     def procStop(self):
-        # TODO(jacob): Should this reset the plumbing engine as well?
         self._proc_eng.reset()
-        self._refresh_procedure_view()
+        self.refresh()
 
     @Slot()
     def procStepForward(self):
         self._proc_eng.next_step()
-        self._refresh_procedure_view()
+        self.refresh()
 
     @Slot()
     def procAdvance(self):
         pass
-
-    # Time controls
-
-    @Slot()
-    def timePlayBackwards(self):
-        pass
-
-    @Slot()
-    def timeStepBackwards(self):
-        pass
-
-    @Slot()
-    def timePlay(self):
-        # TODO(jacob): Implement real-time simulation.
-        pass
-
-    @Slot()
-    def timePause(self):
-        pass
-
-    @Slot()
-    def timeStop(self):
-        pass
-
-    @Slot()
-    def timeStepForward(self):
-        step_size = 0.1e6  # TODO(jacob): Add a UI field for this.
-        self._proc_eng.step_time(step_size)
-        self._refresh_procedure_view()
-
-    @Slot()
-    def timeAdvance(self):
-        self._plumb.engine.solve()
-        self._proc_eng.update_conditions()
-        self._refresh_procedure_view()

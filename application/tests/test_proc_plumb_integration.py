@@ -89,13 +89,13 @@ def test_time_step_forward():
     assert plumb_eng.current_pressures('A') == 100
     assert plumb_eng.current_pressures('B') == 0
 
-    proc_b.timeStepForward()  # time == 0.1s
+    plumb_b.timeStepForward()  # time == 0.1s
     assert not proc_eng.ready_to_advance()
     # Valve is open, so pressures should start dropping
     assert plumb_eng.current_pressures('A') < 100
     assert plumb_eng.current_pressures('B') > 0
 
-    proc_b.timeStepForward()  # time == 0.2s
+    plumb_b.timeStepForward()  # time == 0.2s
     assert proc_eng.ready_to_advance()
     pressures_at_02 = plumb_eng.current_pressures()
 
@@ -103,7 +103,7 @@ def test_time_step_forward():
     assert not proc_eng.ready_to_advance()
     assert plumb_eng.current_pressures() == pressures_at_02
 
-    proc_b.timeStepForward()  # time == 0.3s
+    plumb_b.timeStepForward()  # time == 0.3s
     assert not proc_eng.ready_to_advance()
     # Valve is now closed, so pressures shouldn't change further
     assert plumb_eng.current_pressures() == pressures_at_02
@@ -134,8 +134,61 @@ def test_time_advance():
     assert plumb_eng.current_pressures('A') == 100
     assert plumb_eng.current_pressures('B') == 0
 
-    proc_b.timeAdvance()
+    plumb_b.timeAdvance()
     assert proc_eng.ready_to_advance()
     # We expect pressures to equalize at 50 once the system is steady
     assert abs(plumb_eng.current_pressures('A') - 50) < tol
     assert abs(plumb_eng.current_pressures('B') - 50) < tol
+
+
+def test_time_stop():
+    plumb_b = PlumbingBridge()
+    proc_b = ProceduresBridge(plumb_b)
+
+    procedure = top.Procedure('main', [
+        top.ProcedureStep('0', top.MiscAction('Start of operations'), [
+            (top.Immediate(), top.Transition('main', '1'))], 'OPS'),
+        top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
+            (top.WaitUntil(0.1e6), top.Transition('main', '2'))], 'PRIMARY'),
+        top.ProcedureStep('2', top.MiscAction('Approach the launch tower'), [], 'SECONDARY')
+    ])
+    proc_b.load_suite(top.ProcedureSuite([procedure]))
+
+    plumb_eng = make_plumbing_engine()
+    plumb_b.load_engine(plumb_eng)
+
+    proc_eng = proc_b._proc_eng
+
+    proc_b.procStepForward()  # advance to step 1
+    assert not proc_eng.ready_to_advance()
+    # Time hasn't advanced yet, so pressures should be the same
+    assert plumb_eng.current_pressures('A') == 100
+    assert plumb_eng.current_pressures('B') == 0
+
+    plumb_b.timeStepForward()  # time == 0.1s
+    assert proc_eng.ready_to_advance()
+    # Valve is open, so pressures should start dropping
+    assert plumb_eng.current_pressures('A') < 100
+    assert plumb_eng.current_pressures('B') > 0
+
+    proc_b.procStop()
+    plumb_b.timeStop()
+
+    # Everything should now be as it started
+
+    assert proc_eng.current_step.step_id == '0'
+    assert plumb_eng.current_state('injector_valve') == 'closed'
+    assert plumb_eng.current_pressures('A') == 100
+    assert plumb_eng.current_pressures('B') == 0
+
+    proc_b.procStepForward()  # advance to step 1
+    assert not proc_eng.ready_to_advance()
+    # Time hasn't advanced yet, so pressures should be the same
+    assert plumb_eng.current_pressures('A') == 100
+    assert plumb_eng.current_pressures('B') == 0
+
+    plumb_b.timeStepForward()  # time == 0.1s
+    assert proc_eng.ready_to_advance()
+    # Valve is open, so pressures should start dropping
+    assert plumb_eng.current_pressures('A') < 100
+    assert plumb_eng.current_pressures('B') > 0
