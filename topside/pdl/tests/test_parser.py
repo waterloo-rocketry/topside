@@ -297,7 +297,7 @@ def test_load_iterables():
 
 def test_default_paths():
     parsed = top.Parser([utils.example_path])
-    assert parsed.imports_paths == utils.default_paths
+    assert parsed.get_import_paths() == utils.default_paths
 
 
 def test_path_operations():
@@ -306,26 +306,19 @@ def test_path_operations():
     parsed = top.Parser([utils.example_path])
 
     parsed.add_import_path(other_test_path)
-    assert other_test_path in parsed.imports_paths
+    assert other_test_path in parsed.get_import_paths()
 
     parsed.remove_import_path(other_test_path)
-    assert other_test_path not in parsed.imports_paths
+    assert other_test_path not in parsed.get_import_paths()
 
     parsed.set_import_paths(None)
-    assert parsed.imports_paths == []
+    assert parsed.get_import_paths() == []
 
     parsed.add_import_path([test_path, other_test_path])
-    assert len(parsed.imports_paths) == 2
+    assert len(parsed.get_import_paths()) == 2
 
 
 def test_alternate_paths():
-    imports_alt_folder = os.path.join("tests", "imports_alt")
-    alt_paths = os.path.join(utils.pdl_path, imports_alt_folder)
-
-    # check that the standard "stdlib" import still works - it should,
-    # since there is a pdl file named stdlib in the tests/imports_alt folder
-    _ = top.Parser([utils.example_path], imports_paths=[alt_paths])
-
     new_import = "alt"
     imports_alt_file = textwrap.dedent(f"""\
     name: example
@@ -352,4 +345,39 @@ def test_alternate_paths():
     """)
 
     # make sure that imports still work in the new folder
-    _ = top.Parser(imports_alt_file, input_type='s', imports_paths=[alt_paths])
+    _ = top.Parser(imports_alt_file, input_type='s', import_paths=[utils.alt_path])
+
+
+def test_multiple_import_folders():
+    new_import = "alt"
+    multi_imports_file = textwrap.dedent(f"""\
+    name: example
+    import: [{new_import}, stdlib]
+    body:
+    - component:
+        name: hole_valve
+        type: {new_import}.hole
+        params:
+          open_teq: 1
+    - component:
+        name: fill_hole_valve
+        type: stdlib.hole
+        params:
+          open_teq: 2
+    - graph:
+        name: main
+        nodes:
+          A:
+            fixed_pressure: 500
+            components:
+              - [hole_valve, 0]
+
+          B:
+            components:
+              - [hole_valve, 1]
+        states:
+          hole_valve: open
+    """)
+
+    _ = top.Parser(multi_imports_file, input_type='s', import_paths=[
+                   utils.alt_path, utils.default_path])
