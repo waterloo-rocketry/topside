@@ -1,0 +1,13 @@
+name: stdlib
+body:
+- typedef:
+    params: [open_teq, closed_teq=closed]
+    name: hole
+    edges:
+      edge1:
+        nodes: [0, 1]
+    states:
+      open:
+        edge1: open_teq
+      closed:
+        edge1: closed_teq

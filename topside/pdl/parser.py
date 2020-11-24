@@ -1,11 +1,13 @@
+import copy
+
 import topside as top
-import topside.pdl.exceptions as exceptions
+from topside.pdl import exceptions, utils
 
 
 class Parser:
     """Produces plumbing engine input that's representative of its given files."""
 
-    def __init__(self, files, input_type='f'):
+    def __init__(self, files, input_type='f', imports_paths=None):
         """
         Initialize a parser from one or more PDL files.
 
@@ -25,6 +27,10 @@ class Parser:
             a list of file paths (f) or a list of strings (s).
 
         """
+        self.imports_paths = copy.deepcopy(imports_paths)
+        if imports_paths is None:
+            self.imports_paths = utils.default_paths
+
         file_list = []
 
         # if a single element, put into list for processing
@@ -33,7 +39,7 @@ class Parser:
 
         for file in files:
             file_list.append(top.File(file, input_type))
-        self.package = top.Package(file_list)
+        self.package = top.Package(file_list, self.imports_paths)
 
         self.components = {}
         self.mapping = {}
@@ -102,6 +108,29 @@ class Parser:
         plumb = top.PlumbingEngine(self.components, self.mapping,
                                    self.initial_pressures, self.initial_states)
         return plumb
+
+    def get_import_paths(self):
+        '''Return the current list of import paths.'''
+        return self.imports_paths
+
+    def set_import_paths(self, newpaths):
+        '''Set the list of import paths. Passing in None clears the import paths.'''
+        if newpaths is None:
+            newpaths = []
+        self.imports_paths = newpaths
+
+    def add_import_path(self, newpaths):
+        '''Add a single path or iterable of paths to the import paths.'''
+        if not isinstance(newpaths, (list, tuple)):
+            newpaths = [newpaths]
+        self.imports_paths.extend(newpaths)
+
+    def remove_import_path(self, paths):
+        '''Remove a single path or iterable of paths from the import paths.'''
+        if not isinstance(paths, (list, tuple)):
+            paths = [paths]
+        for path in paths:
+            self.imports_paths.remove(path)
 
 
 def extract_edges(entry):

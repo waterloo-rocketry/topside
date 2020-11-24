@@ -19,7 +19,7 @@ from topside.pdl import exceptions, utils
 class Package:
     """Package represents a collection of files that make a coherent plumbing system."""
 
-    def __init__(self, files):
+    def __init__(self, files, imports_paths=None):
         """
         Initialize a Package from one or more Files.
 
@@ -34,26 +34,30 @@ class Package:
             files is an iterable (usually a list) of one or more Files whose contents should go
             into the Package.
         """
+        self.imports_paths = copy.deepcopy(imports_paths)
+        if imports_paths is None:
+            self.imports_paths = utils.default_paths
         self.importable_files = dict()
 
-        try:
-            imports_folder = os.listdir(utils.imports_path)
-        except FileNotFoundError:
-            imports_folder = []
-            warnings.warn(f"import directory {utils.imports_path} could not be found")
-
-        for imported_file in imports_folder:
-
-            path = os.path.join(utils.imports_path, imported_file)
+        for imports_path in self.imports_paths:
             try:
-                name = yaml.safe_load(open(path, 'r'))['name']
+                imports_folder = os.listdir(imports_path)
+            except FileNotFoundError:
+                imports_folder = []
+                warnings.warn(f"import directory {imports_path} could not be found")
 
-                if name in self.importable_files:
-                    self.importable_files[name].add(path)
-                else:
-                    self.importable_files[name] = {path}
-            except KeyError:
-                warnings.warn(path + " does not describe a pdl file")
+            for imported_file in imports_folder:
+
+                path = os.path.join(imports_path, imported_file)
+                try:
+                    name = yaml.safe_load(open(path, 'r'))['name']
+
+                    if name in self.importable_files:
+                        self.importable_files[name].add(path)
+                    else:
+                        self.importable_files[name] = {path}
+                except KeyError:
+                    warnings.warn(path + " does not describe a pdl file")
 
         if len(list(files)) < 1:
             raise exceptions.BadInputError("cannot instantiate a Package with no Files")

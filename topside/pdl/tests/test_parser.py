@@ -1,3 +1,4 @@
+import os
 import textwrap
 
 import pytest
@@ -292,3 +293,63 @@ def test_load_iterables():
     assert len(parse_list.components) == 2
     assert len(parse_tuple.components) == 2
     assert len(parse_dict.components) == 2
+
+
+def test_default_paths():
+    parsed = top.Parser([utils.example_path])
+    assert parsed.imports_paths == utils.default_paths
+
+
+def test_path_operations():
+    test_path = "test"
+    other_test_path = "test2"
+    parsed = top.Parser([utils.example_path])
+
+    parsed.add_import_path(other_test_path)
+    assert other_test_path in parsed.imports_paths
+
+    parsed.remove_import_path(other_test_path)
+    assert other_test_path not in parsed.imports_paths
+
+    parsed.set_import_paths(None)
+    assert parsed.imports_paths == []
+
+    parsed.add_import_path([test_path, other_test_path])
+    assert len(parsed.imports_paths) == 2
+
+
+def test_alternate_paths():
+    imports_alt_folder = os.path.join("tests", "imports_alt")
+    alt_paths = os.path.join(utils.pdl_path, imports_alt_folder)
+
+    # check that the standard "stdlib" import still works - it should,
+    # since there is a pdl file named stdlib in the tests/imports_alt folder
+    _ = top.Parser([utils.example_path], imports_paths=[alt_paths])
+
+    new_import = "alt"
+    imports_alt_file = textwrap.dedent(f"""\
+    name: example
+    import: [{new_import}]
+    body:
+    - component:
+        name: hole_valve
+        type: {new_import}.hole
+        params:
+          open_teq: 1
+    - graph:
+        name: main
+        nodes:
+          A:
+            fixed_pressure: 500
+            components:
+              - [hole_valve, 0]
+
+          B:
+            components:
+              - [hole_valve, 1]
+        states:
+          hole_valve: open
+    """)
+
+    # make sure that imports still work in the new folder
+    _ = top.Parser(imports_alt_file, input_type='s', imports_paths=[alt_paths])
