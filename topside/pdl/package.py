@@ -44,23 +44,23 @@ class Package:
         for import_path in self.import_paths:
             try:
                 filenames = os.listdir(import_path)
-                filenames = list(map(lambda fname: os.path.join(import_path, fname), filenames))
+                filenames = [os.path.join(import_path, fname) for fname in filenames]
                 imports_folder.extend(filenames)
 
             except FileNotFoundError:
                 imports_folder = []
                 warnings.warn(f"import directory {import_path} could not be found")
 
-            for path in imports_folder:
-                try:
-                    name = yaml.safe_load(open(path, 'r'))['name']
+        for path in imports_folder:
+            try:
+                name = yaml.safe_load(open(path, 'r'))['name']
 
-                    if name in self.importable_files:
-                        self.importable_files[name].add(path)
-                    else:
-                        self.importable_files[name] = {path}
-                except KeyError:
-                    warnings.warn(path + " does not describe a pdl file")
+                if name in self.importable_files:
+                    self.importable_files[name].add(path)
+                else:
+                    self.importable_files[name] = {path}
+            except KeyError:
+                warnings.warn(path + " does not describe a pdl file")
 
         if len(list(files)) < 1:
             raise exceptions.BadInputError("cannot instantiate a Package with no Files")
