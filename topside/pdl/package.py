@@ -19,7 +19,7 @@ from topside.pdl import exceptions, utils
 class Package:
     """Package represents a collection of files that make a coherent plumbing system."""
 
-    def __init__(self, files):
+    def __init__(self, files, import_paths=None):
         """
         Initialize a Package from one or more Files.
 
@@ -34,17 +34,24 @@ class Package:
             files is an iterable (usually a list) of one or more Files whose contents should go
             into the Package.
         """
+        self.import_paths = copy.deepcopy(import_paths)
+        if import_paths is None:
+            self.import_paths = utils.default_paths
         self.importable_files = dict()
 
-        try:
-            imports_folder = os.listdir(utils.imports_path)
-        except FileNotFoundError:
-            imports_folder = []
-            warnings.warn(f"import directory {utils.imports_path} could not be found")
+        imports_folder = []
 
-        for imported_file in imports_folder:
+        for import_path in self.import_paths:
+            try:
+                filenames = os.listdir(import_path)
+                filenames = [os.path.join(import_path, fname) for fname in filenames]
+                imports_folder.extend(filenames)
 
-            path = os.path.join(utils.imports_path, imported_file)
+            except FileNotFoundError:
+                imports_folder = []
+                warnings.warn(f"import directory {import_path} could not be found")
+
+        for path in imports_folder:
             try:
                 name = yaml.safe_load(open(path, 'r'))['name']
 
