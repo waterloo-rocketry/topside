@@ -23,6 +23,7 @@ class PlumbingBridge(QObject):
     def load_engine(self, new_engine):
         self.engine = new_engine
         self.engineLoaded.emit(new_engine)
+        self.timeStop()
 
     def load_from_files(self, filepaths):
         parser = top.pdl.Parser(filepaths)

@@ -43,9 +43,17 @@ class DAQBridge(QObject):
     def __init__(self, plumbing_bridge):
         QObject.__init__(self)
         plumbing_bridge.dataUpdated.connect(self.update)
-        self.data_values = {}
+        plumbing_bridge.engineLoaded.connect(self.clear)
+        self.data_values = {}  # {channel_name: np.ndarray}
         self.times = np.array([])
         self.window_size_s = 10  # TODO(jacob): Add a UI field for this.
+
+    @Slot()
+    def clear(self):
+        channels = list(self.data_values.keys())
+        for channel in channels:
+            self.removeChannel(channel)
+        self.times = np.array([])
 
     @Slot(str)
     def addChannel(self, channel_name):
@@ -137,6 +145,12 @@ class DAQLayout(QWidget):
         self.channel_selector = ChannelSelector()
         self.layout().addWidget(self.channel_selector)
 
+    @Slot()
+    def clear(self):
+        channels = list(self.plot_items.keys())
+        for channel in channels:
+            self.removeChannel(channel)
+
     @Slot(str)
     def addChannel(self, channel_name):
         if channel_name in self.plot_items:
@@ -158,22 +172,23 @@ class DAQLayout(QWidget):
 
     @Slot(str)
     def removeChannel(self, channel_name):
-        item = self.plot_items[channel_name]
+        if channel_name in self.plot_items:
+            item = self.plot_items[channel_name]
 
-        # NOTE(jacob): For some reason, PyQtGraph doesn't properly
-        # delete the border geometry for plot items when removeItem is
-        # called on a GraphicsLayout (or GraphicsLayoutWidget), so we
-        # need to explicitly delete it ourselves or we get weird lines
-        # left on the screen. I'm considering submitting a PR to fix
-        # this, if I can confirm that it's actually a bug.
-        border = self.graphs.ci.itemBorders[item]
-        self.graphs.ci.scene().removeItem(border)
+            # NOTE(jacob): For some reason, PyQtGraph doesn't properly
+            # delete the border geometry for plot items when removeItem is
+            # called on a GraphicsLayout (or GraphicsLayoutWidget), so we
+            # need to explicitly delete it ourselves or we get weird lines
+            # left on the screen. I'm considering submitting a PR to fix
+            # this, if I can confirm that it's actually a bug.
+            border = self.graphs.ci.itemBorders[item]
+            self.graphs.ci.scene().removeItem(border)
 
-        self.graphs.removeItem(item)
-        item.deleteLater()
+            self.graphs.removeItem(item)
+            item.deleteLater()
 
-        del self.plot_items[channel_name]
-        del self.plot_curves[channel_name]
+            del self.plot_items[channel_name]
+            del self.plot_curves[channel_name]
 
     @Slot(str, np.ndarray, np.ndarray)
     def updateData(self, channel_name, times, data_vals):
