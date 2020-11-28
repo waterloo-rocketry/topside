@@ -10,7 +10,7 @@ from PySide2.QtQuickWidgets import QQuickWidget
 from .visualization_area import VisualizationArea
 from .procedures_bridge import ProceduresBridge
 from .plumbing_bridge import PlumbingBridge
-from .daq import DAQBridge, DAQLayout
+from .daq import DAQBridge, make_daq_widget
 
 
 # NOTE(jacob): `__file__` isn't defined for the frozen application,
@@ -76,20 +76,11 @@ class Application:
         horiz_splitter = QSplitter(Qt.Horizontal)
         horiz_splitter.setChildrenCollapsible(False)
 
-        daq_widget = DAQLayout()
-
-        self.daq_bridge.channelAdded.connect(daq_widget.addChannel)
-        self.daq_bridge.channelRemoved.connect(daq_widget.removeChannel)
-        self.daq_bridge.dataUpdated.connect(daq_widget.updateData)
-
-        self.plumbing_bridge.engineLoaded.connect(daq_widget.channel_selector.updateNodeList)
-        daq_widget.channel_selector.channelSelected.connect(self.daq_bridge.addChannel)
-        daq_widget.channel_selector.channelDeselected.connect(self.daq_bridge.removeChannel)
-
+        daq_widget = make_daq_widget(self.daq_bridge, self.plumbing_bridge)
         horiz_splitter.addWidget(daq_widget)
 
         plumb_widget = make_qml_widget(self.qml_engine, 'PlumbingPane.qml')
-        plumb_widget.setMinimumWidth(400)
+        plumb_widget.setMinimumWidth(600)
         plumb_widget.setMinimumHeight(600)
         horiz_splitter.addWidget(plumb_widget)
 

@@ -79,13 +79,14 @@ class DAQBridge(QObject):
         datapoints: dict
             `datapoints` is a dict of the form `{channel: values}`,
             where `channel` is a string corresponding to a tracked
-            channel name and `values` is a list of new data values.
+            channel name and `values` is a NumPy array of new data
+            values.
 
-        times: list
-            `times` is a list of the form `[t1, t2, t3]`. It is expected
-            to be the same length as each `values` list. For any channel
-            in `datapoints`, `values[i]` is the value of the channel at
-            time `times[i]`.
+        times: np.ndarray
+            `times` is an array of the form `[t1, t2, t3]`. It is
+            expected to be the same length as each `values` list. For
+            any channel in `datapoints`, `values[i]` is the value of the
+            channel at time `times[i]`.
         """
         if len(times) == 0:
             return
@@ -122,8 +123,12 @@ class DAQLayout(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self.setLayout(QVBoxLayout())
-        self.plot_items = {}
-        self.plot_curves = {}
+
+        self.plot_items = {}  # {channel_name: PlotItem}
+        self.plot_curves = {}  # {channel_name: PlotDataItem}
+        self.next_row = 0
+
+        self.pen = pg.mkPen(color='g', width=1)
 
         self.graphs = pg.GraphicsLayoutWidget()
         self.graphs.ci.setBorder('w', width=2)
@@ -132,7 +137,6 @@ class DAQLayout(QWidget):
         self.channel_selector = ChannelSelector()
         self.layout().addWidget(self.channel_selector)
 
-        self.next_row = 0
 
     @Slot(str)
     def addChannel(self, channel_name):
@@ -143,7 +147,7 @@ class DAQLayout(QWidget):
         plot.setLimits(minYRange=2)
         plot.showGrid(x=True, y=True)
         self.plot_items[channel_name] = plot
-        self.plot_curves[channel_name] = plot.plot()
+        self.plot_curves[channel_name] = plot.plot(pen=self.pen)
 
         # NOTE(jacob): PyQtGraph doesn't adjust row numbers if an item
         # is deleted from the layout, so we can't simply assume that the
@@ -189,11 +193,15 @@ class ChannelSelector(QWidget):
         self.control_group = QButtonGroup()
         self.control_group.setExclusive(False)
         self.control_group.idToggled.connect(self.notifyChannel)
-        self.ids_to_channels = {}
-        self.checkboxes = {}
+        self.ids_to_channels = {}  # {id: channel_name (str)}
+        self.checkboxes = {}  # {channel_name: QCheckBox}
 
-        self.num_cols = 4
         self.next_id = 0
+
+        # TODO(jacob): 4 columns is mostly an arbitrary choice; 5 seemed
+        # too crowded, 3 seemed too empty. Ideally we'd change this
+        # dynamically based on the column width.
+        self.num_cols = 4
 
     def add_checkbox(self, channel_name):
         if channel_name in self.checkboxes:
@@ -232,3 +240,18 @@ class ChannelSelector(QWidget):
             self.channelSelected.emit(channel)
         else:
             self.channelDeselected.emit(channel)
+
+
+def make_daq_widget(daq_bridge, plumbing_bridge):
+    layout = DAQLayout()
+
+    daq_bridge.channelAdded.connect(layout.addChannel)
+    daq_bridge.channelRemoved.connect(layout.removeChannel)
+    daq_bridge.dataUpdated.connect(layout.updateData)
+
+    layout.channel_selector.channelSelected.connect(daq_bridge.addChannel)
+    layout.channel_selector.channelDeselected.connect(daq_bridge.removeChannel)
+
+    plumbing_bridge.engineLoaded.connect(layout.channel_selector.updateNodeList)
+
+    return layout
