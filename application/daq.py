@@ -137,7 +137,6 @@ class DAQLayout(QWidget):
         self.channel_selector = ChannelSelector()
         self.layout().addWidget(self.channel_selector)
 
-
     @Slot(str)
     def addChannel(self, channel_name):
         if channel_name in self.plot_items:

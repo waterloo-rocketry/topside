@@ -79,16 +79,15 @@ ColumnLayout {
                 Layout.preferredHeight: 50
                 Layout.preferredWidth: 50
                 icon.color: "transparent"
-                property bool is_play: true
-                icon.source: is_play ? "themes/default/play.png" : "themes/default/pause.png"
+                icon.source: plumbingBridge.paused ?
+                    "themes/default/play.png" : "themes/default/pause.png"
 
                 onClicked: {
-                    if (is_play) {
+                    if (plumbingBridge.paused) {
                         plumbingBridge.timePlay()
                     } else {
                         plumbingBridge.timePause()
                     }
-                    is_play = !is_play
                 }
             }
             Button {
