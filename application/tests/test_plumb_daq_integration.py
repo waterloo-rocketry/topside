@@ -44,6 +44,10 @@ class MockPlotter(QObject):
     def updateData(self, channel_name, times, data_vals):
         self.plot_data[channel_name] = (times, data_vals)
 
+    @Slot(str)
+    def removeChannel(self, channel_name):
+        del self.plot_data[channel_name]
+
 
 def test_step_forward():
     plumb = PlumbingBridge()
@@ -124,3 +128,28 @@ def test_stop():
 
     assert_equal(plotter.plot_data, {'n1': ([0], [0]),
                                      'n2': ([0], [0])})
+
+
+def test_load_engine_resets():
+    plumb = PlumbingBridge()
+    plumb.step_size = 0.1e6
+
+    e1 = MockPlumbingEngine()
+    plumb.load_engine(e1)
+
+    daq = DAQBridge(plumb)
+    plotter = MockPlotter(daq)
+
+    daq.channelRemoved.connect(plotter.removeChannel)
+
+    daq.addChannel('n1')
+    daq.addChannel('n2')
+
+    plumb.timeStepForward()
+
+    assert_equal(plotter.plot_data, {'n1': ([0.1], [1]),
+                                     'n2': ([0.1], [1])})
+
+    plumb.load_engine(e1)
+
+    assert_equal(plotter.plot_data, {})

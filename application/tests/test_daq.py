@@ -2,11 +2,14 @@ from PySide2.QtCore import QObject, Signal
 import numpy as np
 from numpy.testing import assert_equal
 
+import topside as top
 from ..daq import trim_earlier, DAQBridge
+from ..plumbing_bridge import PlumbingBridge
 
 
 class MockPlumbingBridge(QObject):
     dataUpdated = Signal(dict, int)
+    engineLoaded = Signal(top.PlumbingEngine)
 
     def __init__(self):
         QObject.__init__(self)

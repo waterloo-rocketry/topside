@@ -68,7 +68,7 @@ class ProceduresEngine:
         """
         Update all current conditions by querying the managed plumbing engine.
         """
-        if self._plumb is not None:
+        if self._plumb is not None and self.current_step is not None:
             time = self._plumb.time
             pressures = self._plumb.current_pressures()
             state = {'time': time, 'pressures': pressures}
