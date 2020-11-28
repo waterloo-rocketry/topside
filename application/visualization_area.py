@@ -314,6 +314,7 @@ class VisualizationArea(QQuickPaintedItem):
         self.engine_instance = engine
         self.terminal_graph = top.terminal_graph(self.engine_instance)
         self.layout_pos = top.layout_plumbing_engine(self.engine_instance)
+        self.setRescaleNeeded()
         self.update()
 
     @Slot()
