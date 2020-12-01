@@ -41,6 +41,74 @@ def test_parse_two_steps():
     assert suite == expected_suite
 
 
+def test_set_case_insensitive():
+    proclang = '''
+    main:
+        1. PRIMARY: Set injector_valve to open
+        2. PRIMARY: set injector_valve to open
+    '''
+    suite = top.proclang.parse(proclang)
+
+    expected_suite = top.ProcedureSuite([
+        top.Procedure('main', [
+            top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
+                (top.Immediate(), top.Transition('main', '2'))
+            ], 'PRIMARY'),
+            top.ProcedureStep('2', top.StateChangeAction('injector_valve', 'open'), [], 'PRIMARY')
+        ])
+    ])
+
+    assert suite == expected_suite
+
+
+def test_different_step_ids():
+    proclang = '''
+    main:
+        1. PRIMARY: Set injector_valve to open
+        10. PRIMARY: Set injector_valve to open
+        100. PRIMARY: Set injector_valve to open
+        a. PRIMARY: Set injector_valve to open
+        ab. PRIMARY: Set injector_valve to open
+        a1. PRIMARY: Set injector_valve to open
+        1a. PRIMARY: Set injector_valve to open
+        a_1. PRIMARY: Set injector_valve to open
+        1_a. PRIMARY: Set injector_valve to open
+    '''
+    suite = top.proclang.parse(proclang)
+
+    expected_suite = top.ProcedureSuite([
+        top.Procedure('main', [
+            top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
+                (top.Immediate(), top.Transition('main', '10'))
+            ], 'PRIMARY'),
+            top.ProcedureStep('10', top.StateChangeAction('injector_valve', 'open'), [
+                (top.Immediate(), top.Transition('main', '100'))
+            ], 'PRIMARY'),
+            top.ProcedureStep('100', top.StateChangeAction('injector_valve', 'open'), [
+                (top.Immediate(), top.Transition('main', 'a'))
+            ], 'PRIMARY'),
+            top.ProcedureStep('a', top.StateChangeAction('injector_valve', 'open'), [
+                (top.Immediate(), top.Transition('main', 'ab'))
+            ], 'PRIMARY'),
+            top.ProcedureStep('ab', top.StateChangeAction('injector_valve', 'open'), [
+                (top.Immediate(), top.Transition('main', 'a1'))
+            ], 'PRIMARY'),
+            top.ProcedureStep('a1', top.StateChangeAction('injector_valve', 'open'), [
+                (top.Immediate(), top.Transition('main', '1a'))
+            ], 'PRIMARY'),
+            top.ProcedureStep('1a', top.StateChangeAction('injector_valve', 'open'), [
+                (top.Immediate(), top.Transition('main', 'a_1'))
+            ], 'PRIMARY'),
+            top.ProcedureStep('a_1', top.StateChangeAction('injector_valve', 'open'), [
+                (top.Immediate(), top.Transition('main', '1_a'))
+            ], 'PRIMARY'),
+            top.ProcedureStep('1_a', top.StateChangeAction('injector_valve', 'open'), [], 'PRIMARY')
+        ])
+    ])
+
+    assert suite == expected_suite
+
+
 def test_parse_two_procedures():
     proclang = '''
     main:
@@ -263,21 +331,28 @@ def test_parse_from_file():
             top.ProcedureStep('5', top.StateChangeAction('remote_fill_valve', 'closed'), [
                 (top.Immediate(), top.Transition('main', '6'))
             ], 'PRIMARY'),
-            top.ProcedureStep('6', top.StateChangeAction(
-                'remote_vent_valve', 'open'), [], 'PRIMARY')
+            top.ProcedureStep('6', top.StateChangeAction('remote_vent_valve', 'open'), [
+                (top.Immediate(), top.Transition('main', '7'))
+            ], 'PRIMARY'),
+            top.ProcedureStep('7', top.MiscAction('Proceed with teardown'), [], 'OPS')
         ]),
         top.Procedure('abort_1', [
             top.ProcedureStep('1', top.StateChangeAction('supply_valve', 'closed'), [
                 (top.WaitUntil(10e6), top.Transition('abort_1', '2'))
             ], 'SECONDARY'),
-            top.ProcedureStep('2', top.StateChangeAction(
-                'remote_vent_valve', 'open'), [], 'SECONDARY')
+            top.ProcedureStep('2', top.StateChangeAction('remote_vent_valve', 'open'), [
+                (top.Immediate(), top.Transition('abort_1', '3'))
+            ], 'SECONDARY'),
+            top.ProcedureStep('3', top.MiscAction('Proceed with teardown'), [], 'OPS')
         ]),
         top.Procedure('abort_2', [
             top.ProcedureStep('1', top.StateChangeAction('supply_valve', 'closed'), [
                 (top.Immediate(), top.Transition('abort_2', '2'))
             ], 'CONTROL'),
-            top.ProcedureStep('2', top.StateChangeAction('line_vent_valve', 'open'), [], 'CONTROL')
+            top.ProcedureStep('2', top.StateChangeAction('line_vent_valve', 'open'), [
+                (top.Immediate(), top.Transition('abort_2', '3'))
+            ], 'CONTROL'),
+            top.ProcedureStep('3', top.MiscAction('Proceed with teardown'), [], 'OPS')
         ]),
     ])
 
@@ -424,6 +499,35 @@ def test_parse_combined_conditions():
                 (comp_or, top.Transition('main', '2'))
             ], 'PRIMARY'),
             top.ProcedureStep('2', top.StateChangeAction('s', 'v'), [], 'PRIMARY')
+        ])
+    ])
+
+    assert suite == expected_suite
+
+
+def test_parse_misc_actions():
+    proclang = '''
+    main:
+        1. CONTROL: Set injector_valve to open
+        2. CONTROL: [p1 < 10] Disarm the remote control system
+        3. PRIMARY: Approach the launch tower, disconnect the cylinder, and replace the cap
+        4. OPS: [60s] Proceed with teardown
+    '''
+    suite = top.proclang.parse(proclang)
+
+    expected_suite = top.ProcedureSuite([
+        top.Procedure('main', [
+            top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
+                (top.Less('p1', 10), top.Transition('main', '2'))
+            ], 'CONTROL'),
+            top.ProcedureStep('2', top.MiscAction('Disarm the remote control system'), [
+                (top.Immediate(), top.Transition('main', '3'))
+            ], 'CONTROL'),
+            top.ProcedureStep('3', top.MiscAction(
+                'Approach the launch tower, disconnect the cylinder, and replace the cap'), [
+                (top.WaitUntil(60e6), top.Transition('main', '4'))
+            ], 'PRIMARY'),
+            top.ProcedureStep('4', top.MiscAction('Proceed with teardown'), [], 'OPS')
         ])
     ])
 

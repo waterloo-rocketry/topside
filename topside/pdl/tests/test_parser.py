@@ -1,3 +1,4 @@
+import os
 import textwrap
 
 import pytest
@@ -292,3 +293,91 @@ def test_load_iterables():
     assert len(parse_list.components) == 2
     assert len(parse_tuple.components) == 2
     assert len(parse_dict.components) == 2
+
+
+def test_default_paths():
+    parsed = top.Parser([utils.example_path])
+    assert parsed.get_import_paths() == utils.default_paths
+
+
+def test_path_operations():
+    test_path = "test"
+    other_test_path = "test2"
+    parsed = top.Parser([utils.example_path])
+
+    parsed.add_import_path(other_test_path)
+    assert other_test_path in parsed.get_import_paths()
+
+    parsed.remove_import_path(other_test_path)
+    assert other_test_path not in parsed.get_import_paths()
+
+    parsed.set_import_paths(None)
+    assert parsed.get_import_paths() == []
+
+    parsed.add_import_path([test_path, other_test_path])
+    assert len(parsed.get_import_paths()) == 2
+
+
+def test_alternate_paths():
+    new_import = "alt"
+    imports_alt_file = textwrap.dedent(f"""\
+    name: example
+    import: [{new_import}]
+    body:
+    - component:
+        name: hole_valve
+        type: {new_import}.hole
+        params:
+          open_teq: 1
+    - graph:
+        name: main
+        nodes:
+          A:
+            fixed_pressure: 500
+            components:
+              - [hole_valve, 0]
+
+          B:
+            components:
+              - [hole_valve, 1]
+        states:
+          hole_valve: open
+    """)
+
+    # make sure that imports still work in the new folder
+    _ = top.Parser(imports_alt_file, input_type='s', import_paths=[utils.alt_path])
+
+
+def test_multiple_import_folders():
+    new_import = "alt"
+    multi_imports_file = textwrap.dedent(f"""\
+    name: example
+    import: [{new_import}, stdlib]
+    body:
+    - component:
+        name: hole_valve
+        type: {new_import}.hole
+        params:
+          open_teq: 1
+    - component:
+        name: fill_hole_valve
+        type: stdlib.hole
+        params:
+          open_teq: 2
+    - graph:
+        name: main
+        nodes:
+          A:
+            fixed_pressure: 500
+            components:
+              - [hole_valve, 0]
+
+          B:
+            components:
+              - [hole_valve, 1]
+        states:
+          hole_valve: open
+    """)
+
+    _ = top.Parser(multi_imports_file, input_type='s', import_paths=[
+                   utils.alt_path, utils.default_path])

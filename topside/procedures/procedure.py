@@ -1,8 +1,21 @@
 from dataclasses import dataclass
+import enum
+
+import topside as top
+
+
+class ExportFormat(enum.Enum):
+    Latex = 1
+
+
+# TODO(jacob): Investigate whether this would be better as a variant
+# rather than a base class.
+class Action:
+    pass
 
 
 @dataclass
-class StateChangeAction:
+class StateChangeAction(Action):
     """
     A state change for a single component in the plumbing engine.
 
@@ -22,9 +35,20 @@ class StateChangeAction:
     component: str
     state: str
 
+    def export(self, fmt):
+        if fmt == top.ExportFormat.Latex:
+            if self.state == 'open':
+                return 'Open ' + self.component
+            elif self.state == 'closed':
+                return 'Close ' + self.component
+            else:
+                return 'Set ' + self.component + ' to ' + self.state
+        else:
+            raise NotImplementedError(f'Format "{fmt}" not supported')
+
 
 @dataclass
-class MiscAction:
+class MiscAction(Action):
     """
     A procedure action that does not fit into any other category.
 
@@ -34,6 +58,12 @@ class MiscAction:
         The string specifies which type of action it is.
     """
     action_type: str
+
+    def export(self, fmt):
+        if fmt == top.ExportFormat.Latex:
+            return self.action_type
+        else:
+            raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
 @dataclass
@@ -81,9 +111,19 @@ class ProcedureStep:
         The person who performs the step
     """
     step_id: str
-    action: StateChangeAction
+    action: Action
     conditions: list
     operator: str
+
+    def export(self, fmt):
+        if fmt == top.ExportFormat.Latex:
+            retval = ''
+            if self.operator != '':
+                retval += '\\' + self.operator + '{} '
+            retval += self.action.export(fmt)
+            return retval
+        else:
+            raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
 class Procedure:
@@ -140,6 +180,33 @@ class Procedure:
             self.procedure_id == other.procedure_id and \
             self.step_list == other.step_list
 
+    def export(self, fmt):
+        if fmt == top.ExportFormat.Latex:
+            export_val = f'\\subsection{{{self.procedure_id}}}'
+            if len(self.step_list) > 0:
+                export_val += '\n\\begin{checklist}'
+                for index, step in enumerate(self.step_list):
+                    export_val += '\n    \\item ' + step.export(fmt)
+                    wait_condition = ''
+                    jump_conditions = ''
+                    for t in step.conditions:
+                        if not isinstance(t[0], top.Immediate) and \
+                           t[1].procedure == self.procedure_id and \
+                           t[1].step == self.step_list[index + 1].step_id:
+                            wait_condition = '\n    \\item Wait ' + t[0].export(fmt)
+                        elif not isinstance(t[0], top.Immediate):
+                            cond = '\n    \\item If ' + t[0].export(fmt)
+                            beg = '\n    \\begin{checklist}'
+                            action = '\n        \\item Begin ' + t[1].procedure + ' procedure'
+                            end = '\n    \\end{checklist}'
+                            jump_conditions += cond + beg + action + end
+                    export_val += jump_conditions
+                    export_val += wait_condition
+                export_val += '\n\\end{checklist}'
+            return export_val
+        else:
+            raise NotImplementedError(f'Format "{fmt}" not supported')
+
 
 class ProcedureSuite:
     """A set of procedures and associated metadata."""
@@ -184,3 +251,16 @@ class ProcedureSuite:
 
     def __getitem__(self, key):
         return self.procedures[key]
+
+    def export(self, fmt):
+        if fmt == top.ExportFormat.Latex:
+            exported_procedures = []
+            exported_procedures.append(self.procedures[self.starting_procedure_id].export(fmt))
+            for proc in self.procedures:
+                if proc == self.starting_procedure_id:
+                    continue
+                exported_procedures.append(self.procedures[proc].export(fmt))
+            # TODO(aaron): properly sanitize latex characters, not just escaping _'s
+            return '\n\n'.join(exported_procedures).replace('_', '\\_')
+        else:
+            raise NotImplementedError(f'Format "{fmt}" not supported')

@@ -108,6 +108,198 @@ def test_add_invalid_component():
     assert str(err.value) == "Component not valid; all errors must be resolved before loading in."
 
 
+def test_reset_added_component():
+    plumb = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    pc = test.create_component(0, 0, 0, 1, 'valve3', 'C')
+    mapping = {
+        1: 3,
+        2: 4
+    }
+
+    plumb.add_component(pc, mapping, 'closed', {4: (50, False)})
+    plumb.reset(True)
+
+    plumb_initial = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    assert plumb.time == 0
+    assert plumb.is_valid()
+    assert plumb.time_res == plumb_initial.time_res
+    assert plumb.edges() == plumb_initial.edges()
+    assert plumb.nodes() == plumb_initial.nodes()
+    assert plumb.current_state() == plumb_initial.current_state()
+
+
+def test_reset_removed_component():
+    plumb = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    plumb.remove_component('valve2')
+    plumb.reset(True)
+
+    plumb_initial = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    assert plumb.time == 0
+    assert plumb.is_valid()
+    assert plumb.time_res == plumb_initial.time_res
+    assert plumb.edges() == plumb_initial.edges()
+    assert plumb.nodes() == plumb_initial.nodes()
+    assert plumb.current_state() == plumb_initial.current_state()
+
+
+def test_reset_component_state():
+    plumb = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    plumb.set_component_state('valve1', 'open')
+    plumb.reset(True)
+
+    plumb_initial = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    assert plumb.time == 0
+    assert plumb.is_valid()
+    assert plumb.time_res == plumb_initial.time_res
+    assert plumb.edges() == plumb_initial.edges()
+    assert plumb.nodes() == plumb_initial.nodes()
+    assert plumb.current_state() == plumb_initial.current_state()
+
+
+def test_reset_pressure():
+    plumb = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    plumb.set_pressure(2, 150)
+    plumb.reset(True)
+
+    plumb_initial = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    assert plumb.time == 0
+    assert plumb.is_valid()
+    assert plumb.time_res == plumb_initial.time_res
+    assert plumb.edges() == plumb_initial.edges()
+    assert plumb.nodes() == plumb_initial.nodes()
+    assert plumb.current_state() == plumb_initial.current_state()
+
+
+def test_reset_step_and_solve():
+    plumb = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    plumb.step()
+    plumb.solve()
+    plumb.reset(True)
+
+    plumb_initial = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    assert plumb.time == 0
+    assert plumb.is_valid()
+    assert plumb.time_res == plumb_initial.time_res
+    assert plumb.edges() == plumb_initial.edges()
+    assert plumb.nodes() == plumb_initial.nodes()
+    assert plumb.current_state() == plumb_initial.current_state()
+
+
+def test_reset_keep_component():
+    plumb = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    pc = test.create_component(0, 0, 0, 1, 'valve3', 'C')
+    mapping = {
+        1: 3,
+        2: 4
+    }
+
+    plumb.add_component(pc, mapping, 'closed', {4: (50, False)})
+    plumb.remove_component('valve2')
+    plumb.reset()
+
+    assert plumb.time == 0
+    assert plumb.is_valid()
+    assert plumb.time_res == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
+    assert plumb.edges() == [
+        (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
+        (2, 1, 'valve1.A2', {'FC': 0}),
+        (3, 4, 'valve3.C1', {'FC': utils.teq_to_FC(0)}),
+        (4, 3, 'valve3.C2', {'FC': utils.teq_to_FC(utils.s_to_micros(1))})
+    ]
+    assert plumb.nodes() == [
+        (1, {'pressure': 0}),
+        (2, {'pressure': 0}),
+        (3, {'pressure': 100}),
+        (4, {'pressure': 0})
+    ]
+    assert plumb.current_state('valve1') == 'closed'
+    assert plumb.current_state('valve3') == 'closed'
+
+
+def test_integration_reset():
+    plumb = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    pc = test.create_component(0, 0, 0, 1, 'valve3', 'C')
+    mapping = {
+        1: 3,
+        2: 4
+    }
+
+    plumb.remove_component('valve2')
+    plumb.add_component(pc, mapping, 'closed', {4: (50, False)})
+    plumb.set_component_state('valve1', 'open')
+    plumb.set_pressure(3, 150)
+    plumb.reset(True)
+
+    plumb_initial = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    assert plumb.time == 0
+    assert plumb.is_valid()
+    assert plumb.time_res == plumb_initial.time_res
+    assert plumb.edges() == plumb_initial.edges()
+    assert plumb.nodes() == plumb_initial.nodes()
+    assert plumb.current_state() == plumb_initial.current_state()
+
+
+def test_rest_integration_and_keep_component():
+    plumb = test.two_valve_setup(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    pc = test.create_component(0, 0, 0, 1, 'valve3', 'C')
+    mapping = {
+        1: 3,
+        2: 4
+    }
+
+    plumb.remove_component('valve2')
+    plumb.add_component(pc, mapping, 'closed', {4: (50, False)})
+    plumb.set_component_state('valve1', 'open')
+    plumb.set_pressure(3, 150)
+    plumb.reset()
+
+    assert plumb.time == 0
+    assert plumb.is_valid()
+    assert plumb.time_res == int(utils.s_to_micros(0.2) / utils.DEFAULT_RESOLUTION_SCALE)
+    assert plumb.edges() == [
+        (1, 2, 'valve1.A1', {'FC': utils.teq_to_FC(utils.s_to_micros(10))}),
+        (2, 1, 'valve1.A2', {'FC': 0}),
+        (3, 4, 'valve3.C1', {'FC': utils.teq_to_FC(0)}),
+        (4, 3, 'valve3.C2', {'FC': utils.teq_to_FC(utils.s_to_micros(1))})
+    ]
+    assert plumb.nodes() == [
+        (1, {'pressure': 0}),
+        (2, {'pressure': 0}),
+        (3, {'pressure': 100}),
+        (4, {'pressure': 0})
+    ]
+    assert plumb.current_state('valve1') == 'closed'
+    assert plumb.current_state('valve3') == 'closed'
+
+
 def test_remove_component():
     plumb = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)

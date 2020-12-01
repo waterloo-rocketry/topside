@@ -1,0 +1,35 @@
+\subsection{main}
+\begin{checklist}
+    \item \PRIMARY{} Close series\_fill\_valve
+    \item Wait 5 seconds
+    \item \PRIMARY{} Open supply\_valve
+    \item If p1 is less than 600psi
+    \begin{checklist}
+        \item Begin abort\_1 procedure
+    \end{checklist}
+    \item If p1 is greater than 1000psi
+    \begin{checklist}
+        \item Begin abort\_2 procedure
+    \end{checklist}
+    \item \PRIMARY{} Open series\_fill\_valve
+    \item \PRIMARY{} Open remote\_fill\_valve
+    \item Wait 180 seconds
+    \item \PRIMARY{} Close remote\_fill\_valve
+    \item \PRIMARY{} Open remote\_vent\_valve
+    \item \OPS{} Proceed with teardown
+\end{checklist}
+
+\subsection{abort\_1}
+\begin{checklist}
+    \item \SECONDARY{} Close supply\_valve
+    \item Wait 10 seconds
+    \item \SECONDARY{} Open remote\_vent\_valve
+    \item \OPS{} Proceed with teardown
+\end{checklist}
+
+\subsection{abort\_2}
+\begin{checklist}
+    \item \CONTROL{} Close supply\_valve
+    \item \CONTROL{} Open line\_vent\_valve
+    \item \OPS{} Proceed with teardown
+\end{checklist}
