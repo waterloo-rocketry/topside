@@ -38,7 +38,7 @@ class And:
         self._conditions = conditions
 
     def __str__(self):
-        return ' and '.join([cond for cond in self._conditions])
+        return ' and '.join([str(cond) for cond in self._conditions])
 
     def update(self, state):
         """
@@ -93,7 +93,7 @@ class Or:
         self._conditions = conditions
 
     def __str__(self):
-        return ' or '.join([cond for cond in self._conditions])
+        return ' or '.join([str(cond) for cond in self._conditions])
 
     def update(self, state):
         """

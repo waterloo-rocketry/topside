@@ -381,3 +381,25 @@ def test_and_or_not_equal():
     or_cond = top.Or([NeverSatisfied(), top.Immediate()])
 
     assert and_cond != or_cond
+
+
+def test_string_representations():
+    immediate_cond = top.Immediate()
+    waitUntil_cond = top.WaitUntil(1000000)
+    equal_cond = top.Equal('A1', 100)
+    less_cond = top.Less('A2', 100)
+    greater_cond = top.Greater('A3', 100)
+    lessEqual_cond = top.LessEqual('A4', 100)
+    greaterEqual_cond = top.GreaterEqual('A5', 100)
+    and_cond = top.And([less_cond, greater_cond])
+    or_cond = top.Or([lessEqual_cond, greaterEqual_cond])
+
+    assert str(immediate_cond) == 'Condition always satisfied'
+    assert str(waitUntil_cond) == 'Wait until 1 seconds'
+    assert str(equal_cond) == 'A1 == 100'
+    assert str(less_cond) == 'A2 < 100'
+    assert str(greater_cond) == 'A3 > 100'
+    assert str(lessEqual_cond) == 'A4 <= 100'
+    assert str(greaterEqual_cond) == 'A5 >= 100'
+    assert str(and_cond) == 'A2 < 100 and A3 > 100'
+    assert str(or_cond) == 'A4 <= 100 or A5 >= 100'
