@@ -292,13 +292,13 @@ class Equal(Comparison):
 
 
 class Less(Comparison):
-    """Condition that tests if a pressure is greater than a reference."""
+    """Condition that tests if a pressure is less than a reference."""
 
     def __str__(self):
         return f'{self.node} < {round(self.reference_pressure)}'
 
     def compare(self, current_pressure, reference_pressure):
-        """Compare pressures using greater-than."""
+        """Compare pressures using less-than."""
         return current_pressure < reference_pressure
 
     def export(self, fmt):
