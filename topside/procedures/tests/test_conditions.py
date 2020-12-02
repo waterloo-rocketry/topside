@@ -401,5 +401,5 @@ def test_string_representations():
     assert str(greater_cond) == 'A3 > 100'
     assert str(lessEqual_cond) == 'A4 <= 100'
     assert str(greaterEqual_cond) == 'A5 >= 100'
-    assert str(and_cond) == 'A2 < 100 and A3 > 100'
-    assert str(or_cond) == 'A4 <= 100 or A5 >= 100'
+    assert str(and_cond) == '(A2 < 100 and A3 > 100)'
+    assert str(or_cond) == '(A4 <= 100 or A5 >= 100)'
