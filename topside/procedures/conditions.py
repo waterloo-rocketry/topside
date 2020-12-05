@@ -5,7 +5,7 @@ class Immediate:
     """Condition that is always satisfied."""
 
     def __str__(self):
-        return 'Condition always satisfied'
+        return 'Immediately'
 
     def update(self, state):
         """Update the condition with the latest state; a no-op."""

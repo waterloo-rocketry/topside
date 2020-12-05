@@ -394,7 +394,7 @@ def test_string_representations():
     and_cond = top.And([less_cond, greater_cond])
     or_cond = top.Or([lessEqual_cond, greaterEqual_cond])
 
-    assert str(immediate_cond) == 'Condition always satisfied'
+    assert str(immediate_cond) == 'Immediately'
     assert str(waitUntil_cond) == 'Wait until 1 seconds'
     assert str(equal_cond) == 'A1 == 100'
     assert str(less_cond) == 'A2 < 100'
