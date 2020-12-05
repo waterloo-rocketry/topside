@@ -4,6 +4,9 @@ import topside as top
 class Immediate:
     """Condition that is always satisfied."""
 
+    def __str__(self):
+        return 'Immediately'
+
     def update(self, state):
         """Update the condition with the latest state; a no-op."""
         pass
@@ -33,6 +36,9 @@ class And:
             condition to be satisfied.
         """
         self._conditions = conditions
+
+    def __str__(self):
+        return '(' + ' and '.join([str(cond) for cond in self._conditions]) + ')'
 
     def update(self, state):
         """
@@ -86,6 +92,9 @@ class Or:
         """
         self._conditions = conditions
 
+    def __str__(self):
+        return '(' + ' or '.join([str(cond) for cond in self._conditions]) + ')'
+
     def update(self, state):
         """
         Update all conditions with the latest state.
@@ -138,6 +147,9 @@ class WaitUntil:
         """
         self.target_t = t
         self.current_t = None
+
+    def __str__(self):
+        return f'Wait until {round(self.target_t / 1e6)} seconds'
 
     def update(self, state):
         """
@@ -259,6 +271,9 @@ class Equal(Comparison):
         self.eps = eps
         Comparison.__init__(self, node, pressure)
 
+    def __str__(self):
+        return f'{self.node} == {round(self.reference_pressure)}'
+
     def compare(self, current_pressure, reference_pressure):
         """Return True if the pressures differ by less than eps."""
         return abs(current_pressure - reference_pressure) <= self.eps
@@ -279,6 +294,9 @@ class Equal(Comparison):
 class Less(Comparison):
     """Condition that tests if a pressure is less than a reference."""
 
+    def __str__(self):
+        return f'{self.node} < {round(self.reference_pressure)}'
+
     def compare(self, current_pressure, reference_pressure):
         """Compare pressures using less-than."""
         return current_pressure < reference_pressure
@@ -292,6 +310,9 @@ class Less(Comparison):
 
 class Greater(Comparison):
     """Condition that tests if a pressure is greater than a reference."""
+
+    def __str__(self):
+        return f'{self.node} > {round(self.reference_pressure)}'
 
     def compare(self, current_pressure, reference_pressure):
         """Compare pressures using greater-than."""
@@ -307,6 +328,9 @@ class Greater(Comparison):
 class LessEqual(Comparison):
     """Condition that tests if a pressure is less than or equal to a reference."""
 
+    def __str__(self):
+        return f'{self.node} <= {round(self.reference_pressure)}'
+
     def compare(self, current_pressure, reference_pressure):
         """Compare pressures using less-than-or-equal."""
         return current_pressure <= reference_pressure
@@ -320,6 +344,9 @@ class LessEqual(Comparison):
 
 class GreaterEqual(Comparison):
     """Condition that tests if a pressure is greater than or equal to a reference."""
+
+    def __str__(self):
+        return f'{self.node} >= {round(self.reference_pressure)}'
 
     def compare(self, current_pressure, reference_pressure):
         """Compare pressures using greater-than-or-equal."""
