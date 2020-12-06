@@ -532,3 +532,35 @@ def test_parse_misc_actions():
     ])
 
     assert suite == expected_suite
+
+
+def test_parse_names_with_hyphens():
+    proclang = '''
+    main:
+        1. PRIMARY: set A-200 to open
+        2. PRIMARY: set vent-valve to closed
+        3. BOB-THE-BUILDER: set K-5-B to open
+        4. CONTROL: set C-AB-2 to closed
+        5. OPS: set A-200 to semi-closed
+    '''
+    suite = top.proclang.parse(proclang)
+
+    expected_suite = top.ProcedureSuite([
+        top.Procedure('main', [
+            top.ProcedureStep('1', top.StateChangeAction('A-200', 'open'), [
+                (top.Immediate(), top.Transition('main', '2'))
+            ], 'PRIMARY'),
+            top.ProcedureStep('2', top.StateChangeAction('vent-valve', 'closed'), [
+                (top.Immediate(), top.Transition('main', '3'))
+            ], 'PRIMARY'),
+            top.ProcedureStep('3', top.StateChangeAction('K-5-B', 'open'), [
+                (top.Immediate(), top.Transition('main', '4'))
+            ], 'BOB-THE-BUILDER'),
+            top.ProcedureStep('4', top.StateChangeAction('C-AB-2', 'closed'), [
+                (top.Immediate(), top.Transition('main', '5'))
+            ], 'CONTROL'),
+            top.ProcedureStep('5', top.StateChangeAction('A-200', 'semi-closed'), [], 'OPS')
+        ])
+    ])
+
+    assert suite == expected_suite

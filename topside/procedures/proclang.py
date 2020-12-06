@@ -57,7 +57,7 @@ operator: "<"    -> lt
         | ">="   -> ge
         | "=="   -> eq
 
-NAME: (LETTER | "_") (LETTER | DIGIT | "_")*
+NAME: (LETTER | "_") (LETTER | DIGIT | "_" | "-")*
 NAME_OR_NUMBER: (LETTER | DIGIT | "_")+
 SENTENCE: (LETTER) (LETTER | DIGIT | "_" | " " | ",")*
 '''
