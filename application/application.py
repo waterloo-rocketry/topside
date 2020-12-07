@@ -1,7 +1,7 @@
 import os
 import sys
 
-from PySide2.QtCore import Qt, QUrl
+from PySide2.QtCore import Qt, QUrl, QTimer
 from PySide2.QtGui import QIcon, QKeySequence
 from PySide2.QtQml import QQmlEngine, qmlRegisterType
 from PySide2.QtWidgets import QApplication, QMainWindow, QSplitter, QMenu, QAction
@@ -10,6 +10,7 @@ from PySide2.QtQuickWidgets import QQuickWidget
 from .visualization_area import VisualizationArea
 from .procedures_bridge import ProceduresBridge
 from .plumbing_bridge import PlumbingBridge
+from .daq import DAQBridge, make_daq_widget
 
 
 # NOTE(jacob): `__file__` isn't defined for the frozen application,
@@ -38,6 +39,7 @@ class Application:
     def __init__(self, argv):
         self.plumbing_bridge = PlumbingBridge()
         self.procedures_bridge = ProceduresBridge(self.plumbing_bridge)
+        self.daq_bridge = DAQBridge(self.plumbing_bridge)
 
         self.app = QApplication(argv)
 
@@ -74,13 +76,11 @@ class Application:
         horiz_splitter = QSplitter(Qt.Horizontal)
         horiz_splitter.setChildrenCollapsible(False)
 
-        daq_widget = make_qml_widget(self.qml_engine, 'DAQPane.qml')
-        daq_widget.setMinimumWidth(200)
-        daq_widget.setMinimumHeight(600)
+        daq_widget = make_daq_widget(self.daq_bridge, self.plumbing_bridge)
         horiz_splitter.addWidget(daq_widget)
 
         plumb_widget = make_qml_widget(self.qml_engine, 'PlumbingPane.qml')
-        plumb_widget.setMinimumWidth(400)
+        plumb_widget.setMinimumWidth(600)
         plumb_widget.setMinimumHeight(600)
         horiz_splitter.addWidget(plumb_widget)
 
