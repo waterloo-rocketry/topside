@@ -238,6 +238,25 @@ def test_reset_keep_component():
     assert plumb.current_state('valve3') == 'closed'
 
 
+def test_reset_fixed_pressure():
+    plumb = test.two_valve_setup_fixed(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    plumb.set_pressure(2, 150)
+    plumb.reset(True)
+
+    plumb_initial = test.two_valve_setup_fixed(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    assert plumb.time == 0
+    assert plumb.is_valid()
+    assert plumb.time_res == plumb_initial.time_res
+    assert plumb.edges() == plumb_initial.edges()
+    assert plumb.nodes() == plumb_initial.nodes()
+    assert plumb.current_state() == plumb_initial.current_state()
+    assert plumb.fixed_pressures == plumb_initial.fixed_pressures
+
+
 def test_integration_reset():
     plumb = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
