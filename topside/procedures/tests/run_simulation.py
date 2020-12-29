@@ -54,7 +54,7 @@ procedures_eng = top.ProceduresEngine(plumb, suite)
 all_pressure = []
 
 while len(procedures_eng.current_step.conditions) > 0 and plumb.time < top.s_to_micros(args.max_time):
-    if procedures_eng.ready_to_advance():
+    if procedures_eng.ready_to_proceed():
         procedures_eng.next_step()
     procedures_eng.step_time()
     all_pressure.append(plumb.current_pressures())

@@ -8,6 +8,7 @@ from .procedure_wrappers import ProcedureStepsModel
 class ProceduresBridge(QObject):
     goto_step_sig = Signal(int, name='gotoStep')
     steps_changed_sig = Signal(name='dataChanged')
+    position_changed_sig = Signal(name='positionChanged')
 
     def __init__(self, plumb):
         QObject.__init__(self)
@@ -33,6 +34,8 @@ class ProceduresBridge(QObject):
         idx = proc.index_of(self._proc_eng.current_step.step_id)
         self.goto_step_sig.emit(idx)
 
+        self.position_changed_sig.emit()
+
         self._proc_steps.refresh(idx)
 
     def load_suite(self, suite):
@@ -48,6 +51,12 @@ class ProceduresBridge(QObject):
     @Property(QObject, notify=steps_changed_sig)
     def steps(self):
         return self._proc_steps
+
+    @Property(str, notify=position_changed_sig)
+    def stepPosition(self):
+        if self._proc_eng.step_position is None:
+            return ''
+        return self._proc_eng.step_position.name
 
     @Slot()
     def loadFromDialog(self):

@@ -27,31 +27,32 @@ def one_component_engine():
 
     pressures = {1: (100, False), 2: (0, False)}
 
-    initial_states = {'c1': 'closed'}
+    initial_states = {'c1': 'open'}
 
     return top.PlumbingEngine({'c1': c1}, mapping, pressures, initial_states)
 
 
 def single_procedure_suite():
-    open_action = top.StateChangeAction('c1', 'open')
     close_action = top.StateChangeAction('c1', 'closed')
+    open_action = top.StateChangeAction('c1', 'open')
 
-    s1 = top.ProcedureStep('s1', None, [(top.Immediate(), top.Transition('p1', 's2'))], 'PRIMARY')
-    s2 = top.ProcedureStep('s2', open_action, [(
-        top.Immediate(), top.Transition('p1', 's3'))], 'PRIMARY')
-    s3 = top.ProcedureStep('s3', close_action, [], 'PRIMARY')
+    s1 = top.ProcedureStep('s1', close_action, [(
+        top.Immediate(), top.Transition('p1', 's2'))], 'PRIMARY')
+    s2 = top.ProcedureStep('s2', open_action, [], 'PRIMARY')
 
-    proc = top.Procedure('p1', [s1, s2, s3])
+    proc = top.Procedure('p1', [s1, s2])
 
     return top.ProcedureSuite([proc], 'p1')
 
 
 def branching_procedure_suite_no_options():
+    close_action = top.StateChangeAction('c1', 'closed')
     open_action = top.StateChangeAction('c1', 'open')
     halfway_open_action = top.StateChangeAction('c1', 'halfway_open')
 
-    s1 = top.ProcedureStep('s1', None, [(NeverSatisfied(), top.Transition('p1', 's2')),
-                                        (NeverSatisfied(), top.Transition('p2', 's3'))], 'PRIMARY')
+    s1 = top.ProcedureStep('s1', close_action, [
+        (NeverSatisfied(), top.Transition('p1', 's2')),
+        (NeverSatisfied(), top.Transition('p2', 's3'))], 'PRIMARY')
     s2 = top.ProcedureStep('s2', halfway_open_action, [], 'PRIMARY')
     s3 = top.ProcedureStep('s3', open_action, [], 'PRIMARY')
 
@@ -62,11 +63,13 @@ def branching_procedure_suite_no_options():
 
 
 def branching_procedure_suite_one_option():
+    close_action = top.StateChangeAction('c1', 'closed')
     open_action = top.StateChangeAction('c1', 'open')
     halfway_open_action = top.StateChangeAction('c1', 'halfway_open')
 
-    s1 = top.ProcedureStep('s1', None, [(NeverSatisfied(), top.Transition('p1', 's2')),
-                                        (top.Immediate(), top.Transition('p2', 's3'))], 'PRIMARY')
+    s1 = top.ProcedureStep('s1', close_action, [
+        (NeverSatisfied(), top.Transition('p1', 's2')),
+        (top.Immediate(), top.Transition('p2', 's3'))], 'PRIMARY')
     s2 = top.ProcedureStep('s2', halfway_open_action, {}, 'PRIMARY')
     s3 = top.ProcedureStep('s3', open_action, {}, 'PRIMARY')
 
@@ -77,11 +80,13 @@ def branching_procedure_suite_one_option():
 
 
 def branching_procedure_suite_two_options():
+    close_action = top.StateChangeAction('c1', 'closed')
     open_action = top.StateChangeAction('c1', 'open')
     halfway_open_action = top.StateChangeAction('c1', 'halfway_open')
 
-    s1 = top.ProcedureStep('s1', None, [(top.Immediate(), top.Transition('p1', 's2')),
-                                        (top.Immediate(), top.Transition('p2', 's3'))], 'PRIMARY')
+    s1 = top.ProcedureStep('s1', close_action, [
+        (top.Immediate(), top.Transition('p1', 's2')),
+        (top.Immediate(), top.Transition('p2', 's3'))], 'PRIMARY')
     s2 = top.ProcedureStep('s2', halfway_open_action, {}, 'PRIMARY')
     s3 = top.ProcedureStep('s3', open_action, {}, 'PRIMARY')
 
@@ -104,124 +109,159 @@ def test_load_suite():
     assert proc_eng._suite == suite_1
     assert proc_eng.current_procedure_id == 'p1'
     assert proc_eng.current_step == p1s1
+    assert proc_eng.step_position == top.StepPosition.Before
 
     proc_eng.load_suite(suite_2)
 
     assert proc_eng._suite == suite_2
     assert proc_eng.current_procedure_id == 'p2'
     assert proc_eng.current_step == p2s1
-
-
-def test_reset():
-    plumb_eng = one_component_engine()
-    proc_eng = top.ProceduresEngine(plumb_eng, branching_procedure_suite_one_option())
-
-    assert proc_eng.current_procedure_id == 'p1'
-    assert proc_eng.current_step.step_id == 's1'
-    assert plumb_eng.current_state('c1') == 'closed'
-    proc_eng.next_step()
-    assert proc_eng.current_procedure_id == 'p2'
-    assert proc_eng.current_step.step_id == 's3'
-    assert plumb_eng.current_state('c1') == 'open'
-    proc_eng.reset()
-    assert proc_eng.current_procedure_id == 'p1'
-    assert proc_eng.current_step.step_id == 's1'
-    assert plumb_eng.current_state('c1') == 'open'  # Plumbing engine is unaffected by reset()
+    assert proc_eng.step_position == top.StepPosition.Before
 
 
 def test_execute_custom_action():
     plumb_eng = one_component_engine()
     proc_eng = top.ProceduresEngine(plumb_eng)
 
-    action = top.StateChangeAction('c1', 'open')
+    action = top.StateChangeAction('c1', 'closed')
 
-    assert plumb_eng.current_state('c1') == 'closed'
-    proc_eng.execute(action)
     assert plumb_eng.current_state('c1') == 'open'
+    proc_eng.execute(action)
+    assert plumb_eng.current_state('c1') == 'closed'
 
     misc_action = top.MiscAction('Approach the tower')
     proc_eng.execute(misc_action)
-    assert plumb_eng.current_state('c1') == 'open'
+    assert plumb_eng.current_state('c1') == 'closed'
 
 
-def test_ready_to_advance_if_condition_satisfied():
-    proc_eng = top.ProceduresEngine(None, single_procedure_suite())
-
-    assert proc_eng.ready_to_advance() is True
-
-
-def test_ready_to_advance_one_is_enough():
-    proc_eng = top.ProceduresEngine(None, branching_procedure_suite_one_option())
-
-    assert proc_eng.ready_to_advance() is True
-
-
-def test_ready_to_advance_no_options():
-    proc_eng = top.ProceduresEngine(None, branching_procedure_suite_no_options())
-
-    assert proc_eng.ready_to_advance() is False
-
-
-def test_next_step_immediate():
+def test_execute_current():
     plumb_eng = one_component_engine()
     proc_eng = top.ProceduresEngine(plumb_eng, single_procedure_suite())
 
     assert proc_eng.current_step.step_id == 's1'
-    assert plumb_eng.current_state('c1') == 'closed'
-    proc_eng.next_step()
-    assert proc_eng.current_step.step_id == 's2'
+    assert proc_eng.step_position == top.StepPosition.Before
     assert plumb_eng.current_state('c1') == 'open'
-    proc_eng.next_step()
-    assert proc_eng.current_step.step_id == 's3'
+
+    proc_eng.execute_current()
+
+    assert proc_eng.current_step.step_id == 's1'
+    assert proc_eng.step_position == top.StepPosition.After
+    assert plumb_eng.current_state('c1') == 'closed'
+
+    proc_eng.execute_current()  # No effect; engine is in a post-node
+
+    assert proc_eng.current_step.step_id == 's1'
+    assert proc_eng.step_position == top.StepPosition.After
     assert plumb_eng.current_state('c1') == 'closed'
 
 
-def test_next_step_requires_satisfaction():
+def test_ready_to_proceed_requires_post():
+    proc_eng = top.ProceduresEngine(None, single_procedure_suite())
+
+    assert proc_eng.ready_to_proceed() is False
+
+
+def test_ready_to_proceed_if_condition_satisfied():
+    proc_eng = top.ProceduresEngine(None, single_procedure_suite())
+    proc_eng.execute_current()
+
+    assert proc_eng.ready_to_proceed() is True
+
+
+def test_ready_to_proceed_one_is_enough():
+    proc_eng = top.ProceduresEngine(None, branching_procedure_suite_one_option())
+    proc_eng.execute_current()
+
+    assert proc_eng.ready_to_proceed() is True
+
+
+def test_ready_to_proceed_no_options():
+    proc_eng = top.ProceduresEngine(None, branching_procedure_suite_no_options())
+    proc_eng.execute_current()
+
+    assert proc_eng.ready_to_proceed() is False
+
+
+def test_proceed():
+    plumb_eng = one_component_engine()
+    proc_eng = top.ProceduresEngine(plumb_eng, single_procedure_suite())
+
+    proc_eng.execute_current()
+
+    assert proc_eng.current_step.step_id == 's1'
+    assert proc_eng.step_position == top.StepPosition.After
+    assert plumb_eng.current_state('c1') == 'closed'
+
+    proc_eng.proceed()
+
+    assert proc_eng.current_step.step_id == 's2'
+    assert proc_eng.step_position == top.StepPosition.Before
+    assert plumb_eng.current_state('c1') == 'closed'
+
+    proc_eng.proceed()  # No effect; engine is in a pre-node
+
+    assert proc_eng.current_step.step_id == 's2'
+    assert proc_eng.step_position == top.StepPosition.Before
+    assert plumb_eng.current_state('c1') == 'closed'
+
+
+def test_proceed_requires_satisfaction():
     plumb_eng = one_component_engine()
     proc_eng = top.ProceduresEngine(plumb_eng, branching_procedure_suite_no_options())
 
+    proc_eng.execute_current()
+    proc_eng.proceed()
+
     assert proc_eng.current_procedure_id == 'p1'
     assert proc_eng.current_step.step_id == 's1'
-    assert plumb_eng.current_state('c1') == 'closed'
-    proc_eng.next_step()
-    assert proc_eng.current_procedure_id == 'p1'
-    assert proc_eng.current_step.step_id == 's1'
-    assert plumb_eng.current_state('c1') == 'closed'
 
 
-def test_next_step_follows_satisfied_condition():
+def test_proceed_follows_satisfied_condition():
     plumb_eng = one_component_engine()
     proc_eng = top.ProceduresEngine(plumb_eng, branching_procedure_suite_one_option())
 
-    assert proc_eng.current_procedure_id == 'p1'
-    assert proc_eng.current_step.step_id == 's1'
-    assert plumb_eng.current_state('c1') == 'closed'
-    proc_eng.next_step()
+    proc_eng.execute_current()
+    proc_eng.proceed()
+
     assert proc_eng.current_procedure_id == 'p2'
     assert proc_eng.current_step.step_id == 's3'
-    assert plumb_eng.current_state('c1') == 'open'
 
 
-def test_next_step_follows_highest_priority_condition():
+def test_proceed_follows_highest_priority_condition():
     plumb_eng = one_component_engine()
     proc_eng = top.ProceduresEngine(plumb_eng, branching_procedure_suite_two_options())
 
+    proc_eng.execute_current()
+    proc_eng.proceed()
+
     assert proc_eng.current_procedure_id == 'p1'
+    assert proc_eng.current_step.step_id == 's2'
+
+
+def test_next_step():
+    plumb_eng = one_component_engine()
+    proc_eng = top.ProceduresEngine(plumb_eng, single_procedure_suite())
+
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'open'
+    proc_eng.next_step()
     assert proc_eng.current_step.step_id == 's1'
     assert plumb_eng.current_state('c1') == 'closed'
     proc_eng.next_step()
-    assert proc_eng.current_procedure_id == 'p1'
     assert proc_eng.current_step.step_id == 's2'
-    assert plumb_eng.current_state('c1') == 'halfway_open'
+    assert plumb_eng.current_state('c1') == 'open'
+    proc_eng.next_step()
+    assert proc_eng.current_step.step_id == 's2'
+    assert plumb_eng.current_state('c1') == 'open'
 
 
 def test_transitions_respects_procedure_identifier():
     plumb_eng = one_component_engine()
 
-    action = top.StateChangeAction('c1', 'open')
+    action = top.MiscAction('Do nothing')
 
-    s1 = top.ProcedureStep('s1', None, [(NeverSatisfied(), top.Transition('p1', 'same_name')),
-                                        (top.Immediate(), top.Transition('p2', 'same_name'))],
+    s1 = top.ProcedureStep('s1', action, [(NeverSatisfied(), top.Transition('p1', 'same_name')),
+                                          (top.Immediate(), top.Transition('p2', 'same_name'))],
                            'PRIMARY')
     same_name_1 = top.ProcedureStep('same_name', action, [], 'PRIMARY')
     same_name_2 = top.ProcedureStep('same_name', action, [], 'PRIMARY')
@@ -231,6 +271,7 @@ def test_transitions_respects_procedure_identifier():
     proc_suite = top.ProcedureSuite([proc_1, proc_2], 'p1')
 
     proc_eng = top.ProceduresEngine(plumb_eng, proc_suite)
+    proc_eng.execute_current()
 
     assert proc_eng.current_procedure_id == 'p1'
     assert proc_eng.current_step.step_id == 's1'
@@ -248,13 +289,14 @@ def test_update_conditions_updates_pressures():
     proc_suite = top.ProcedureSuite([proc], 'p1')
 
     proc_eng = top.ProceduresEngine(plumb_eng, proc_suite)
+    proc_eng.execute_current()
 
-    assert proc_eng.ready_to_advance() is False
+    assert proc_eng.ready_to_proceed() is False
 
     plumb_eng.solve()
     proc_eng.update_conditions()
 
-    assert proc_eng.ready_to_advance() is True
+    assert proc_eng.ready_to_proceed() is True
 
 
 def test_update_conditions_updates_time():
@@ -266,18 +308,19 @@ def test_update_conditions_updates_time():
     proc_suite = top.ProcedureSuite([proc], 'p1')
 
     proc_eng = top.ProceduresEngine(plumb_eng, proc_suite)
+    proc_eng.execute_current()
 
-    assert proc_eng.ready_to_advance() is False
+    assert proc_eng.ready_to_proceed() is False
 
     plumb_eng.step(1e6 - 1)
     proc_eng.update_conditions()
 
-    assert proc_eng.ready_to_advance() is False
+    assert proc_eng.ready_to_proceed() is False
 
     plumb_eng.step(1)
     proc_eng.update_conditions()
 
-    assert proc_eng.ready_to_advance() is True
+    assert proc_eng.ready_to_proceed() is True
 
 
 def test_step_advances_time_equally():
@@ -305,9 +348,31 @@ def test_step_updates_conditions():
     proc_suite = top.ProcedureSuite([proc], 'p1')
 
     proc_eng = top.ProceduresEngine(plumb_eng, proc_suite)
+    proc_eng.execute_current()
 
-    assert proc_eng.ready_to_advance() is False
+    assert proc_eng.ready_to_proceed() is False
 
     proc_eng.step_time(1e6)
 
-    assert proc_eng.ready_to_advance() is True
+    assert proc_eng.ready_to_proceed() is True
+
+
+def test_reset():
+    plumb_eng = one_component_engine()
+    proc_eng = top.ProceduresEngine(plumb_eng, branching_procedure_suite_one_option())
+
+    assert proc_eng.current_procedure_id == 'p1'
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'open'
+    proc_eng.next_step()
+    assert proc_eng.current_procedure_id == 'p1'
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'closed'
+    proc_eng.next_step()
+    assert proc_eng.current_procedure_id == 'p2'
+    assert proc_eng.current_step.step_id == 's3'
+    assert plumb_eng.current_state('c1') == 'open'
+    proc_eng.reset()
+    assert proc_eng.current_procedure_id == 'p1'
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'open'
