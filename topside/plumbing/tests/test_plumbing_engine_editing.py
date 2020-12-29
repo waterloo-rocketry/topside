@@ -155,7 +155,7 @@ def test_reset_component_state():
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     plumb.set_component_state('valve1', 'open')
-    plumb.reset(True)
+    plumb.reset()
 
     plumb_initial = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
@@ -173,7 +173,7 @@ def test_reset_pressure():
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     plumb.set_pressure(2, 150)
-    plumb.reset(True)
+    plumb.reset()
 
     plumb_initial = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
@@ -192,7 +192,7 @@ def test_reset_step_and_solve():
 
     plumb.step()
     plumb.solve()
-    plumb.reset(True)
+    plumb.reset()
 
     plumb_initial = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
@@ -243,7 +243,7 @@ def test_reset_fixed_pressure():
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     plumb.set_pressure(2, 150)
-    plumb.reset(True)
+    plumb.reset()
 
     plumb_initial = test.two_valve_setup_fixed(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
@@ -284,7 +284,7 @@ def test_integration_reset():
     assert plumb.current_state() == plumb_initial.current_state()
 
 
-def test_rest_integration_and_keep_component():
+def test_reset_integration_and_keep_component():
     plumb = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
