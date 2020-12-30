@@ -80,7 +80,7 @@ def test_time_step_forward():
 
     proc_eng = proc_b._proc_eng
 
-    proc_b.procStepForward()  # advance to step 1
+    proc_b.procStepForward()  # execute step 1
     assert not proc_eng.ready_to_proceed()
     # Time hasn't advanced yet, so pressures should be the same
     assert plumb_eng.current_pressures('A') == 100
@@ -96,7 +96,7 @@ def test_time_step_forward():
     assert proc_eng.ready_to_proceed()
     pressures_at_02 = plumb_eng.current_pressures()
 
-    proc_b.procStepForward()  # advance to step 2
+    proc_b.procStepForward()  # execute step 2
     assert not proc_eng.ready_to_proceed()
     assert plumb_eng.current_pressures() == pressures_at_02
 
@@ -124,7 +124,7 @@ def test_time_advance():
 
     proc_eng = proc_b._proc_eng
 
-    proc_b.procStepForward()  # advance to step 1
+    proc_b.procStepForward()  # execute step 1
     assert not proc_eng.ready_to_proceed()
     assert plumb_eng.current_pressures('A') == 100
     assert plumb_eng.current_pressures('B') == 0
@@ -153,7 +153,7 @@ def test_time_stop():
 
     proc_eng = proc_b._proc_eng
 
-    proc_b.procStepForward()  # advance to step 1
+    proc_b.procStepForward()  # execute step 1
     assert not proc_eng.ready_to_proceed()
     # Time hasn't advanced yet, so pressures should be the same
     assert plumb_eng.current_pressures('A') == 100

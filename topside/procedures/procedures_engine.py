@@ -102,7 +102,9 @@ class ProceduresEngine:
         """
         Evaluate if the engine is ready to proceed to a next step.
 
-        Returns True if any condition is satisfied, and False otherwise.
+        Returns False if the engine is in a pre-node, since 'proceed' is
+        only valid from a post-node. If in a post-node, returns True if
+        any condition is satisfied and False otherwise.
         """
         if self.current_step is None or self.step_position == StepPosition.Before:
             return False
