@@ -78,7 +78,8 @@ class PlumbingEngine:
             the plumbing engine was created and adds back any original
             components that have been removed. Otherwise, changes in
             components are allowed to persist, but these components are
-            still reset to their original states.
+            still reset to their original states. Any internal nodes in
+            newly added components are reset to 0 pressure.
         """
         if reset_component:
             for name in self.initial_state:
