@@ -70,17 +70,26 @@ ColumnLayout {
         id: procedureStepDelegate
 
         Rectangle {
-            property string stepHighlightBg: "#d8fff7"
+            property bool inPostNode: proceduresBridge.stepPosition == 'After'
+
+            property string stepHighlightBgPre: "#d8fff7"
+            property string stepHighlightBgPost: "#ebd35b"
             property string stepHighlightBorder: "#800000"
+
             property string stepEvenIdxBg: "#f2f2f2"
             property string stepOddIdxBg: "#f9f9f9"
+            property string stepInactiveBorder: "transparent"
+
             property string stepOperatorTxt: "#002060"
+
+            property string stepHighlightBg: inPostNode ? stepHighlightBgPre : stepHighlightBgPost
+            property string stepInactiveBg: index % 2 == 0 ? stepEvenIdxBg : stepOddIdxBg
 
             id: wrapper
             width: proceduresList.width
             height: procedureColumn.height + 10
-            color: ListView.isCurrentItem ? stepHighlightBg : (index % 2 == 0 ? stepEvenIdxBg : stepOddIdxBg)
-            border.color: ListView.isCurrentItem ? stepHighlightBorder : "transparent"
+            color: ListView.isCurrentItem ? stepHighlightBg : stepInactiveBg
+            border.color: ListView.isCurrentItem ? stepHighlightBorder : stepInactiveBorder
 
             Column {
                 id: procedureColumn
@@ -122,8 +131,10 @@ ColumnLayout {
                 // TODO(jacob): Do we really need a Loader here, or can we just insert the Repeater
                 // directly?
                 Loader {
-                    visible: wrapper.ListView.isCurrentItem
-                    sourceComponent: wrapper.ListView.isCurrentItem ? stepConditionsDelegate : null
+                    property bool isActive: wrapper.ListView.isCurrentItem && inPostNode
+
+                    visible: isActive
+                    sourceComponent: isActive ? stepConditionsDelegate : null
                     onStatusChanged: if (status == Loader.Ready) item.model = conditions
                 }
             }

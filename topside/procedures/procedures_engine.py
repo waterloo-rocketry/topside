@@ -1,4 +1,11 @@
+from enum import Enum
+
 import topside as top
+
+
+class StepPosition(Enum):
+    Before = 1
+    After = 2
 
 
 class ProceduresEngine:
@@ -27,6 +34,7 @@ class ProceduresEngine:
         self._suite = None
         self.current_procedure_id = None
         self.current_step = None
+        self.step_position = None
 
         if suite is not None:
             self.load_suite(suite)
@@ -37,13 +45,10 @@ class ProceduresEngine:
 
         Does NOT affect the managed plumbing engine.
         """
-        # TODO(jacob): When we load a new procedure, we start in the
-        # first step, but that means that the action for that step never
-        # gets executed (we just start waiting on its conditions
-        # immediately). Figure out an elegant way to resolve this.
         if self._suite is not None:
             self.current_procedure_id = self._suite.starting_procedure_id
             self.current_step = self._suite[self.current_procedure_id].step_list[0]
+            self.step_position = StepPosition.Before
 
     def load_suite(self, suite):
         """
@@ -76,13 +81,28 @@ class ProceduresEngine:
             for condition, _ in self.current_step.conditions:
                 condition.update(state)
 
-    def ready_to_advance(self):
+    def execute_current(self):
+        """
+        Execute the action associated with the current step.
+
+        This function only has an effect if called from a pre-node. When
+        called, it moves the engine to the current step's post-node.
+        """
+        if self.current_step is None or self.step_position == StepPosition.After:
+            return
+
+        self.execute(self.current_step.action)
+        self.step_position = StepPosition.After
+
+    def ready_to_proceed(self):
         """
         Evaluate if the engine is ready to proceed to a next step.
 
-        Returns True if any condition is satisfied, and False otherwise.
+        Returns False if the engine is in a pre-node, since 'proceed' is
+        only valid from a post-node. If in a post-node, returns True if
+        any condition is satisfied and False otherwise.
         """
-        if self.current_step is None:
+        if self.current_step is None or self.step_position == StepPosition.Before:
             return False
 
         for condition, _ in self.current_step.conditions:
@@ -90,22 +110,35 @@ class ProceduresEngine:
                 return True
         return False
 
-    def next_step(self):
+    def proceed(self):
         """
-        Advance to the next step and execute the associated action.
+        Move from the current step post-node to the next step pre-node.
 
         If multiple conditions are satisfied, this function chooses the
         first one (the highest priority one). If no conditions are
         satisfied, this function does nothing.
         """
-        if self.current_step is not None:
-            for condition, transition in self.current_step.conditions:
-                if condition.satisfied():
-                    new_proc = transition.procedure
-                    self.current_procedure_id = new_proc
-                    self.current_step = self._suite[new_proc].steps[transition.step]
-                    self.execute(self.current_step.action)
-                    break
+        if self.current_step is None or self.step_position == StepPosition.Before:
+            return
+
+        for condition, transition in self.current_step.conditions:
+            if condition.satisfied():
+                new_proc = transition.procedure
+                self.current_procedure_id = new_proc
+                self.current_step = self._suite[new_proc].steps[transition.step]
+                self.step_position = StepPosition.Before
+                break
+
+    def next_step(self):
+        """
+        Execute the next step in the queue.
+
+        This function can be called whether the engine is in a post-node
+        or a pre-node. After calling this function, the engine will end
+        in the post-node of the next step to be executed.
+        """
+        self.proceed()
+        self.execute_current()
 
     def step_time(self, timestep=None):
         """

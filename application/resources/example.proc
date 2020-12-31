@@ -1,9 +1,8 @@
 main:
-    1. PRIMARY: set SC_001 to closed
-    2. PRIMARY: set SC_001 to open
-    3. CONTROL: set O_MV_2 to open
-    4. CONTROL: set O_MV_1 to open
-    5. CONTROL: [D > 400] set O_MV_1 to closed
-    6. CONTROL: set O_MV_2 to closed
-    7. PRIMARY: set BA_005 to open
-    8. CONTROL: set O_MV_3 to open
+    1. PRIMARY: set SC_001 to open
+    2. CONTROL: set O_MV_2 to open
+    3. CONTROL: set O_MV_1 to open
+    4. CONTROL: [D > 400] set O_MV_1 to closed
+    5. CONTROL: set O_MV_2 to closed
+    6. PRIMARY: set BA_005 to open
+    7. CONTROL: set O_MV_3 to open
