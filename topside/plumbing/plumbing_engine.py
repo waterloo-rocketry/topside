@@ -63,9 +63,23 @@ class PlumbingEngine:
 
     def reset(self, reset_component=False):
         """
+        Reset the plumbing engine to its initial state.
 
-        Reset the Plumbing Engine
+        The following changes occur:
+            - Time is reset to 0
+            - All node pressures are reset to their original pressures
+            - All components are reset to their initial states
 
+        Parameters
+        ----------
+
+        reset_component: bool
+            If True, removes any components that have been added since
+            the plumbing engine was created and adds back any original
+            components that have been removed. Otherwise, changes in
+            components are allowed to persist, but these components are
+            still reset to their original states. Any internal nodes in
+            newly added components are reset to 0 pressure.
         """
         if reset_component:
             for name in self.initial_state:
@@ -84,7 +98,9 @@ class PlumbingEngine:
 
         for node in self.current_pressures():
             if node in self.initial_pressure:
-                self.set_pressure(node, self.initial_pressure[node][0])
+                pressure = self.initial_pressure[node][0]
+                fixed = self.initial_pressure[node][1]
+                self.set_pressure(node, pressure, fixed)
             else:
                 self.set_pressure(node, 0)
 

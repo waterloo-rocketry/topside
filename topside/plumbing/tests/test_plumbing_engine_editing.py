@@ -155,7 +155,7 @@ def test_reset_component_state():
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     plumb.set_component_state('valve1', 'open')
-    plumb.reset(True)
+    plumb.reset()
 
     plumb_initial = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
@@ -173,7 +173,7 @@ def test_reset_pressure():
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
     plumb.set_pressure(2, 150)
-    plumb.reset(True)
+    plumb.reset()
 
     plumb_initial = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
@@ -192,7 +192,7 @@ def test_reset_step_and_solve():
 
     plumb.step()
     plumb.solve()
-    plumb.reset(True)
+    plumb.reset()
 
     plumb_initial = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
@@ -238,6 +238,25 @@ def test_reset_keep_component():
     assert plumb.current_state('valve3') == 'closed'
 
 
+def test_reset_fixed_pressure():
+    plumb = test.two_valve_setup_fixed(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    plumb.set_pressure(2, 150)
+    plumb.reset()
+
+    plumb_initial = test.two_valve_setup_fixed(
+        0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
+    assert plumb.time == 0
+    assert plumb.is_valid()
+    assert plumb.time_res == plumb_initial.time_res
+    assert plumb.edges() == plumb_initial.edges()
+    assert plumb.nodes() == plumb_initial.nodes()
+    assert plumb.current_state() == plumb_initial.current_state()
+    assert plumb.fixed_pressures == plumb_initial.fixed_pressures
+
+
 def test_integration_reset():
     plumb = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
@@ -265,7 +284,7 @@ def test_integration_reset():
     assert plumb.current_state() == plumb_initial.current_state()
 
 
-def test_rest_integration_and_keep_component():
+def test_reset_integration_and_keep_component():
     plumb = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
