@@ -139,7 +139,7 @@ def test_parse_two_procedures():
     assert suite == expected_suite
 
 
-def test_parse_step_with_waituntil():
+def test_parse_step_with_waitfor():
     proclang = '''
     main:
         1. PRIMARY: set injector_valve to open
@@ -150,7 +150,7 @@ def test_parse_step_with_waituntil():
     expected_suite = top.ProcedureSuite([
         top.Procedure('main', [
             top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
-                (top.WaitUntil(10e6), top.Transition('main', '2'))
+                (top.WaitFor(10e6), top.Transition('main', '2'))
             ], 'PRIMARY'),
             top.ProcedureStep('2', top.StateChangeAction('vent_valve', 'closed'), [], 'PRIMARY')
         ])
@@ -231,7 +231,7 @@ def test_parse_step_with_two_deviations():
         top.Procedure('main', [
             top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
                 (top.Less('p1', 500), top.Transition('abort', '1')),
-                (top.WaitUntil(300e6), top.Transition('abort', '2')),
+                (top.WaitFor(300e6), top.Transition('abort', '2')),
                 (top.Immediate(), top.Transition('main', '2'))
             ], 'PRIMARY'),
             top.ProcedureStep('2', top.StateChangeAction('vent_valve', 'closed'), [], 'PRIMARY')
@@ -255,7 +255,7 @@ def test_whitespace_is_irrelevant():
         top.Procedure('main', [
             top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
                 (top.Less('p1', 500), top.Transition('abort', '1')),
-                (top.WaitUntil(300e6), top.Transition('abort', '2')),
+                (top.WaitFor(300e6), top.Transition('abort', '2')),
                 (top.Immediate(), top.Transition('main', '2'))
             ], 'CONTROL'),
             top.ProcedureStep('2', top.StateChangeAction('vent_valve', 'closed'), [], 'CONTROL')
@@ -315,7 +315,7 @@ def test_parse_from_file():
     expected_suite = top.ProcedureSuite([
         top.Procedure('main', [
             top.ProcedureStep('1', top.StateChangeAction('series_fill_valve', 'closed'), [
-                (top.WaitUntil(5e6), top.Transition('main', '2'))
+                (top.WaitFor(5e6), top.Transition('main', '2'))
             ], 'PRIMARY'),
             top.ProcedureStep('2', top.StateChangeAction('supply_valve', 'open'), [
                 (top.Less('p1', 600), top.Transition('abort_1', '1')),
@@ -326,7 +326,7 @@ def test_parse_from_file():
                 (top.Immediate(), top.Transition('main', '4'))
             ], 'PRIMARY'),
             top.ProcedureStep('4', top.StateChangeAction('remote_fill_valve', 'open'), [
-                (top.WaitUntil(180e6), top.Transition('main', '5'))
+                (top.WaitFor(180e6), top.Transition('main', '5'))
             ], 'PRIMARY'),
             top.ProcedureStep('5', top.StateChangeAction('remote_fill_valve', 'closed'), [
                 (top.Immediate(), top.Transition('main', '6'))
@@ -338,7 +338,7 @@ def test_parse_from_file():
         ]),
         top.Procedure('abort_1', [
             top.ProcedureStep('1', top.StateChangeAction('supply_valve', 'closed'), [
-                (top.WaitUntil(10e6), top.Transition('abort_1', '2'))
+                (top.WaitFor(10e6), top.Transition('abort_1', '2'))
             ], 'SECONDARY'),
             top.ProcedureStep('2', top.StateChangeAction('remote_vent_valve', 'open'), [
                 (top.Immediate(), top.Transition('abort_1', '3'))
@@ -492,7 +492,7 @@ def test_parse_combined_conditions():
 
     suite = top.proclang.parse(proclang)
 
-    comp_or = top.Or([top.Less('p1', 100), top.And([top.WaitUntil(1e6*500), top.Less('p2', 200)])])
+    comp_or = top.Or([top.Less('p1', 100), top.And([top.WaitFor(1e6*500), top.Less('p2', 200)])])
     expected_suite = top.ProcedureSuite([
         top.Procedure('main', [
             top.ProcedureStep('1', top.StateChangeAction('s', 'v'), [
@@ -525,7 +525,7 @@ def test_parse_misc_actions():
             ], 'CONTROL'),
             top.ProcedureStep('3', top.MiscAction(
                 'Approach the launch tower, disconnect the cylinder, and replace the cap'), [
-                (top.WaitUntil(60e6), top.Transition('main', '4'))
+                (top.WaitFor(60e6), top.Transition('main', '4'))
             ], 'PRIMARY'),
             top.ProcedureStep('4', top.MiscAction('Proceed with teardown'), [], 'OPS')
         ])

@@ -19,37 +19,37 @@ def test_immediate_equality():
     assert cond1 is not None
 
 
-def test_wait_until_condition_exact():
-    cond = top.WaitUntil(100)
-    state = {'time': 100}
+def test_wait_for_condition_exact():
+    cond = top.WaitFor(100)
 
     assert cond.satisfied() is False
-    cond.update(state)
+    cond.update({'time': 0})
+    cond.update({'time': 100})
     assert cond.satisfied() is True
 
 
-def test_wait_until_condition_before():
-    cond = top.WaitUntil(100)
-    state = {'time': 99}
+def test_wait_for_condition_before():
+    cond = top.WaitFor(100)
 
     assert cond.satisfied() is False
-    cond.update(state)
+    cond.update({'time': 0})
+    cond.update({'time': 99})
     assert cond.satisfied() is False
 
 
-def test_wait_until_condition_after():
-    cond = top.WaitUntil(100)
-    state = {'time': 101}
+def test_wait_for_condition_after():
+    cond = top.WaitFor(100)
 
     assert cond.satisfied() is False
-    cond.update(state)
+    cond.update({'time': 0})
+    cond.update({'time': 101})
     assert cond.satisfied() is True
 
 
-def test_wait_until_equality():
-    cond1 = top.WaitUntil(100)
-    cond2 = top.WaitUntil(100)
-    cond3 = top.WaitUntil(200)
+def test_wait_for_equality():
+    cond1 = top.WaitFor(100)
+    cond2 = top.WaitFor(100)
+    cond3 = top.WaitFor(200)
 
     assert cond1 == cond2
     assert cond1 != cond3
@@ -385,7 +385,7 @@ def test_and_or_not_equal():
 
 def test_string_representations():
     immediate_cond = top.Immediate()
-    waitUntil_cond = top.WaitUntil(1000000)
+    waitFor_cond = top.WaitFor(1000000)
     equal_cond = top.Equal('A1', 100)
     less_cond = top.Less('A2', 100)
     greater_cond = top.Greater('A3', 100)
@@ -395,7 +395,7 @@ def test_string_representations():
     or_cond = top.Or([lessEqual_cond, greaterEqual_cond])
 
     assert str(immediate_cond) == 'Immediately'
-    assert str(waitUntil_cond) == 'Wait until 1 seconds'
+    assert str(waitFor_cond) == 'Wait for 1 seconds'
     assert str(equal_cond) == 'A1 == 100'
     assert str(less_cond) == 'A2 < 100'
     assert str(greater_cond) == 'A3 > 100'

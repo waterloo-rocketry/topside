@@ -129,31 +129,35 @@ class Or:
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
-class WaitUntil:
-    """Condition that is satisfied once a certain time is reached."""
+class WaitFor:
+    """Condition that is satisfied once an amount of time has elapsed."""
 
-    def __init__(self, t):
+    def __init__(self, wait_t):
         """
         Initialize the condition.
 
         Parameters
         ----------
 
-        t: int
-            The reference time for this condition. Once t is reached,
-            this condition will be satisfied. t should be in the same
-            units and use the same timebase as the PlumbingEngine
-            (integer microseconds from simulation start).
+        wait_t: int
+            The wait time interval for this condition. This condition
+            will become satisfied `wait_t` after it first becomes active
+            (its step is reached).
         """
-        self.target_t = t
+        self.wait_t = wait_t
+        self.target_t = None
         self.current_t = None
 
     def __str__(self):
-        return f'Wait until {round(self.target_t / 1e6)} seconds'
+        return f'Wait for {round(self.wait_t / 1e6)} seconds'
 
     def update(self, state):
         """
         Update the condition with the latest state.
+
+        The first time this function is called, the current time will be
+        used to calculate the target time based on the wait time
+        interval.
 
         Parameters
         ----------
@@ -163,20 +167,22 @@ class WaitUntil:
             state['time'] representing the current time for the plumbing
             engine.
         """
+        if self.target_t is None:
+            self.target_t = state['time'] + self.wait_t
         self.current_t = state['time']
 
     def satisfied(self):
-        """Return True if satisfied and False otherwise."""
-        if self.current_t is None:
+        """Return True if wait_t has elapsed and False otherwise."""
+        if self.target_t is None or self.current_t is None:
             return False
         return self.current_t >= self.target_t
 
     def __eq__(self, other):
-        return type(self) == type(other) and self.target_t == other.target_t
+        return type(self) == type(other) and self.wait_t == other.wait_t
 
     def export(self, fmt):
         if fmt == top.ExportFormat.Latex:
-            return f'{round(self.target_t / 1e6)} seconds'
+            return f'{round(self.wait_t / 1e6)} seconds'
         else:
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
