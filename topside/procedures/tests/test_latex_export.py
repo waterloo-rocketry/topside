@@ -90,10 +90,12 @@ def test_proclang_file_latex_export():
 def test_waitfor_latex_export():
     suite = top.ProcedureSuite([
         top.Procedure('main', [
-            top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
-                (top.And([top.WaitFor(10e6), top.Or([top.Less('p1', 400.0),
-                                                       top.GreaterEqual('p2', 17.0)])]), top.Transition('main', '2'))
-            ], 'PRIMARY'),
+            top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [(
+                top.And([top.WaitFor(10e6),
+                         top.Or([top.Less('p1', 400.0),
+                                 top.GreaterEqual('p2', 17.0)])]),
+                top.Transition('main', '2')
+            )], 'PRIMARY'),
             top.ProcedureStep('2', top.StateChangeAction('vent_valve', 'closed'), [], 'PRIMARY')
         ])
     ])
