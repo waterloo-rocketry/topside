@@ -45,10 +45,6 @@ class ProceduresEngine:
 
         Does NOT affect the managed plumbing engine.
         """
-        # TODO(jacob): When we load a new procedure, we start in the
-        # first step, but that means that the action for that step never
-        # gets executed (we just start waiting on its conditions
-        # immediately). Figure out an elegant way to resolve this.
         if self._suite is not None:
             self.current_procedure_id = self._suite.starting_procedure_id
             self.current_step = self._suite[self.current_procedure_id].step_list[0]
