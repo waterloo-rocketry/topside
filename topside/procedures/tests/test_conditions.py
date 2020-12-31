@@ -21,27 +21,27 @@ def test_immediate_equality():
 
 def test_wait_for_condition_exact():
     cond = top.WaitFor(100)
+    cond.reinitialize({'time': 0})
 
     assert cond.satisfied() is False
-    cond.update({'time': 0})
     cond.update({'time': 100})
     assert cond.satisfied() is True
 
 
 def test_wait_for_condition_before():
     cond = top.WaitFor(100)
+    cond.reinitialize({'time': 0})
 
     assert cond.satisfied() is False
-    cond.update({'time': 0})
     cond.update({'time': 99})
     assert cond.satisfied() is False
 
 
 def test_wait_for_condition_after():
     cond = top.WaitFor(100)
+    cond.reinitialize({'time': 0})
 
     assert cond.satisfied() is False
-    cond.update({'time': 0})
     cond.update({'time': 101})
     assert cond.satisfied() is True
 
@@ -357,23 +357,30 @@ def test_or_equality():
 def test_nested_logic_works():
     eq_cond_1 = top.Equal('A1', 100)
     eq_cond_2 = top.Equal('A2', 100)
-    eq_cond_3 = top.Equal('A3', 100)
-    or_cond_1 = top.Or([eq_cond_1, eq_cond_2])
-    or_cond_2 = top.Or([or_cond_1, eq_cond_3])
+    wait_cond = top.WaitFor(100)
+    or_cond = top.Or([eq_cond_1, eq_cond_2])
+    and_cond = top.And([or_cond, wait_cond])
 
-    state = {'pressures': {'A1': 100, 'A2': 200, 'A3': 300}}
+    state_0 = {'pressures': {'A1': 0, 'A2': 0, 'A3': 0}, 'time': 0}
+    state_1 = {'pressures': {'A1': 100, 'A2': 200, 'A3': 300}, 'time': 100}
 
     assert eq_cond_1.satisfied() is False
     assert eq_cond_2.satisfied() is False
-    assert eq_cond_3.satisfied() is False
-    assert or_cond_1.satisfied() is False
-    assert or_cond_2.satisfied() is False
-    or_cond_2.update(state)
+    assert wait_cond.satisfied() is False
+    assert or_cond.satisfied() is False
+    assert and_cond.satisfied() is False
+    and_cond.reinitialize(state_0)
+    assert eq_cond_1.satisfied() is False
+    assert eq_cond_2.satisfied() is False
+    assert wait_cond.satisfied() is False
+    assert or_cond.satisfied() is False
+    assert and_cond.satisfied() is False
+    and_cond.update(state_1)
     assert eq_cond_1.satisfied() is True
     assert eq_cond_2.satisfied() is False
-    assert eq_cond_3.satisfied() is False
-    assert or_cond_1.satisfied() is True
-    assert or_cond_2.satisfied() is True
+    assert wait_cond.satisfied() is True
+    assert or_cond.satisfied() is True
+    assert and_cond.satisfied() is True
 
 
 def test_and_or_not_equal():

@@ -70,7 +70,7 @@ def test_time_step_forward():
         top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
             (top.WaitFor(0.2e6), top.Transition('main', '2'))], 'PRIMARY'),
         top.ProcedureStep('2', top.StateChangeAction('injector_valve', 'closed'), [
-            (top.WaitFor(0.4e6), top.Transition('main', '3'))], 'PRIMARY'),
+            (top.WaitFor(0.2e6), top.Transition('main', '3'))], 'PRIMARY'),
         top.ProcedureStep('3', top.MiscAction('Approach the launch tower'), [], 'SECONDARY')
     ])
     proc_b.load_suite(top.ProcedureSuite([procedure]))

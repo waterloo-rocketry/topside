@@ -1,11 +1,50 @@
 import topside as top
 
 
-class Immediate:
+class Condition:
+    """
+    Base class for all procedure conditions.
+
+    This class should never be used directly.
+    """
+
+    def reinitialize(self, state):
+        """
+        Re-initialize any data used by the condition.
+
+        This function is useful for ensuring that "stateful" conditions
+        are always reset when their step is first entered. Since steps
+        could be encountered multiple times (if the procedure is stepped
+        backwards, for example), we need a way of forgetting any data
+        that conditions encountered the first time around.
+        """
+        raise NotImplementedError('`reinitialize` must be implemented in derived Condition classes')
+
+    def update(self, state):
+        """
+        Update the condition with the state of the plumbing engine.
+        """
+        raise NotImplementedError('`update` must be implemented in derived Condition classes')
+
+    def satisfied(self):
+        """
+        Return True if the condition is satisfied and False otherwise.
+
+        This is a purely virtual method and should be overridden in all
+        child classes.
+        """
+        raise NotImplementedError('`satisfied` must be implemented in derived Condition classes')
+
+
+class Immediate(Condition):
     """Condition that is always satisfied."""
 
     def __str__(self):
         return 'Immediately'
+
+    def reinitialize(self, state):
+        """Re-initialize the condition; a no-op."""
+        pass
 
     def update(self, state):
         """Update the condition with the latest state; a no-op."""
@@ -19,7 +58,7 @@ class Immediate:
         return type(other) == Immediate
 
 
-class And:
+class And(Condition):
     """
     Condition representing a logical AND of multiple other conditions.
     """
@@ -39,6 +78,21 @@ class And:
 
     def __str__(self):
         return '(' + ' and '.join([str(cond) for cond in self._conditions]) + ')'
+
+    def reinitialize(self, state):
+        """
+        Re-initialize all child conditions.
+
+        Parameters
+        ----------
+
+        state: dict
+            state is expected to contain all information necessary for
+            each condition to properly re-initialize. In most cases,
+            this will mean either a `time` item or a `pressures` item.
+        """
+        for cond in self._conditions:
+            cond.reinitialize(state)
 
     def update(self, state):
         """
@@ -74,7 +128,7 @@ class And:
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
-class Or:
+class Or(Condition):
     """
     Condition representing a logical OR of multiple other conditions.
     """
@@ -94,6 +148,21 @@ class Or:
 
     def __str__(self):
         return '(' + ' or '.join([str(cond) for cond in self._conditions]) + ')'
+
+    def reinitialize(self, state):
+        """
+        Initialize all child conditions.
+
+        Parameters
+        ----------
+
+        state: dict
+            state is expected to contain all information necessary for
+            each condition to properly re-initialize. In most cases,
+            this will mean either a `time` item or a `pressures` item.
+        """
+        for cond in self._conditions:
+            cond.reinitialize(state)
 
     def update(self, state):
         """
@@ -129,7 +198,7 @@ class Or:
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
-class WaitFor:
+class WaitFor(Condition):
     """Condition that is satisfied once an amount of time has elapsed."""
 
     def __init__(self, wait_t):
@@ -145,19 +214,18 @@ class WaitFor:
             (its step is reached).
         """
         self.wait_t = wait_t
-        self.target_t = None
         self.current_t = None
+        self.target_t = None
 
     def __str__(self):
         return f'Wait for {round(self.wait_t / 1e6)} seconds'
 
-    def update(self, state):
+    def reinitialize(self, state):
         """
-        Update the condition with the latest state.
+        Re-initialize the condition.
 
-        The first time this function is called, the current time will be
-        used to calculate the target time based on the wait time
-        interval.
+        Resets the current time and sets the target time based on the
+        configured wait time.
 
         Parameters
         ----------
@@ -167,8 +235,21 @@ class WaitFor:
             state['time'] representing the current time for the plumbing
             engine.
         """
-        if self.target_t is None:
-            self.target_t = state['time'] + self.wait_t
+        self.current_t = state['time']
+        self.target_t = self.current_t + self.wait_t
+
+    def update(self, state):
+        """
+        Update the current time with the latest state.
+
+        Parameters
+        ----------
+
+        state: dict
+            state is expected to have the key 'time', with the value of
+            state['time'] representing the current time for the plumbing
+            engine.
+        """
         self.current_t = state['time']
 
     def satisfied(self):
@@ -187,7 +268,7 @@ class WaitFor:
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
-class Comparison:
+class Comparison(Condition):
     """Base class for conditions comparing a pressure to a reference."""
 
     def __init__(self, node, pressure):
@@ -211,6 +292,23 @@ class Comparison:
         self.node = node
         self.reference_pressure = pressure
         self.current_pressure = None
+
+    def reinitialize(self, state):
+        """
+        Re-initialize the condition.
+
+        Since Comparison conditions only need to keep track of one piece
+        of data, re-initialization is the same as updating.
+
+        Parameters
+        ----------
+
+        state: dict
+            state is expected to be a dict of the form:
+              {'pressures': {self.node: P}}
+            where P is the current pressure at node self.node.
+        """
+        self.update(state)
 
     def compare(self, current_pressure, reference_pressure):
         """
