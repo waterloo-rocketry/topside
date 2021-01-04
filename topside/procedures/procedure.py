@@ -10,7 +10,14 @@ class ExportFormat(enum.Enum):
 
 # TODO(jacob): Investigate whether this would be better as a variant
 # rather than a base class.
+<< << << < HEAD
+
+
 @dataclass
+== == == =
+>>>>>> > 137ddb6(Update procedure.py)
+
+
 class Action:
     pass
 
@@ -50,6 +57,37 @@ class StateChangeAction(Action):
     def __str__(self):
         return f"""Component: {self.component}  State: {self.state}"""
 
+    def export(self, fmt):
+        if fmt == top.ExportFormat.Latex:
+            if self.state == 'open':
+                return 'Open ' + self.component
+            elif self.state == 'closed':
+                return 'Close ' + self.component
+            else:
+                return 'Set ' + self.component + ' to ' + self.state
+        else:
+            raise NotImplementedError(f'Format "{fmt}" not supported')
+
+
+@dataclass
+class MiscAction(Action):
+    """
+    A procedure action that does not fit into any other category.
+
+    Members
+    -------
+    action_type: str
+        The string specifies which type of action it is.
+    """
+    action_type: str
+
+    def export(self, fmt):
+        if fmt == top.ExportFormat.Latex:
+            return self.action_type
+        else:
+            raise NotImplementedError(f'Format "{fmt}" not supported')
+
+
 @dataclass
 class MiscAction(Action):
     """
@@ -88,6 +126,7 @@ class Transition:
 
     def __str__(self):
         return f"""Procedure: {self.procedure}  Step: {self.step}"""
+
 
 @dataclass
 class ProcedureStep:
@@ -131,10 +170,8 @@ class ProcedureStep:
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
     def __str__(self):
-        step_string = ''
-        for key, value in self.steps.items():
-            step_string = step_string + f"\n {key}: {value}"
-        return f"""Procedure ID: {self.procedure_id}    Steps: {self.step_string}"""
+        return f"""Step ID: {self.step_id}  Action: {self.action}   Conditions: {[[transitionObject, self.conditions[transitionObject]] for transitionObject in self.conditions]}"""
+
 
 class Procedure:
     """A sequence of discrete procedure steps."""
@@ -219,7 +256,6 @@ class Procedure:
 
     def __str__(self):
         return f"""Procedure ID: {self.procedure_id}    Steps: {self.steps}"""
-
 
 
 class ProcedureSuite:
