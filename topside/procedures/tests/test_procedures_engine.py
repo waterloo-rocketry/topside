@@ -380,4 +380,8 @@ def test_reset():
 =======
     assert proc_eng.ready_to_advance() is True
 
+<<<<<<< HEAD
 >>>>>>> 5dc2bbe (Add string representation)
+=======
+single_procedure_suite()
+>>>>>>> 4d99dea (Add string representation)

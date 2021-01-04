@@ -131,7 +131,10 @@ class ProcedureStep:
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
     def __str__(self):
-        return f"""Step ID: {self.step_id}  Action: {self.action}   Conditions: {[[transitionObject, self.conditions[transitionObject]] for transitionObject in self.conditions]}"""
+        step_string = ''
+        for key, value in self.steps.items():
+            step_string = step_string + f"\n {key}: {value}"
+        return f"""Procedure ID: {self.procedure_id}    Steps: {self.step_string}"""
 
 class Procedure:
     """A sequence of discrete procedure steps."""
