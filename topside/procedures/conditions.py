@@ -1,13 +1,17 @@
+from abc import ABC, abstractmethod
+
 import topside as top
 
 
-class Condition:
+class Condition(ABC):
     """
     Base class for all procedure conditions.
 
-    This class should never be used directly.
+    This class should never be used directly, so we make it an Abstract
+    Base Class (ABC) and mark all of the methods as abstract.
     """
 
+    @abstractmethod
     def reinitialize(self, state):
         """
         Re-initialize any data used by the condition.
@@ -18,25 +22,24 @@ class Condition:
         backwards, for example), we need a way of forgetting any data
         that conditions encountered the first time around.
         """
-        raise NotImplementedError('`reinitialize` must be implemented in derived Condition classes')
+        pass
 
+    @abstractmethod
     def update(self, state):
         """
         Update the condition with the state of the plumbing engine.
         """
-        raise NotImplementedError('`update` must be implemented in derived Condition classes')
+        pass
 
+    @abstractmethod
     def satisfied(self):
         """
         Return True if the condition is satisfied and False otherwise.
-
-        This is a purely virtual method and should be overridden in all
-        child classes.
         """
-        raise NotImplementedError('`satisfied` must be implemented in derived Condition classes')
+        pass
 
 
-class Immediate(Condition):
+class Immediate:
     """Condition that is always satisfied."""
 
     def __str__(self):
@@ -58,7 +61,7 @@ class Immediate(Condition):
         return type(other) == Immediate
 
 
-class And(Condition):
+class And:
     """
     Condition representing a logical AND of multiple other conditions.
     """
@@ -128,7 +131,7 @@ class And(Condition):
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
-class Or(Condition):
+class Or:
     """
     Condition representing a logical OR of multiple other conditions.
     """
@@ -198,7 +201,7 @@ class Or(Condition):
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
-class WaitFor(Condition):
+class WaitFor:
     """Condition that is satisfied once an amount of time has elapsed."""
 
     def __init__(self, wait_t):
@@ -209,9 +212,9 @@ class WaitFor(Condition):
         ----------
 
         wait_t: int
-            The wait time interval for this condition. This condition
-            will become satisfied `wait_t` after it first becomes active
-            (its step is reached).
+            The wait time interval for this condition, in microseconds.
+            This condition will become satisfied `wait_t` after it first
+            becomes active (its step is reached).
         """
         self.wait_t = wait_t
         self.current_t = None
@@ -268,7 +271,7 @@ class WaitFor(Condition):
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
-class Comparison(Condition):
+class Comparison:
     """Base class for conditions comparing a pressure to a reference."""
 
     def __init__(self, node, pressure):
