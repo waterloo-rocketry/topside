@@ -10,14 +10,8 @@ class ExportFormat(enum.Enum):
 
 # TODO(jacob): Investigate whether this would be better as a variant
 # rather than a base class.
-<< << << < HEAD
-
 
 @dataclass
-== == == =
->>>>>> > 137ddb6(Update procedure.py)
-
-
 class Action:
     pass
 

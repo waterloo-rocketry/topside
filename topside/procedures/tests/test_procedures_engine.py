@@ -354,7 +354,6 @@ def test_step_updates_conditions():
 
     proc_eng.step_time(1e6)
 
-<<<<<<< HEAD
     assert proc_eng.ready_to_proceed() is True
 
 
@@ -377,11 +376,3 @@ def test_reset():
     assert proc_eng.current_procedure_id == 'p1'
     assert proc_eng.current_step.step_id == 's1'
     assert plumb_eng.current_state('c1') == 'open'
-=======
-    assert proc_eng.ready_to_advance() is True
-
-<<<<<<< HEAD
->>>>>>> 5dc2bbe (Add string representation)
-=======
-single_procedure_suite()
->>>>>>> 4d99dea (Add string representation)
