@@ -47,7 +47,7 @@ def test_proc_bridge_procedure_controls_advance_procedure():
         top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
             (top.Immediate(), top.Transition('main', '2'))], 'PRIMARY'),
         top.ProcedureStep('2', top.StateChangeAction('vent_valve', 'closed'), [
-            (top.WaitUntil(100), top.Transition('main', '3'))], 'PRIMARY'),
+            (top.WaitFor(100), top.Transition('main', '3'))], 'PRIMARY'),
         top.ProcedureStep('3', top.MiscAction('Approach the launch tower'), [], 'SECONDARY')
     ])
 

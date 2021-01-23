@@ -34,14 +34,14 @@ transition: name "." step_id
 
 condition: "[" boolean_expr "]"
 
-waituntil: time "s"
+waitfor: time "s"
 time: NUMBER
 
 boolean_expr: boolean_expr_and ( logic_or boolean_expr_and )*
 
 boolean_expr_and: boolean ( logic_and boolean )*
 
-boolean: waituntil
+boolean: waitfor
     | node operator value
     | "(" boolean_expr ")"
 
@@ -120,7 +120,7 @@ class ProcedureTransformer(Transformer):
 
         `data` is a list of either:
             - three elements, of the form [node, operator, reference]
-            - one WaitUntil element
+            - one WaitFor element
             - one boolean_expr element, which was wrapped in parentheses in the
               text
          """
@@ -129,7 +129,7 @@ class ProcedureTransformer(Transformer):
             # Must be a [node, operator, reference] type
             comp_class = data[1]
             return comp_class(data[0], data[2])
-        elif len(data) == 1 and type(data[0]) == top.WaitUntil:
+        elif len(data) == 1 and type(data[0]) == top.WaitFor:
             return data[0]
         elif len(data) == 1:
             # Assume that this is a parenthesized expression
@@ -159,14 +159,14 @@ class ProcedureTransformer(Transformer):
         else:
             return top.And(data)
 
-    def waituntil(self, data):
+    def waitfor(self, data):
         """
-        Process `waituntil` nodes in the parse tree.
+        Process `waitfor` nodes in the parse tree.
 
         `data` is a list of the form [reference_time]. reference_time is
         in seconds, so we need to convert it to microseconds.
         """
-        return top.WaitUntil(data[0] * 1e6)
+        return top.WaitFor(data[0] * 1e6)
 
     def condition(self, data):
         """

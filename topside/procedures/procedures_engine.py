@@ -69,6 +69,18 @@ class ProceduresEngine:
             if self._plumb is not None:
                 self._plumb.set_component_state(action.component, action.state)
 
+    def reinitialize_conditions(self):
+        """
+        Re-initialize all current conditions by querying the managed plumbing engine.
+        """
+        if self._plumb is not None and self.current_step is not None:
+            time = self._plumb.time
+            pressures = self._plumb.current_pressures()
+            state = {'time': time, 'pressures': pressures}
+
+            for condition, _ in self.current_step.conditions:
+                condition.reinitialize(state)
+
     def update_conditions(self):
         """
         Update all current conditions by querying the managed plumbing engine.
@@ -93,6 +105,7 @@ class ProceduresEngine:
 
         self.execute(self.current_step.action)
         self.step_position = StepPosition.After
+        self.reinitialize_conditions()
 
     def ready_to_proceed(self):
         """

@@ -303,7 +303,7 @@ def test_update_conditions_updates_time():
     plumb_eng = one_component_engine()
     plumb_eng.set_component_state('c1', 'open')
 
-    s1 = top.ProcedureStep('s1', None, [(top.WaitUntil(1e6), 's2')], 'PRIMARY')
+    s1 = top.ProcedureStep('s1', None, [(top.WaitFor(10), 's2')], 'PRIMARY')
     proc = top.Procedure('p1', [s1])
     proc_suite = top.ProcedureSuite([proc], 'p1')
 
@@ -312,12 +312,7 @@ def test_update_conditions_updates_time():
 
     assert proc_eng.ready_to_proceed() is False
 
-    plumb_eng.step(1e6 - 1)
-    proc_eng.update_conditions()
-
-    assert proc_eng.ready_to_proceed() is False
-
-    plumb_eng.step(1)
+    plumb_eng.step(10)
     proc_eng.update_conditions()
 
     assert proc_eng.ready_to_proceed() is True
@@ -376,3 +371,27 @@ def test_reset():
     assert proc_eng.current_procedure_id == 'p1'
     assert proc_eng.current_step.step_id == 's1'
     assert plumb_eng.current_state('c1') == 'open'
+
+
+def test_reset_clears_conditions():
+    plumb_eng = one_component_engine()
+    plumb_eng.set_component_state('c1', 'open')
+
+    s1 = top.ProcedureStep('s1', None, [(top.WaitFor(10), 's2')], 'PRIMARY')
+    proc = top.Procedure('p1', [s1])
+    proc_suite = top.ProcedureSuite([proc], 'p1')
+
+    proc_eng = top.ProceduresEngine(plumb_eng, proc_suite)
+    proc_eng.execute_current()
+
+    assert proc_eng.ready_to_proceed() is False
+
+    plumb_eng.step(10)
+    proc_eng.update_conditions()
+
+    assert proc_eng.ready_to_proceed() is True
+
+    proc_eng.reset()
+    proc_eng.execute_current()
+
+    assert proc_eng.ready_to_proceed() is False

@@ -1,4 +1,42 @@
+from abc import ABC, abstractmethod
+
 import topside as top
+
+
+class Condition(ABC):
+    """
+    Base class for all procedure conditions.
+
+    This class should never be used directly, so we make it an Abstract
+    Base Class (ABC) and mark all of the methods as abstract.
+    """
+
+    @abstractmethod
+    def reinitialize(self, state):
+        """
+        Re-initialize any data used by the condition.
+
+        This function is useful for ensuring that "stateful" conditions
+        are always reset when their step is first entered. Since steps
+        could be encountered multiple times (if the procedure is stepped
+        backwards, for example), we need a way of forgetting any data
+        that conditions encountered the first time around.
+        """
+        pass
+
+    @abstractmethod
+    def update(self, state):
+        """
+        Update the condition with the state of the plumbing engine.
+        """
+        pass
+
+    @abstractmethod
+    def satisfied(self):
+        """
+        Return True if the condition is satisfied and False otherwise.
+        """
+        pass
 
 
 class Immediate:
@@ -6,6 +44,10 @@ class Immediate:
 
     def __str__(self):
         return 'Immediately'
+
+    def reinitialize(self, state):
+        """Re-initialize the condition; a no-op."""
+        pass
 
     def update(self, state):
         """Update the condition with the latest state; a no-op."""
@@ -39,6 +81,21 @@ class And:
 
     def __str__(self):
         return '(' + ' and '.join([str(cond) for cond in self._conditions]) + ')'
+
+    def reinitialize(self, state):
+        """
+        Re-initialize all child conditions.
+
+        Parameters
+        ----------
+
+        state: dict
+            state is expected to contain all information necessary for
+            each condition to properly re-initialize. In most cases,
+            this will mean either a `time` item or a `pressures` item.
+        """
+        for cond in self._conditions:
+            cond.reinitialize(state)
 
     def update(self, state):
         """
@@ -95,6 +152,21 @@ class Or:
     def __str__(self):
         return '(' + ' or '.join([str(cond) for cond in self._conditions]) + ')'
 
+    def reinitialize(self, state):
+        """
+        Initialize all child conditions.
+
+        Parameters
+        ----------
+
+        state: dict
+            state is expected to contain all information necessary for
+            each condition to properly re-initialize. In most cases,
+            this will mean either a `time` item or a `pressures` item.
+        """
+        for cond in self._conditions:
+            cond.reinitialize(state)
+
     def update(self, state):
         """
         Update all conditions with the latest state.
@@ -129,31 +201,49 @@ class Or:
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
 
-class WaitUntil:
-    """Condition that is satisfied once a certain time is reached."""
+class WaitFor:
+    """Condition that is satisfied once an amount of time has elapsed."""
 
-    def __init__(self, t):
+    def __init__(self, wait_t):
         """
         Initialize the condition.
 
         Parameters
         ----------
 
-        t: int
-            The reference time for this condition. Once t is reached,
-            this condition will be satisfied. t should be in the same
-            units and use the same timebase as the PlumbingEngine
-            (integer microseconds from simulation start).
+        wait_t: int
+            The wait time interval for this condition, in microseconds.
+            This condition will become satisfied `wait_t` after it first
+            becomes active (its step is reached).
         """
-        self.target_t = t
+        self.wait_t = wait_t
         self.current_t = None
+        self.target_t = None
 
     def __str__(self):
-        return f'Wait until {round(self.target_t / 1e6)} seconds'
+        return f'Wait for {round(self.wait_t / 1e6)} seconds'
+
+    def reinitialize(self, state):
+        """
+        Re-initialize the condition.
+
+        Resets the current time and sets the target time based on the
+        configured wait time.
+
+        Parameters
+        ----------
+
+        state: dict
+            state is expected to have the key 'time', with the value of
+            state['time'] representing the current time for the plumbing
+            engine.
+        """
+        self.current_t = state['time']
+        self.target_t = self.current_t + self.wait_t
 
     def update(self, state):
         """
-        Update the condition with the latest state.
+        Update the current time with the latest state.
 
         Parameters
         ----------
@@ -166,17 +256,17 @@ class WaitUntil:
         self.current_t = state['time']
 
     def satisfied(self):
-        """Return True if satisfied and False otherwise."""
-        if self.current_t is None:
+        """Return True if wait_t has elapsed and False otherwise."""
+        if self.target_t is None or self.current_t is None:
             return False
         return self.current_t >= self.target_t
 
     def __eq__(self, other):
-        return type(self) == type(other) and self.target_t == other.target_t
+        return type(self) == type(other) and self.wait_t == other.wait_t
 
     def export(self, fmt):
         if fmt == top.ExportFormat.Latex:
-            return f'{round(self.target_t / 1e6)} seconds'
+            return f'{round(self.wait_t / 1e6)} seconds'
         else:
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
@@ -205,6 +295,23 @@ class Comparison:
         self.node = node
         self.reference_pressure = pressure
         self.current_pressure = None
+
+    def reinitialize(self, state):
+        """
+        Re-initialize the condition.
+
+        Since Comparison conditions only need to keep track of one piece
+        of data, re-initialization is the same as updating.
+
+        Parameters
+        ----------
+
+        state: dict
+            state is expected to be a dict of the form:
+              {'pressures': {self.node: P}}
+            where P is the current pressure at node self.node.
+        """
+        self.update(state)
 
     def compare(self, current_pressure, reference_pressure):
         """
