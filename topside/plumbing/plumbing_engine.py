@@ -2,6 +2,7 @@ import copy
 
 import networkx as nx
 
+import topside.plumbing.node as node_types
 import topside.plumbing.exceptions as exceptions
 import topside.plumbing.invalid_reasons as invalid
 import topside.plumbing.plumbing_utils as utils
@@ -193,7 +194,7 @@ class PlumbingEngine:
             raise exceptions.BadInputError(
                 f"State '{state_id}' not found in {component_name} states dict.")
 
-        # Dict of {edges:FC} with component node names
+        # Dict of {edges: FC} with component node names
         state_edges_component = component.states[state_id]
 
         component.current_state = state_id
@@ -303,15 +304,19 @@ class PlumbingEngine:
                     raise exceptions.BadInputError(error_msg)
 
             if both_nodes_valid:
+                start_map_node = mapping[start_node]
+                end_map_node = mapping[end_node]
+
                 self.plumbing_graph.add_edge(
-                    mapping[start_node], mapping[end_node], component.name + '.' + edge_key)
+                    start_map_node, end_map_node, component.name + '.' + edge_key)
+
+                for node in [start_map_node, end_map_node]:
+                    if node in self.nodes(data=False) and 'body' in self.plumbing_graph.nodes[node]:
+                        continue
+                    body = node_types.instantiate_node(node)
+                    self.plumbing_graph.nodes[node]['body'] = body
 
         self.set_component_state(component.name, state_id)
-
-        # Set a default pressure of 0
-        for node in mapping.values():
-            if node in self.plumbing_graph and 'pressure' not in self.plumbing_graph.nodes[node]:
-                self.set_pressure(node, 0)
 
         # Assign specified node pressures
         pressures = copy.deepcopy(pressures)
@@ -416,7 +421,8 @@ class PlumbingEngine:
         if node_name == utils.ATM and pressure != 0:
             raise exceptions.BadInputError(f"Pressure for atmosphere node ({utils.ATM}) must be 0.")
 
-        self.plumbing_graph.nodes[node_name]['pressure'] = pressure
+        self.get_node_body(node_name).update_pressure(pressure)
+        self.get_node_body(node_name).update_fixed(fixed)
         if fixed:
             self.fixed_pressures[node_name] = pressure
 
@@ -501,7 +507,7 @@ class PlumbingEngine:
         """
 
         if len(args) == 0:
-            return {n: self.plumbing_graph.nodes[n]['pressure']
+            return {n: self.get_node_body(n).get_pressure()
                     for n in self.plumbing_graph.nodes()}
 
         # If passed a list, unpack those list elements into args
@@ -509,11 +515,14 @@ class PlumbingEngine:
 
         try:
             if len(args) == 1:
-                return self.plumbing_graph.nodes[args[0]]['pressure']
+                return self.get_node_body(args[0]).get_pressure()
             else:
-                return {n: self.plumbing_graph.nodes[n]['pressure'] for n in args}
+                return {n: self.get_node_body(n).get_pressure() for n in args}
         except KeyError as err:
             raise exceptions.BadInputError(f"Node {err.args[0]} not found in graph.")
+
+    def get_node_body(self, node_name):
+        return self.plumbing_graph.nodes[node_name]['body']
 
     def current_FC(self, *args):
         """Given a component_name or edge_id, return a dict of corresponding FCs.
@@ -605,7 +614,7 @@ class PlumbingEngine:
                 if node in self.fixed_pressures or node == utils.ATM:
                     continue
                 dp = 0
-                pressure = data['pressure']
+                pressure = data['body'].get_pressure()
                 for edge in self.plumbing_graph.out_edges(node, keys=True):
                     neighbor = edge[1]
                     npressure = self.current_pressures(neighbor)
