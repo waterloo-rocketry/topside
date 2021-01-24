@@ -4,6 +4,17 @@ import topside as top
 import topside.plumbing.plumbing_utils as utils
 
 
+def test_instantiate_node():
+    expected_atm_node = top.instantiate_node(utils.ATM)
+    atm_node = top.AtmNode()
+    assert type(expected_atm_node) == type(atm_node)
+
+    arbitrary_name = "name"
+    expected_generic_node = top.instantiate_node(arbitrary_name)
+    generic_node = top.GenericNode()
+    assert type(expected_generic_node) == type(generic_node)
+
+
 def test_generic_node():
     node = top.GenericNode()
     assert node.get_pressure() == 0
