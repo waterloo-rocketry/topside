@@ -21,22 +21,20 @@ class Node(ABC):
     Should never be used directly, so we tag all its methods as abstract.
     """
     @abstractmethod
-    # kwargs allowd for any additional arguments that need to be passed in
-    # to update the pressure
     def update_pressure(self, new_pressure, **kwargs):
-        pass
+        """Update pressure, kwargs are if additional params are needed."""
 
     @abstractmethod
     def get_pressure(self):
-        pass
+        """Return pressure."""
 
     @abstractmethod
     def update_fixed(self, fixed):
-        pass
+        """Change fixed value."""
 
     @abstractmethod
     def get_fixed(self):
-        pass
+        """Return fixed value."""
 
 
 class GenericNode(Node):

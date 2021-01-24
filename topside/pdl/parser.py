@@ -175,11 +175,3 @@ def extract_edges(entry):
         edge_dict[edge_name] = (fwd_edge, back_edge)
 
     return edge_dict
-
-
-def instantiate_node(name, node_type=None):
-    """Instantiates a node of the given class with its name"""
-    if node_type is None:
-        return top.GenericNode(name)
-
-    return None
