@@ -5,6 +5,7 @@ import topside.plumbing.plumbing_utils as utils
 
 
 def instantiate_node(type_id=None):
+    """Return the proper child node class depending on provided type_id."""
     ret = None
     if type_id == utils.ATM:
         ret = AtmNode()
@@ -20,6 +21,8 @@ class Node(ABC):
     Should never be used directly, so we tag all its methods as abstract.
     """
     @abstractmethod
+    # kwargs allowd for any additional arguments that need to be passed in
+    # to update the pressure
     def update_pressure(self, new_pressure, **kwargs):
         pass
 
@@ -37,8 +40,12 @@ class Node(ABC):
 
 
 class GenericNode(Node):
+    """
+    A generic node, i.e. any node that doesn't require special consideration
+    in calculating its pressure.
+    """
+
     def __init__(self, pressure=0, fixed=False):
-        """Instantiate a generic node."""
         self.__pressure = pressure
         self.fixed = fixed
 
@@ -64,6 +71,8 @@ class GenericNode(Node):
 
 
 class AtmNode(Node):
+    """The atmosphere node."""
+
     def __str__(self):
         return f'[AtmNode] pressure: 0, fixed: True'
 
@@ -79,5 +88,6 @@ class AtmNode(Node):
     def get_fixed(self):
         return True
 
+    # All AtmNodes are equal, since they represent identical values
     def __eq__(self, other):
         return isinstance(other, AtmNode)
