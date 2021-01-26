@@ -1,11 +1,17 @@
 from abc import ABC, abstractmethod
+
 import networkx as nx
 
 import topside.plumbing.plumbing_utils as utils
 
 
 def instantiate_node(type_id=None):
-    """Return the proper child node class depending on provided type_id."""
+    """
+    Return the proper child node class depending on provided type_id.
+
+    type_id should be a string that indicates the desired node type. If an unrecognized
+    string (or no string) is provided, we create a generic node.
+    """
     ret = None
     if type_id == utils.ATM:
         ret = AtmNode()

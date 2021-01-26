@@ -36,9 +36,6 @@ def test_open_closed_valves():
     assert plumb.current_state('valve2') == 'open'
 
 
-test_open_closed_valves()
-
-
 def test_arbitrary_states():
     plumb = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)

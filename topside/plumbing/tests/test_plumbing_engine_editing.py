@@ -570,9 +570,6 @@ def test_set_pressure_errors():
     plumb = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
 
-    for node in plumb.nodes():
-        print(node[1]['body'])
-
     pc = test.create_component(0, 0, 0, 1, 'valve3', 'C')
     mapping = {
         1: 3,
