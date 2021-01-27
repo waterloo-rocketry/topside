@@ -28,9 +28,9 @@ def test_open_closed_valves():
         (3, 2, 'valve2.B2', {'FC': utils.FC_MAX})
     ]
     assert plumb.nodes() == [
-        (1, {'pressure': 0}),
-        (2, {'pressure': 0}),
-        (3, {'pressure': 100})
+        (1, {'body': top.GenericNode(0)}),
+        (2, {'body': top.GenericNode(0)}),
+        (3, {'body': top.GenericNode(100)})
     ]
     assert plumb.current_state('valve1') == 'closed'
     assert plumb.current_state('valve2') == 'open'
@@ -48,9 +48,9 @@ def test_arbitrary_states():
         (3, 2, 'valve2.B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))})
     ]
     assert plumb.nodes() == [
-        (1, {'pressure': 0}),
-        (2, {'pressure': 0}),
-        (3, {'pressure': 100})
+        (1, {'body': top.GenericNode(0)}),
+        (2, {'body': top.GenericNode(0)}),
+        (3, {'body': top.GenericNode(100)})
     ]
     assert plumb.current_state('valve1') == 'closed'
     assert plumb.current_state('valve2') == 'open'
@@ -73,9 +73,9 @@ def test_load_graph_to_empty():
         (3, 2, 'valve2.B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))})
     ]
     assert plumb.nodes() == [
-        (1, {'pressure': 0}),
-        (2, {'pressure': 0}),
-        (3, {'pressure': 100})
+        (1, {'body': top.GenericNode(0)}),
+        (2, {'body': top.GenericNode(0)}),
+        (3, {'body': top.GenericNode(100)})
     ]
     assert plumb.current_state('valve1') == 'closed'
     assert plumb.current_state('valve2') == 'open'
@@ -100,9 +100,9 @@ def test_replace_graph():
         (3, 2, 'valve2.B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))})
     ]
     assert plumb.nodes() == [
-        (1, {'pressure': 0}),
-        (2, {'pressure': 0}),
-        (3, {'pressure': 100})
+        (1, {'body': top.GenericNode(0)}),
+        (2, {'body': top.GenericNode(0)}),
+        (3, {'body': top.GenericNode(100)})
     ]
     assert plumb.current_state('valve1') == 'closed'
     assert plumb.current_state('valve2') == 'open'

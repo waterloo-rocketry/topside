@@ -216,9 +216,9 @@ def test_list_functions():
 
     # Pressure at node 3 will be 0, since the provided one was invalid
     assert plumb.nodes() == [
-        (1, {'pressure': 0}),
-        (2, {'pressure': 0}),
-        (3, {'pressure': 0})
+        (1, {'body': top.GenericNode(0)}),
+        (2, {'body': top.GenericNode(0)}),
+        (3, {'body': top.GenericNode(0)}),
     ]
 
     assert plumb.nodes(data=False) == [1, 2, 3]

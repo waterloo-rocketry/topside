@@ -25,8 +25,8 @@ def test_add_to_empty():
         (2, 1, 'valve.A2', {'FC': 0})
     ]
     assert plumb.nodes() == [
-        (1, {'pressure': 20}),
-        (2, {'pressure': 0})
+        (1, {'body': top.GenericNode(20)}),
+        (2, {'body': top.GenericNode(0)})
     ]
     assert plumb.current_state('valve') == 'open'
 
@@ -54,10 +54,10 @@ def test_add_component():
         (4, 3, 'valve3.C2', {'FC': utils.teq_to_FC(utils.s_to_micros(1))})
     ]
     assert plumb.nodes() == [
-        (1, {'pressure': 0}),
-        (2, {'pressure': 0}),
-        (3, {'pressure': 100}),
-        (4, {'pressure': 50})
+        (1, {'body': top.GenericNode(0)}),
+        (2, {'body': top.GenericNode(0)}),
+        (3, {'body': top.GenericNode(100)}),
+        (4, {'body': top.GenericNode(50)})
     ]
     assert plumb.current_state('valve1') == 'closed'
     assert plumb.current_state('valve2') == 'open'
@@ -229,10 +229,10 @@ def test_reset_keep_component():
         (4, 3, 'valve3.C2', {'FC': utils.teq_to_FC(utils.s_to_micros(1))})
     ]
     assert plumb.nodes() == [
-        (1, {'pressure': 0}),
-        (2, {'pressure': 0}),
-        (3, {'pressure': 100}),
-        (4, {'pressure': 0})
+        (1, {'body': top.GenericNode(0)}),
+        (2, {'body': top.GenericNode(0)}),
+        (3, {'body': top.GenericNode(100)}),
+        (4, {'body': top.GenericNode(0)})
     ]
     assert plumb.current_state('valve1') == 'closed'
     assert plumb.current_state('valve3') == 'closed'
@@ -310,10 +310,10 @@ def test_reset_integration_and_keep_component():
         (4, 3, 'valve3.C2', {'FC': utils.teq_to_FC(utils.s_to_micros(1))})
     ]
     assert plumb.nodes() == [
-        (1, {'pressure': 0}),
-        (2, {'pressure': 0}),
-        (3, {'pressure': 100}),
-        (4, {'pressure': 0})
+        (1, {'body': top.GenericNode(0)}),
+        (2, {'body': top.GenericNode(0)}),
+        (3, {'body': top.GenericNode(100)}),
+        (4, {'body': top.GenericNode(0)})
     ]
     assert plumb.current_state('valve1') == 'closed'
     assert plumb.current_state('valve3') == 'closed'
@@ -331,8 +331,8 @@ def test_remove_component():
         (2, 1, 'valve1.A2', {'FC': 0}),
     ]
     assert plumb.nodes() == [
-        (1, {'pressure': 0}),
-        (2, {'pressure': 0}),
+        (1, {'body': top.GenericNode(0)}),
+        (2, {'body': top.GenericNode(0)}),
     ]
     assert plumb.current_state('valve1') == 'closed'
 
@@ -367,9 +367,9 @@ def test_add_remove():
         (3, 2, 'valve2.B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))}),
     ]
     assert plumb.nodes() == [
-        (1, {'pressure': 0}),
-        (2, {'pressure': 0}),
-        (3, {'pressure': 100}),
+        (1, {'body': top.GenericNode(0)}),
+        (2, {'body': top.GenericNode(0)}),
+        (3, {'body': top.GenericNode(100)}),
     ]
     assert plumb.current_state('valve1') == 'closed'
     assert plumb.current_state('valve2') == 'open'
@@ -415,9 +415,9 @@ def test_remove_add_errors():
         (3, 2, 'valve2.B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))}),
     ]
     assert plumb.nodes() == [
-        (1, {'pressure': 0}),
-        (2, {'pressure': 0}),
-        (3, {'pressure': 100}),
+        (1, {'body': top.GenericNode(0)}),
+        (2, {'body': top.GenericNode(0)}),
+        (3, {'body': top.GenericNode(100)}),
     ]
     assert plumb.current_state('valve1') == 'closed'
     assert plumb.current_state('valve2') == 'open'
@@ -467,8 +467,8 @@ def test_remove_errors_wrong_component_name():
         (3, 2, 'valve2.B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0))}),
     ]
     assert plumb.nodes() == [
-        (2, {'pressure': 0}),
-        (3, {'pressure': 100}),
+        (2, {'body': top.GenericNode(0)}),
+        (3, {'body': top.GenericNode(100)}),
     ]
     assert plumb.current_state('valve2') == 'open'
 
@@ -487,9 +487,9 @@ def test_reverse_orientation():
         (3, 2, 'valve2.B2', {'FC': utils.teq_to_FC(utils.s_to_micros(0.2))})
     ]
     assert plumb.nodes() == [
-        (1, {'pressure': 0}),
-        (2, {'pressure': 0}),
-        (3, {'pressure': 100})
+        (1, {'body': top.GenericNode(0)}),
+        (2, {'body': top.GenericNode(0)}),
+        (3, {'body': top.GenericNode(100)}),
     ]
     assert plumb.current_state('valve1') == 'closed'
     assert plumb.current_state('valve2') == 'open'
@@ -549,32 +549,34 @@ def test_set_pressure():
     plumb.set_pressure(2, 7000)
 
     assert plumb.nodes() == [
-        (1, {'pressure': 200}),
-        (2, {'pressure': 7000}),
-        (3, {'pressure': 100}),
-        (4, {'pressure': 50})
+        (1, {'body': top.GenericNode(200)}),
+        (2, {'body': top.GenericNode(7000)}),
+        (3, {'body': top.GenericNode(100)}),
+        (4, {'body': top.GenericNode(50)})
     ]
 
     plumb.set_pressure(4, 10)
     plumb.set_pressure(1, 0)
 
     assert plumb.nodes() == [
-        (1, {'pressure': 0}),
-        (2, {'pressure': 7000}),
-        (3, {'pressure': 100}),
-        (4, {'pressure': 10})
+        (1, {'body': top.GenericNode(0)}),
+        (2, {'body': top.GenericNode(7000)}),
+        (3, {'body': top.GenericNode(100)}),
+        (4, {'body': top.GenericNode(10)})
     ]
 
 
 def test_set_pressure_errors():
     plumb = test.two_valve_setup(
         0.5, 0.2, 10, utils.CLOSED, 0.5, 0.2, 10, utils.CLOSED)
+
     pc = test.create_component(0, 0, 0, 1, 'valve3', 'C')
     mapping = {
         1: 3,
         2: 4
     }
     plumb.add_component(pc, mapping, 'closed', {4: (50, False)})
+
     pc_vent = test.create_component(0, 0, 0, 0, 'vent', 'D')
     mapping_vent = {
         1: 4,
@@ -593,11 +595,11 @@ def test_set_pressure_errors():
     assert str(err.value) == f"Pressure {not_a_number} must be a number."
 
     assert plumb.nodes() == [
-        (1, {'pressure': 0}),
-        (2, {'pressure': 0}),
-        (3, {'pressure': 100}),
-        (4, {'pressure': 50}),
-        (utils.ATM, {'pressure': 0})
+        (1, {'body': top.GenericNode(0)}),
+        (2, {'body': top.GenericNode(0)}),
+        (3, {'body': top.GenericNode(100)}),
+        (4, {'body': top.GenericNode(50)}),
+        (utils.ATM, {'body': top.AtmNode()})
     ]
 
     nonexistent_node = 5
@@ -607,11 +609,11 @@ def test_set_pressure_errors():
 
     plumb.set_pressure(4, 100)
     assert plumb.nodes() == [
-        (1, {'pressure': 0}),
-        (2, {'pressure': 0}),
-        (3, {'pressure': 100}),
-        (4, {'pressure': 100}),
-        (utils.ATM, {'pressure': 0})
+        (1, {'body': top.GenericNode(0)}),
+        (2, {'body': top.GenericNode(0)}),
+        (3, {'body': top.GenericNode(100)}),
+        (4, {'body': top.GenericNode(100)}),
+        (utils.ATM, {'body': top.AtmNode()})
     ]
 
     with pytest.raises(exceptions.BadInputError) as err:
