@@ -279,7 +279,7 @@ ColumnLayout {
                 Layout.preferredWidth: 50
                 text: "Jump"
 
-                onClicked: proceduresBridge.procJump(parseInt(stepInput.text))
+                onClicked: proceduresBridge.procJump(stepInput.text)
             }
         }
     }
