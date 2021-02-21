@@ -186,3 +186,108 @@ def test_time_stop():
     # Valve is open, so pressures should start dropping
     assert plumb_eng.current_pressures('A') < 100
     assert plumb_eng.current_pressures('B') > 0
+
+
+def test_jump_to_step_normal():
+    plumb_b = PlumbingBridge()
+    proc_b = ProceduresBridge(plumb_b)
+
+    procedure = top.Procedure('main', [
+        top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
+            (top.Immediate(), top.Transition('main', '2'))], 'PRIMARY'),
+        top.ProcedureStep('2', top.StateChangeAction('injector_valve', 'closed'), [
+            (top.Immediate(), top.Transition('main', '3'))], 'PRIMARY'),
+        top.ProcedureStep('3', top.StateChangeAction('injector_valve', 'closed'), [
+            (top.Immediate(), top.Transition('main', '4'))], 'PRIMARY'),
+        top.ProcedureStep('4', top.MiscAction('Approach the launch tower'), [], 'SECONDARY')
+    ])
+
+    proc_b.load_suite(top.ProcedureSuite([procedure]))
+
+    plumb_eng = make_plumbing_engine()
+    plumb_b.load_engine(plumb_eng)
+
+    proc_eng = proc_b._proc_eng
+
+    assert proc_eng.current_step == procedure.step_list[0]
+    assert proc_eng.step_position == top.StepPosition.Before
+    proc_b.procJump("2")
+    assert proc_eng.current_step == procedure.step_list[1]
+    assert proc_eng.step_position == top.StepPosition.After
+    proc_b.procJump("4")
+    assert proc_eng.current_step == procedure.step_list[3]
+    assert proc_eng.step_position == top.StepPosition.After
+
+
+def test_jump_to_step_current_and_past():
+    plumb_b = PlumbingBridge()
+    proc_b = ProceduresBridge(plumb_b)
+
+    procedure = top.Procedure('main', [
+        top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
+            (top.Immediate(), top.Transition('main', '2'))], 'PRIMARY'),
+        top.ProcedureStep('2', top.StateChangeAction('injector_valve', 'closed'), [
+            (top.Immediate(), top.Transition('main', '3'))], 'PRIMARY'),
+        top.ProcedureStep('3', top.StateChangeAction('injector_valve', 'closed'), [
+            (top.Immediate(), top.Transition('main', '4'))], 'PRIMARY'),
+        top.ProcedureStep('4', top.MiscAction('Approach the launch tower'), [], 'SECONDARY')
+    ])
+
+    proc_b.load_suite(top.ProcedureSuite([procedure]))
+
+    plumb_eng = make_plumbing_engine()
+    plumb_b.load_engine(plumb_eng)
+
+    proc_eng = proc_b._proc_eng
+
+    assert proc_eng.current_step == procedure.step_list[0]
+    assert proc_eng.step_position == top.StepPosition.Before
+    proc_b.procJump("1")  # jumping to a current step; does nothing
+    assert proc_eng.current_step == procedure.step_list[0]
+    assert proc_eng.step_position == top.StepPosition.Before
+    proc_b.procJump("3")
+    assert proc_eng.current_step == procedure.step_list[2]
+    assert proc_eng.step_position == top.StepPosition.After
+    proc_b.procJump("2")  # attemping to jump to a past step; does nothing
+    assert proc_eng.current_step == procedure.step_list[2]
+    assert proc_eng.step_position == top.StepPosition.After
+
+
+def test_jump_to_step_invalid():
+    plumb_b = PlumbingBridge()
+    proc_b = ProceduresBridge(plumb_b)
+
+    procedure = top.Procedure('main', [
+        top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
+            (top.Immediate(), top.Transition('main', '2'))], 'PRIMARY'),
+        top.ProcedureStep('2', top.StateChangeAction('injector_valve', 'closed'), [
+            (top.Immediate(), top.Transition('main', '3'))], 'PRIMARY'),
+        top.ProcedureStep('3', top.StateChangeAction('injector_valve', 'closed'), [
+            (top.Immediate(), top.Transition('main', '4'))], 'PRIMARY'),
+        top.ProcedureStep('4', top.MiscAction('Approach the launch tower'), [], 'SECONDARY')
+    ])
+
+    proc_b.load_suite(top.ProcedureSuite([procedure]))
+
+    plumb_eng = make_plumbing_engine()
+    plumb_b.load_engine(plumb_eng)
+
+    proc_eng = proc_b._proc_eng
+
+    assert proc_eng.current_step == procedure.step_list[0]
+    assert proc_eng.step_position == top.StepPosition.Before
+    proc_b.procJump("-1")
+    assert proc_eng.current_step == procedure.step_list[0]
+    assert proc_eng.step_position == top.StepPosition.Before
+    proc_b.procJump("test")
+    assert proc_eng.current_step == procedure.step_list[0]
+    assert proc_eng.step_position == top.StepPosition.Before
+    proc_b.procJump("0")
+    assert proc_eng.current_step == procedure.step_list[0]
+    assert proc_eng.step_position == top.StepPosition.Before
+    proc_b.procJump("3")
+    assert proc_eng.current_step == procedure.step_list[2]
+    assert proc_eng.step_position == top.StepPosition.After
+    proc_b.procJump("10")
+    assert proc_eng.current_step == procedure.step_list[2]
+    assert proc_eng.step_position == top.StepPosition.After
