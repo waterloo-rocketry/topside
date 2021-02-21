@@ -105,3 +105,10 @@ class ProceduresBridge(QObject):
     @Slot()
     def procAdvance(self):
         pass
+
+    @Slot(int)
+    def procJump(self, step_id):
+        while int(self._proc_eng.current_step.step_id) < step_id and len(self._proc_eng.current_step.conditions) > 0:
+            self._proc_eng.step_time()
+            if int(self._proc_eng.current_step.step_id) == 1 or self._proc_eng.ready_to_proceed():
+                self._proc_eng.next_step()
