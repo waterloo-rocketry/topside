@@ -1,38 +1,14 @@
-import os
-import sys
-
-from PySide2.QtCore import Qt, QUrl
+from PySide2.QtCore import Qt, QTimer, Slot
 from PySide2.QtGui import QIcon, QKeySequence
 from PySide2.QtQml import QQmlEngine, qmlRegisterType
 from PySide2.QtWidgets import QApplication, QMainWindow, QSplitter, QMenu, QAction
-from PySide2.QtQuickWidgets import QQuickWidget
 
 from .plumbing_vis.visualization_area import VisualizationArea
 from .procedures_bridge import ProceduresBridge
 from .plumbing_bridge import PlumbingBridge
 from .daq import DAQBridge, make_daq_widget
-
-
-# NOTE(jacob): `__file__` isn't defined for the frozen application,
-# so we need to use this function for finding resources in relative
-# paths. See below:
-# https://cx-freeze.readthedocs.io/en/latest/faq.html#using-data-files
-def find_resource(filename):
-    if getattr(sys, 'frozen', False):
-        datadir = os.path.dirname(sys.executable)
-    else:
-        datadir = os.path.dirname(__file__)
-    return os.path.join(datadir, 'resources', filename)
-
-
-def make_qml_widget(engine, qml_file):
-    widget = QQuickWidget(engine, None)
-    widget.setResizeMode(QQuickWidget.SizeRootObjectToView)
-
-    path = find_resource(qml_file)
-    widget.setSource(QUrl.fromLocalFile(path))
-
-    return widget
+from .pdl_editor import make_pdl_editor
+from .utils import find_resource, make_qml_widget
 
 
 class Application:
@@ -117,7 +93,21 @@ class Application:
 
         window.menuBar().addMenu(file_menu)
 
+        tools_menu = QMenu('&Tools')
+
+        pdl_editor_action = QAction('Launch PDL Editor', window)
+        pdl_editor_action.setShortcut(QKeySequence('Ctrl+Shift+E'))
+        pdl_editor_action.triggered.connect(self.launchPDLEditor)
+        tools_menu.addAction(pdl_editor_action)
+
+        window.menuBar().addMenu(tools_menu)
+
         return window
+
+    @Slot()
+    def launchPDLEditor(self):
+        w = make_pdl_editor(self.main_window)
+        w.show()
 
     def run(self):
         self.app.aboutToQuit.connect(self.shutdown)

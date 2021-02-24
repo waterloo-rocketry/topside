@@ -197,7 +197,7 @@ class Package:
 
             if component not in default_states:
                 raise exceptions.BadInputError(
-                    f"missing component {component}: either a nonexistent or a"
+                    f"missing component {component}: either a nonexistent or a "
                     "multi-state component")
 
             graph['states'][component] = default_states[component]
