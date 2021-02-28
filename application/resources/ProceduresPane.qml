@@ -255,4 +255,32 @@ ColumnLayout {
             }
         }
     }
+
+    Rectangle {
+        property string procFooterBg: "#007700"
+
+        Layout.alignment: Qt.AlignBottom
+        Layout.minimumHeight: 100
+        Layout.preferredHeight: 100
+        Layout.fillWidth: true
+        color: procFooterBg
+
+        RowLayout {
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.horizontalCenter: parent.horizontalCenter
+            TextField {
+                id: stepInput
+                width: 50
+                text: "0"
+            }
+            Button {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredHeight: 50
+                Layout.preferredWidth: 50
+                text: "Jump"
+
+                onClicked: proceduresBridge.procJump(stepInput.text)
+            }
+        }
+    }
 }

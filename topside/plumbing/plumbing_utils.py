@@ -5,6 +5,7 @@ TEQ_MIN = MIN_TIME_RES_MICROS * DEFAULT_RESOLUTION_SCALE
 FC_MAX = 4.5 / TEQ_MIN
 CLOSED = 'closed'
 ATM = 'atm'
+MAX_PLUMBING_TIME_S = 30
 
 
 def teq_to_FC(teq):

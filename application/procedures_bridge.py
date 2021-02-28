@@ -1,8 +1,11 @@
+import warnings
+
 from PySide2.QtCore import Slot, Signal, Property, QObject
 from PySide2.QtWidgets import QFileDialog
 
 import topside as top
 from .procedure_wrappers import ProcedureStepsModel
+import topside.plumbing.plumbing_utils as utils
 
 
 class ProceduresBridge(QObject):
@@ -105,3 +108,17 @@ class ProceduresBridge(QObject):
     @Slot()
     def procAdvance(self):
         pass
+
+    @Slot(str)
+    def procJump(self, step_id):
+        current_proc = self._proc_eng.current_procedure()
+        if step_id not in current_proc.step_id_to_idx:
+            warnings.warn("Invalid step id")
+            return
+        dest_index = current_proc.index_of(step_id)
+        while current_proc.index_of(self._proc_eng.current_step.step_id) < dest_index and len(self._proc_eng.current_step.conditions) > 0 and self._proc_eng._plumb.time < top.s_to_micros(utils.MAX_PLUMBING_TIME_S):
+            self._proc_eng.step_time()
+            if self._proc_eng.step_position == top.StepPosition.Before:
+                self._proc_eng.execute_current()
+            if self._proc_eng.ready_to_proceed():
+                self._proc_eng.next_step()
