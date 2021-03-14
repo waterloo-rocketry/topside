@@ -100,9 +100,11 @@ class VisualizationArea(QQuickPaintedItem):
 
         # Configures local variables for drawing
         self.engine_instance = None
+        self.components = {}
         self.scaling_factor = 0.8
         self.scaled = False
         self.color_property = QColor()
+        self.text_offset = np.array([5, 15])
 
         self.big_font = QFont('Times', 25, QFont.Bold)
         self.small_font = QFont('Arial', 7)
@@ -181,12 +183,79 @@ class VisualizationArea(QQuickPaintedItem):
 
                 painter.drawLine(p1[0], p1[1], p2[0], p2[1])
 
-            self.paint_labels(painter)
+            self.paint_node_labels(painter)
+
+            for cname in self.components.keys():
+                self.paint_component(painter, cname)
+                self.paint_component_labels(painter, cname, name=True, state=True)
 
             if self.DEBUG_MODE:
                 print('engine print complete')
 
-    def paint_labels(self, painter):
+    def paint_component(self, painter, component):
+        """
+        Paint components nodes onto the screen in an accent colour
+
+        Parameters
+        ----------
+        painter: QPainter
+            Painter instance which will draw all primitives
+
+        component: string
+            Name of the component in question
+        """
+        pen = QPen(QColor(0, 0, 255))
+        painter.setPen(pen)
+
+        cnodes = self.components[component]
+        for node in cnodes:
+            pt = self.layout_pos[node]
+
+            painter.drawEllipse(QPointF(pt[0], pt[1]), 10, 10)
+
+    def paint_component_labels(self, painter, component, name=True, state=False):
+        """
+        Paint component labels onto the screen by component
+
+        Parameters
+        ----------
+        painter: QPainter
+            Painter that paints all primitives
+
+        component: string
+            Name of component in question
+        
+        name: bool
+            Whether the name should be printed
+        
+        state: bool
+            Whether the state should be printed
+        """
+        centroid = self.get_centroid(component)
+        # index of how many offsets down the label should be printed
+        adjuster = 1
+
+        painter.setFont(self.component_font)
+        if name:
+            painter.drawText(centroid[0] + self.text_offset[0],
+                             centroid[1] + adjuster * self.text_offset[1], component)
+            adjuster += 2
+        if state:
+            state_name = self.engine_instance.current_state(component)
+            painter.drawText(centroid[0] + self.text_offset[0],
+                             centroid[1] + adjuster*self.text_offset[1], state_name)
+            adjuster += 2
+
+
+    def get_centroid(self, component):
+        """Return centroid coordinates (x, y) of the nodes in a component"""
+        cnodes = self.components[component]
+
+        node_centroid = np.mean([self.layout_pos[cn] for cn in cnodes], axis=0)
+        return node_centroid
+
+
+    def paint_node_labels(self, painter):
         """
         Draw labels for nodes and components on the canvas.
 
@@ -198,20 +267,13 @@ class VisualizationArea(QQuickPaintedItem):
         """
         # TODO(jacob): Smarter positioning of labels (ensure they
         # don't overlap with the graph or with each other).
-        text_offset = np.array([5, 15])
-
-        painter.setFont(self.component_font)
-        for cname, cnodes in top.component_nodes(self.engine_instance).items():
-            node_centroid = np.mean([self.layout_pos[cn] for cn in cnodes], axis=0)
-            painter.drawText(node_centroid[0] + text_offset[0],
-                             node_centroid[1] + text_offset[1], cname)
 
         painter.setFont(self.node_font)
         for orig_node in self.engine_instance.nodes(data=False):
             if orig_node != top.ATM:
                 node_pos = self.layout_pos[orig_node]
-                painter.drawText(node_pos[0] + text_offset[0],
-                                 node_pos[1] + text_offset[1], str(orig_node))
+                painter.drawText(node_pos[0] + self.text_offset[0],
+                                 node_pos[1] + self.text_offset[1], str(orig_node))
 
     def mouseMoveEvent(self, event):
         """
@@ -313,6 +375,7 @@ class VisualizationArea(QQuickPaintedItem):
 
         self.engine_instance = engine
         self.terminal_graph = top.terminal_graph(self.engine_instance)
+        self.components = top.component_nodes(self.engine_instance)
         self.layout_pos = top.layout_plumbing_engine(self.engine_instance)
         self.setRescaleNeeded()
         self.update()
