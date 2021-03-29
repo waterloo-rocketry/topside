@@ -224,10 +224,10 @@ class VisualizationArea(QQuickPaintedItem):
 
         component: string
             Name of component in question
-        
+
         name: bool
             Whether the name should be printed
-        
+
         state: bool
             Whether the state should be printed
         """
@@ -246,14 +246,12 @@ class VisualizationArea(QQuickPaintedItem):
                              centroid[1] + adjuster*self.text_offset[1], state_name)
             adjuster += 2
 
-
     def get_centroid(self, component):
         """Return centroid coordinates (x, y) of the nodes in a component"""
         cnodes = self.components[component]
 
         node_centroid = np.mean([self.layout_pos[cn] for cn in cnodes], axis=0)
         return node_centroid
-
 
     def paint_node_labels(self, painter):
         """
