@@ -228,6 +228,7 @@ def make_vis_area():
     # not the automatic layout that uploadEngineInstance would trigger.
     va.engine_instance = plumb
     va.terminal_graph = top.terminal_graph(plumb)
+    va.components = top.component_nodes(plumb)
     va.layout_pos = {'A': [0, 0], f'{COMPONENT_NAME}.A': [1, 1],
                      'B': [3, 2], f'{COMPONENT_NAME}.B': [2, 1]}
 
@@ -263,7 +264,6 @@ def test_vis_area_node_paint():
 
 def test_get_centroid():
     va = make_vis_area()
-    va.components = top.component_nodes(va.engine_instance)
 
     cnodes = va.components[COMPONENT_NAME]
     x = sum([va.layout_pos[node][0] for node in cnodes]) / len(cnodes)
@@ -274,7 +274,6 @@ def test_get_centroid():
 
 def test_vis_area_component_paint():
     va = make_vis_area()
-    va.components = top.component_nodes(va.engine_instance)
 
     painter = MockPainter()
     va.paint_component(painter, COMPONENT_NAME)
@@ -287,7 +286,6 @@ def test_vis_area_component_paint():
 
 def test_vis_area_component_label_paint():
     va = make_vis_area()
-    va.components = top.component_nodes(va.engine_instance)
 
     painter = MockPainter()
     va.paint_component_labels(painter, COMPONENT_NAME, name=False, state=False)
