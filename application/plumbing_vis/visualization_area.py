@@ -4,6 +4,8 @@ from PySide2.QtGui import QColor, QPen, QFont
 from PySide2.QtCore import Qt, Property, QPointF, Slot
 
 import topside as top
+from .graphics_node import GraphicsNode, NodeType
+from .graphics_component import GraphicsComponent
 
 
 def get_positioning_params(coords, canvas_width, canvas_height, fill_percentage=1.0):
@@ -100,6 +102,10 @@ class VisualizationArea(QQuickPaintedItem):
 
         # Configures local variables for drawing
         self.engine_instance = None
+        self.terminal_graph = None
+        self.layout_pos = None
+        self.graphics_nodes = None
+        self.graphics_components = None
         self.components = {}
         self.scaling_factor = 0.8
         self.scaled = False
@@ -165,13 +171,18 @@ class VisualizationArea(QQuickPaintedItem):
                 self.scale_and_center()
                 self.scaled = True
 
-            for node in t.nodes:
-                pt = pos[node]
+            self.graphics_nodes = {node: GraphicsNode((pos[node][0], pos[node][1]), 5, node, NodeType.COMPONENT_NODE) for node in t.nodes}
 
-                if self.DEBUG_MODE:
-                    print('node: ' + str(pt[0]) + str(pt[1]))
+            # Set pressure node types
+            for orig_node in self.engine_instance.nodes(data=False):
+                if orig_node in self.graphics_nodes:
+                    self.graphics_nodes[orig_node].set_type(NodeType.PRESSURE_NODE)
+                elif orig_node != top.ATM:
+                    pt = pos[orig_node]
+                    self.graphics_nodes[orig_node] = GraphicsNode((pt[0], pt[1]), 5, orig_node, NodeType.PRESSURE_NODE)
 
-                painter.drawEllipse(QPointF(pt[0], pt[1]), 5, 5)
+
+            self.paint_nodes(painter)
 
             for edge in t.edges:
                 p1 = pos[edge[0]]
@@ -182,8 +193,6 @@ class VisualizationArea(QQuickPaintedItem):
                     print('edge2: ' + str(p2[0]) + str(p2[1]))
 
                 painter.drawLine(p1[0], p1[1], p2[0], p2[1])
-
-            self.paint_node_labels(painter)
 
             for cname in self.components.keys():
                 self.paint_component(painter, cname)
@@ -253,25 +262,15 @@ class VisualizationArea(QQuickPaintedItem):
         node_centroid = np.mean([self.layout_pos[cn] for cn in cnodes], axis=0)
         return node_centroid
 
-    def paint_node_labels(self, painter):
-        """
-        Draw labels for nodes and components on the canvas.
 
-        Parameters
-        ----------
+    def paint_nodes(self, painter):
+        for node in self.graphics_nodes.values():
+            if self.DEBUG_MODE:
+                print('node: ' + node.cx + node.cy)
 
-        painter: QPainter
-            The painter instance used to draw the labels.
-        """
-        # TODO(jacob): Smarter positioning of labels (ensure they
-        # don't overlap with the graph or with each other).
-
-        painter.setFont(self.node_font)
-        for orig_node in self.engine_instance.nodes(data=False):
-            if orig_node != top.ATM:
-                node_pos = self.layout_pos[orig_node]
-                painter.drawText(node_pos[0] + self.text_offset[0],
-                                 node_pos[1] + self.text_offset[1], str(orig_node))
+            node.paint(painter)
+            if node.get_type() == NodeType.PRESSURE_NODE:
+                node.paint_labels(painter)
 
     def mouseMoveEvent(self, event):
         """
@@ -375,6 +374,8 @@ class VisualizationArea(QQuickPaintedItem):
         self.terminal_graph = top.terminal_graph(self.engine_instance)
         self.components = top.component_nodes(self.engine_instance)
         self.layout_pos = top.layout_plumbing_engine(self.engine_instance)
+        self.graphics_nodes = []
+        self.graphics_components = []
         self.setRescaleNeeded()
         self.update()
 
