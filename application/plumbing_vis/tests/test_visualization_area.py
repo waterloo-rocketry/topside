@@ -5,85 +5,12 @@ import pytest
 
 import topside as top
 from ..visualization_area import get_positioning_params, VisualizationArea
+from ..graphics_node import GraphicsNode, NodeType
+from ..graphics_component import GraphicsComponent
+from .testing_utils import MockLine, MockPainter
 
 
 COMPONENT_NAME = 'injector_valve'
-
-
-@dataclass
-class MockLine:
-    """
-    Helper class for testing line drawing.
-
-    We don't care if a line is drawn from A->B or B->A and we want the
-    two cases to be considered equal, so we define this class and
-    override the __eq__ and __hash__ methods.
-    """
-    p1: tuple
-    p2: tuple
-
-    def __eq__(self, other):
-        return isinstance(other, MockLine) and \
-            ((self.p1 == other.p1 and self.p2 == other.p2) or
-             (self.p1 == other.p2 and self.p2 == other.p1))
-
-    def __lt__(self, other):
-        """
-        Returns True if self < other, and False otherwise.
-
-        We define this so that we can sort lists with MockLines in them.
-        We want ordering to be the same if p1 and p2 are swapped, so we
-        sort the points before comparing.
-        """
-        return sorted([self.p1, self.p2]) < sorted([other.p1, other.p2])
-
-
-def test_mock_line():
-    """Sanity check test to make sure that MockLine works"""
-    l1 = MockLine((1, 2), (3, 4))
-    l2 = MockLine((3, 4), (1, 2))
-    l3 = MockLine((1, 2), (4, 5))
-    l4 = MockLine((1, 2), (0, 10))
-
-    assert l1 == l2
-    assert not l1 < l2
-    assert not l2 < l1
-
-    assert l1 != l3
-    assert l1 < l3
-
-    assert l1 != l4
-    assert l4 < l1
-
-
-class MockPainter:
-    """
-    Helper class for testing visualization area painting.
-
-    We pass an instance of this class into the `paint` method. Instead
-    of actually drawing something on the screen, this class just keeps
-    track of all of the primitives that it's been instructed to render.
-    """
-
-    def __init__(self):
-        self.ellipses = []
-        self.lines = []
-        self.texts = []
-
-    def setPen(self, pen):
-        pass
-
-    def setFont(self, font):
-        pass
-
-    def drawEllipse(self, center, rx, ry):
-        self.ellipses.append((center.x(), center.y(), rx, ry))
-
-    def drawLine(self, x1, y1, x2, y2):
-        self.lines.append(MockLine((x1, y1), (x2, y2)))
-
-    def drawText(self, x, y, text):
-        self.texts.append((x, y, text))
 
 
 def make_plumbing_engine():
@@ -253,50 +180,59 @@ def test_vis_area_node_paint():
     for expected in expected_lines:
         assert expected in painter.lines
 
-    x_offset = 5
-    y_offset = 15
-    expected_texts = [(3 + x_offset, 2 + y_offset, 'A'),
-                      (27 + x_offset, 18 + y_offset, 'B')]
+    offset = 5
+    expected_texts = [(3 + offset, 2 + offset, 'A'),
+                      (27 + offset, 18 + offset, 'B')]
 
     for expected in expected_texts:
         assert expected in painter.texts
 
 
-def test_get_centroid():
-    va = make_vis_area()
-
-    cnodes = va.components[COMPONENT_NAME]
-    x = sum([va.layout_pos[node][0] for node in cnodes]) / len(cnodes)
-    y = sum([va.layout_pos[node][1] for node in cnodes]) / len(cnodes)
-
-    assert list(va.get_centroid(COMPONENT_NAME)) == [x, y]
-
-
 def test_vis_area_component_paint():
     va = make_vis_area()
+    va.terminal_graph = top.terminal_graph(make_plumbing_engine())
+    va.layout_pos = {'A': [0, 0], f'{COMPONENT_NAME}.A': [1, 1],
+                     'B': [3, 2], f'{COMPONENT_NAME}.B': [2, 1]}
+    va.create_graphics()
 
     painter = MockPainter()
-    va.paint_component(painter, COMPONENT_NAME)
+    r = 5
 
-    r = 10
+    va.paint_component(painter, COMPONENT_NAME, name=False)
     expected_ellipses = [(1, 1, r, r), (2, 1, r, r)]
-
     assert expected_ellipses == painter.ellipses
+    painter.clear()
+
+    va.paint_component(painter, COMPONENT_NAME, state=True)
+    centroid = va.graphics_components[COMPONENT_NAME].centroid()
+    offset = va.graphics_components[COMPONENT_NAME].offset
+    state = 'closed'
+    expected_text = [
+        (centroid[0] + offset, centroid[1] + offset, COMPONENT_NAME),
+        (centroid[0] + offset, centroid[1] + 3*offset, state)
+    ]
+    assert expected_text == expected_text
 
 
-def test_vis_area_component_label_paint():
+def test_create_components():
     va = make_vis_area()
+    va.terminal_graph = top.terminal_graph(make_plumbing_engine())
+    va.layout_pos = {'A': [0, 0], f'{COMPONENT_NAME}.A': [1, 1],
+                     'B': [3, 2], f'{COMPONENT_NAME}.B': [2, 1]}
+    va.create_graphics()
 
-    painter = MockPainter()
-    va.paint_component_labels(painter, COMPONENT_NAME, name=False, state=False)
-    assert painter.texts == []
+    component_nodeA = GraphicsNode((1, 1), 5, 'injector_valve.A', NodeType.COMPONENT_NODE)
+    component_nodeB = GraphicsNode((2, 1), 5, 'injector_valve.B', NodeType.COMPONENT_NODE)
 
-    va.paint_component_labels(painter, COMPONENT_NAME, name=True, state=True)
+    expected_nodes = {
+        'A': GraphicsNode((0, 0), 5, 'A'),
+        'B': GraphicsNode((3, 2), 5, 'B'),
+        'injector_valve.A': component_nodeA,
+        'injector_valve.B': component_nodeB
+    }
+    expected_components = {
+        COMPONENT_NAME: GraphicsComponent(COMPONENT_NAME, [component_nodeA, component_nodeB])
+    }
 
-    centroid = va.get_centroid(COMPONENT_NAME)
-
-    state_name = 'closed'
-    expected_text = [(centroid[0] + va.text_offset[0], centroid[1] + va.text_offset[1], COMPONENT_NAME),
-                     (centroid[0] + va.text_offset[0], centroid[1] + 3*va.text_offset[1], state_name)]
-
-    assert expected_text == painter.texts
+    assert va.graphics_nodes == expected_nodes
+    assert va.graphics_components == expected_components

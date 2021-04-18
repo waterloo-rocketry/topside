@@ -1,12 +1,13 @@
 from enum import Enum
 
 from PySide2.QtCore import QRectF, QPointF
-import numpy as np
+
 
 class NodeType(Enum):
     PRESSURE_NODE = 1
     COMPONENT_NODE = 2
     ATM_NODE = 3
+
 
 class GraphicsNode(QRectF):
     """
@@ -14,7 +15,7 @@ class GraphicsNode(QRectF):
     Inherits PySide2.QtCore.QRectF.
     """
 
-    def __init__(self, center_point, radius, name, node_type):
+    def __init__(self, center_point, radius, name, node_type=NodeType.PRESSURE_NODE):
         """
         Create a GraphicsNode
 
@@ -28,6 +29,9 @@ class GraphicsNode(QRectF):
 
         name: str
             name of node
+
+        node_type: NodeType
+            enum that specifies the type of node, eg engine pressure node or component subnode
 
         offset: offset at which to print label
         """
@@ -48,20 +52,34 @@ class GraphicsNode(QRectF):
         super().__init__(top_left, bottom_right)
 
     def paint(self, painter):
+        """Paint an ellipse for the location of the node"""
         painter.drawEllipse(self.center(), self.radius, self.radius)
 
     def paint_labels(self, painter, offset=None):
+        """Paint the node name"""
         if offset is None:
             offset = 5
 
         painter.drawText(self.cx + offset, self.cy + offset, self.name)
 
-    def get_centroid(self):
-        return np.mean([node.center() for node in self.nodes], axis=0)
-
     def get_type(self):
         return self.node_type
-    
+
     def set_type(self, node_type):
         self.node_type = node_type
 
+    def __eq__(self, other):
+        return type(self) == type(other) and \
+            self.name == other.name and \
+            self.radius == other.radius and \
+            self.center() == other.center() and\
+            self.node_type == other.node_type
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __lt__(self, other):
+        return self.name < other.name
+
+    def __gt__(self, other):
+        return self.name > other.name

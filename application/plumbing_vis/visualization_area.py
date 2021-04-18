@@ -104,8 +104,8 @@ class VisualizationArea(QQuickPaintedItem):
         self.engine_instance = None
         self.terminal_graph = None
         self.layout_pos = None
-        self.graphics_nodes = None
-        self.graphics_components = None
+        self.graphics_nodes = {}
+        self.graphics_components = {}
         self.components = {}
         self.scaling_factor = 0.8
         self.scaled = False
@@ -171,99 +171,75 @@ class VisualizationArea(QQuickPaintedItem):
                 self.scale_and_center()
                 self.scaled = True
 
-            self.graphics_nodes = {node: GraphicsNode((pos[node][0], pos[node][1]), 5, node, NodeType.COMPONENT_NODE) for node in t.nodes}
+            # create GraphicsNodes for each node
+            self.create_graphics()
 
-            # Set pressure node types
-            for orig_node in self.engine_instance.nodes(data=False):
-                if orig_node in self.graphics_nodes:
-                    self.graphics_nodes[orig_node].set_type(NodeType.PRESSURE_NODE)
-                elif orig_node != top.ATM:
-                    pt = pos[orig_node]
-                    self.graphics_nodes[orig_node] = GraphicsNode((pt[0], pt[1]), 5, orig_node, NodeType.PRESSURE_NODE)
-
-
+            # paint nodes
             self.paint_nodes(painter)
 
-            for edge in t.edges:
-                p1 = pos[edge[0]]
-                p2 = pos[edge[1]]
+            # paint edges
+            self.paint_edges(painter)
 
-                if self.DEBUG_MODE:
-                    print('edge1: ' + str(p1[0]) + str(p1[1]))
-                    print('edge2: ' + str(p2[0]) + str(p2[1]))
-
-                painter.drawLine(p1[0], p1[1], p2[0], p2[1])
-
+            # paint components
             for cname in self.components.keys():
-                self.paint_component(painter, cname)
-                self.paint_component_labels(painter, cname, name=True, state=True)
+                self.paint_component(painter, cname, name=True, state=True)
 
             if self.DEBUG_MODE:
                 print('engine print complete')
 
-    def paint_component(self, painter, component):
-        """
-        Paint components nodes onto the screen in an accent colour
+    def create_graphics(self):
+        t = self.terminal_graph
+        pos = self.layout_pos
 
-        Parameters
-        ----------
-        painter: QPainter
-            Painter instance which will draw all primitives
+        # create GraphicsNodes for each node
+        self.graphics_nodes = {node: GraphicsNode(
+            (pos[node][0], pos[node][1]), 5, node, NodeType.COMPONENT_NODE) for node in t.nodes}
 
-        component: string
-            Name of the component in question
-        """
-        pen = QPen(QColor(0, 0, 255))
-        painter.setPen(pen)
+        # Set pressure node types
+        for orig_node in self.engine_instance.nodes(data=False):
+            if orig_node in self.graphics_nodes:
+                self.graphics_nodes[orig_node].set_type(NodeType.PRESSURE_NODE)
 
-        cnodes = self.components[component]
-        for node in cnodes:
-            pt = self.layout_pos[node]
+        # create GraphicsComponent for each component
+        self.graphics_components = {}
+        for component_name, node_names in self.components.items():
+            nodes = [self.graphics_nodes[node] for node in node_names]
+            self.graphics_components[component_name] = GraphicsComponent(component_name, nodes)
 
-            painter.drawEllipse(QPointF(pt[0], pt[1]), 10, 10)
+    def paint_edges(self, painter):
+        """Paint the edges of the engine"""
+        for edge in self.terminal_graph.edges:
+            p1 = self.layout_pos[edge[0]]
+            p2 = self.layout_pos[edge[1]]
 
-    def paint_component_labels(self, painter, component, name=True, state=False):
-        """
-        Paint component labels onto the screen by component
+            if self.DEBUG_MODE:
+                print('edge1: ' + str(p1[0]) + str(p1[1]))
+                print('edge2: ' + str(p2[0]) + str(p2[1]))
 
-        Parameters
-        ----------
-        painter: QPainter
-            Painter that paints all primitives
+            painter.drawLine(p1[0], p1[1], p2[0], p2[1])
 
-        component: string
-            Name of component in question
-
-        name: bool
-            Whether the name should be printed
-
-        state: bool
-            Whether the state should be printed
-        """
-        centroid = self.get_centroid(component)
-        # index of how many offsets down the label should be printed
-        adjuster = 1
+    def paint_component(self, painter, component, name=True, state=False):
+        """Paint a component on the graph"""
+        original_pen = painter.pen()
 
         painter.setFont(self.component_font)
-        if name:
-            painter.drawText(centroid[0] + self.text_offset[0],
-                             centroid[1] + adjuster * self.text_offset[1], component)
-            adjuster += 2
+
+        state_name = None
         if state:
             state_name = self.engine_instance.current_state(component)
-            painter.drawText(centroid[0] + self.text_offset[0],
-                             centroid[1] + adjuster*self.text_offset[1], state_name)
-            adjuster += 2
 
-    def get_centroid(self, component):
-        """Return centroid coordinates (x, y) of the nodes in a component"""
-        cnodes = self.components[component]
+        graphics_component = self.graphics_components[component]
 
-        node_centroid = np.mean([self.layout_pos[cn] for cn in cnodes], axis=0)
-        return node_centroid
+        pen = QPen(QColor(0, 0, 255))
+        painter.setPen(pen)
+        graphics_component.paint(painter)
 
+        painter.setPen(original_pen)
+        graphics_component.paint_labels(painter, name, state_name)
 
     def paint_nodes(self, painter):
+        """Paint the pressure nodes of the engine, not including the subnodes of a component"""
+        painter.setFont(self.node_font)
         for node in self.graphics_nodes.values():
             if self.DEBUG_MODE:
                 print('node: ' + node.cx + node.cy)
@@ -374,8 +350,7 @@ class VisualizationArea(QQuickPaintedItem):
         self.terminal_graph = top.terminal_graph(self.engine_instance)
         self.components = top.component_nodes(self.engine_instance)
         self.layout_pos = top.layout_plumbing_engine(self.engine_instance)
-        self.graphics_nodes = []
-        self.graphics_components = []
+        self.create_graphics()
         self.setRescaleNeeded()
         self.update()
 

@@ -1,5 +1,6 @@
 from PySide2.QtCore import QRectF, QPointF
 from PySide2.QtGui import QImage
+import numpy as np
 
 
 class GraphicsComponent():
@@ -7,12 +8,13 @@ class GraphicsComponent():
     A object that acts as the graphical representation of a component.
     """
 
-    def __init__(self, name):
+    def __init__(self, name, nodes, offset=15):
         self.name = name
-        self.nodes = []
+        self.nodes = nodes
         self.bounding_rect = None
-        self.calculate_bounding_rect()
+        self.offset = offset
 
+        self.calculate_bounding_rect()
 
     def calculate_bounding_rect(self):
         """
@@ -31,14 +33,47 @@ class GraphicsComponent():
         self.bounding_rect = QRectF(top_left_p, bottom_right_p)
 
     def paint(self, painter):
-        """
-        Handle painting operation delegated from a paint call.
-        Note: Currently not used.
-        Parameters
-        ----------
-        painter: QPainter
-            The given painter which will execute the graphical commands given to it.
-        """
+        """Paint the nodes of the component"""
 
         for node in self.nodes:
             node.paint(painter)
+
+    def paint_labels(self, painter, name=True, state=None):
+        """
+        Paint information associated with the component
+
+        Parameters
+        ----------
+        name: Bool
+            whether to pain the name of the component
+
+        state: str
+            Whether to paint the state. To paint the state, pass in the string value for what
+            should be painted. If state is a falsy value (eg None, False, "") the state won't be
+            printed.
+        """
+        centroid = self.centroid()
+        adjuster = 1
+
+        if name:
+            painter.drawText(centroid[0] + self.offset,
+                             centroid[1] + adjuster * self.offset, self.name)
+            adjuster += 2
+
+        if state:
+            painter.drawText(centroid[0] + self.offset,
+                             centroid[1] + adjuster * self.offset, state)
+            adjuster += 2
+
+    def centroid(self):
+        """Return centroid of all nodes of component"""
+        return list(np.mean([(node.cx, node.cy) for node in self.nodes], axis=0))
+
+    def __eq__(self, other):
+        return type(self) == type(other) and \
+            self.name == other.name and \
+            sorted(self.nodes) == sorted(other.nodes) and \
+            self.offset == other.offset
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
