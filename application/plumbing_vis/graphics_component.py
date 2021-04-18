@@ -1,5 +1,4 @@
 from PySide2.QtCore import QRectF, QPointF
-from PySide2.QtGui import QImage
 import numpy as np
 
 

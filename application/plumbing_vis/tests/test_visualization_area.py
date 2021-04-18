@@ -1,5 +1,4 @@
 import textwrap
-from dataclasses import dataclass
 
 import pytest
 

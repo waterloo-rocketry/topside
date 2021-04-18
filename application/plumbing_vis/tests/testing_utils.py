@@ -37,8 +37,8 @@ def test_mock_line():
     l4 = MockLine((1, 2), (0, 10))
 
     assert l1 == l2
-    assert not l1 < l2
-    assert not l2 < l1
+    assert l1 >= l2
+    assert l2 >= l1
 
     assert l1 != l3
     assert l1 < l3

@@ -1,4 +1,4 @@
-from .testing_utils import MockPainter, MockLine
+from .testing_utils import MockPainter
 from ..graphics_node import GraphicsNode, NodeType
 
 

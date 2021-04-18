@@ -1,7 +1,6 @@
-import numpy as np
 from PySide2.QtQuick import QQuickPaintedItem
 from PySide2.QtGui import QColor, QPen, QFont
-from PySide2.QtCore import Qt, Property, QPointF, Slot
+from PySide2.QtCore import Qt, Property, Slot
 
 import topside as top
 from .graphics_node import GraphicsNode, NodeType
@@ -110,7 +109,6 @@ class VisualizationArea(QQuickPaintedItem):
         self.scaling_factor = 0.8
         self.scaled = False
         self.color_property = QColor()
-        self.text_offset = np.array([5, 15])
 
         self.big_font = QFont('Times', 25, QFont.Bold)
         self.small_font = QFont('Arial', 7)
@@ -161,10 +159,6 @@ class VisualizationArea(QQuickPaintedItem):
             if self.DEBUG_MODE:
                 print('engine print active')
 
-            # Uses the drawing algorithm from plotting.py to draw the graph using the painter
-
-            t = self.terminal_graph
-            pos = self.layout_pos
 
             # Scaling is done on the first draw while nodes are being accessed for the first time
             if not self.scaled:

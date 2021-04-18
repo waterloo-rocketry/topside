@@ -3,7 +3,7 @@ from PySide2.QtCore import QRectF, QPointF
 from ..graphics_component import GraphicsComponent
 from ..graphics_node import GraphicsNode
 
-from .testing_utils import MockLine, MockPainter
+from .testing_utils import MockPainter
 
 
 def create_component():
