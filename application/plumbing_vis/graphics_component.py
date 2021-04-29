@@ -8,8 +8,24 @@ class GraphicsComponent():
     """
 
     def __init__(self, name, nodes, offset=15):
+        """
+        Creates the graphical representation of a plumbing component.
+
+        Paramters
+        ---------
+
+        name: string
+            the name of the component
+
+        nodes: iterable
+            an iterable of GraphicsNodes that make up the component
+
+        offset: int
+            text offset increment
+
+        """
         self.name = name
-        self.nodes = nodes
+        self.nodes = list(nodes)
         self.bounding_rect = None
         self.offset = offset
 
@@ -73,6 +89,3 @@ class GraphicsComponent():
             self.name == other.name and \
             sorted(self.nodes) == sorted(other.nodes) and \
             self.offset == other.offset
-
-    def __ne__(self, other):
-        return not self.__eq__(other)

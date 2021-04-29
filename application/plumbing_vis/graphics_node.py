@@ -55,11 +55,8 @@ class GraphicsNode(QRectF):
         """Paint an ellipse for the location of the node"""
         painter.drawEllipse(self.center(), self.radius, self.radius)
 
-    def paint_labels(self, painter, offset=None):
+    def paint_labels(self, painter, offset=5):
         """Paint the node name"""
-        if offset is None:
-            offset = 5
-
         painter.drawText(self.cx + offset, self.cy + offset, self.name)
 
     def get_type(self):

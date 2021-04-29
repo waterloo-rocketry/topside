@@ -159,7 +159,6 @@ class VisualizationArea(QQuickPaintedItem):
             if self.DEBUG_MODE:
                 print('engine print active')
 
-
             # Scaling is done on the first draw while nodes are being accessed for the first time
             if not self.scaled:
                 self.scale_and_center()
