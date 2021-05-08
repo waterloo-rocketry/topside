@@ -1,13 +1,13 @@
 import os
 import sys
 
-from PySide2.QtCore import Qt, QUrl, QTimer
+from PySide2.QtCore import Qt, QUrl
 from PySide2.QtGui import QIcon, QKeySequence
 from PySide2.QtQml import QQmlEngine, qmlRegisterType
 from PySide2.QtWidgets import QApplication, QMainWindow, QSplitter, QMenu, QAction
 from PySide2.QtQuickWidgets import QQuickWidget
 
-from .visualization_area import VisualizationArea
+from .plumbing_vis.visualization_area import VisualizationArea
 from .procedures_bridge import ProceduresBridge
 from .plumbing_bridge import PlumbingBridge
 from .daq import DAQBridge, make_daq_widget

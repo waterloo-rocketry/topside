@@ -1,9 +1,10 @@
-import numpy as np
 from PySide2.QtQuick import QQuickPaintedItem
 from PySide2.QtGui import QColor, QPen, QFont
-from PySide2.QtCore import Qt, Property, QPointF, Slot
+from PySide2.QtCore import Qt, Property, Slot
 
 import topside as top
+from .graphics_node import GraphicsNode, NodeType
+from .graphics_component import GraphicsComponent
 
 
 def get_positioning_params(coords, canvas_width, canvas_height, fill_percentage=1.0):
@@ -100,6 +101,11 @@ class VisualizationArea(QQuickPaintedItem):
 
         # Configures local variables for drawing
         self.engine_instance = None
+        self.terminal_graph = None
+        self.layout_pos = None
+        self.graphics_nodes = {}
+        self.graphics_components = {}
+        self.components = {}
         self.scaling_factor = 0.8
         self.scaled = False
         self.color_property = QColor()
@@ -153,65 +159,87 @@ class VisualizationArea(QQuickPaintedItem):
             if self.DEBUG_MODE:
                 print('engine print active')
 
-            # Uses the drawing algorithm from plotting.py to draw the graph using the painter
-
-            t = self.terminal_graph
-            pos = self.layout_pos
-
             # Scaling is done on the first draw while nodes are being accessed for the first time
             if not self.scaled:
                 self.scale_and_center()
                 self.scaled = True
 
-            for node in t.nodes:
-                pt = pos[node]
+            # create GraphicsNodes for each node
+            self.create_graphics()
 
-                if self.DEBUG_MODE:
-                    print('node: ' + str(pt[0]) + str(pt[1]))
+            # paint nodes
+            self.paint_nodes(painter)
 
-                painter.drawEllipse(QPointF(pt[0], pt[1]), 5, 5)
+            # paint edges
+            self.paint_edges(painter)
 
-            for edge in t.edges:
-                p1 = pos[edge[0]]
-                p2 = pos[edge[1]]
-
-                if self.DEBUG_MODE:
-                    print('edge1: ' + str(p1[0]) + str(p1[1]))
-                    print('edge2: ' + str(p2[0]) + str(p2[1]))
-
-                painter.drawLine(p1[0], p1[1], p2[0], p2[1])
-
-            self.paint_labels(painter)
+            # paint components
+            for cname in self.components.keys():
+                self.paint_component(painter, cname, name=True, state=True)
 
             if self.DEBUG_MODE:
                 print('engine print complete')
 
-    def paint_labels(self, painter):
-        """
-        Draw labels for nodes and components on the canvas.
+    def create_graphics(self):
+        t = self.terminal_graph
+        pos = self.layout_pos
 
-        Parameters
-        ----------
+        # create GraphicsNodes for each node
+        self.graphics_nodes = {node: GraphicsNode(
+            (pos[node][0], pos[node][1]), 5, node, NodeType.COMPONENT_NODE) for node in t.nodes}
 
-        painter: QPainter
-            The painter instance used to draw the labels.
-        """
-        # TODO(jacob): Smarter positioning of labels (ensure they
-        # don't overlap with the graph or with each other).
-        text_offset = np.array([5, 15])
+        # Set pressure node types
+        for orig_node in self.engine_instance.nodes(data=False):
+            if orig_node in self.graphics_nodes:
+                self.graphics_nodes[orig_node].set_type(NodeType.PRESSURE_NODE)
+
+        # create GraphicsComponent for each component
+        self.graphics_components = {}
+        for component_name, node_names in self.components.items():
+            nodes = [self.graphics_nodes[node] for node in node_names]
+            self.graphics_components[component_name] = GraphicsComponent(component_name, nodes)
+
+    def paint_edges(self, painter):
+        """Paint the edges of the engine"""
+        for edge in self.terminal_graph.edges:
+            p1 = self.layout_pos[edge[0]]
+            p2 = self.layout_pos[edge[1]]
+
+            if self.DEBUG_MODE:
+                print('edge1: ' + str(p1[0]) + str(p1[1]))
+                print('edge2: ' + str(p2[0]) + str(p2[1]))
+
+            painter.drawLine(p1[0], p1[1], p2[0], p2[1])
+
+    def paint_component(self, painter, component, name=True, state=False):
+        """Paint a component on the graph"""
+        original_pen = painter.pen()
 
         painter.setFont(self.component_font)
-        for cname, cnodes in top.component_nodes(self.engine_instance).items():
-            node_centroid = np.mean([self.layout_pos[cn] for cn in cnodes], axis=0)
-            painter.drawText(node_centroid[0] + text_offset[0],
-                             node_centroid[1] + text_offset[1], cname)
 
+        state_name = None
+        if state:
+            state_name = self.engine_instance.current_state(component)
+
+        graphics_component = self.graphics_components[component]
+
+        pen = QPen(QColor(0, 0, 255))
+        painter.setPen(pen)
+        graphics_component.paint(painter)
+
+        painter.setPen(original_pen)
+        graphics_component.paint_labels(painter, name, state_name)
+
+    def paint_nodes(self, painter):
+        """Paint the pressure nodes of the engine, not including the subnodes of a component"""
         painter.setFont(self.node_font)
-        for orig_node in self.engine_instance.nodes(data=False):
-            if orig_node != top.ATM:
-                node_pos = self.layout_pos[orig_node]
-                painter.drawText(node_pos[0] + text_offset[0],
-                                 node_pos[1] + text_offset[1], str(orig_node))
+        for node in self.graphics_nodes.values():
+            if self.DEBUG_MODE:
+                print('node: ' + node.cx + node.cy)
+
+            node.paint(painter)
+            if node.get_type() == NodeType.PRESSURE_NODE:
+                node.paint_labels(painter)
 
     def mouseMoveEvent(self, event):
         """
@@ -313,7 +341,9 @@ class VisualizationArea(QQuickPaintedItem):
 
         self.engine_instance = engine
         self.terminal_graph = top.terminal_graph(self.engine_instance)
+        self.components = top.component_nodes(self.engine_instance)
         self.layout_pos = top.layout_plumbing_engine(self.engine_instance)
+        self.create_graphics()
         self.setRescaleNeeded()
         self.update()
 
