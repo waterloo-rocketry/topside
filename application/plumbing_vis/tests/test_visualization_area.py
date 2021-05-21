@@ -127,8 +127,8 @@ def test_bad_fill_percentages():
 def test_vis_area_scale_and_center():
     va = VisualizationArea()
 
-    va.setWidth(30)
-    va.setHeight(20)
+    va.width = 30
+    va.height = 20
 
     va.terminal_graph = top.terminal_graph(make_plumbing_engine())
     va.layout_pos = {'A': [0, 0], f'{COMPONENT_NAME}.A': [1, 1],
@@ -145,8 +145,8 @@ def test_vis_area_scale_and_center():
 def make_vis_area():
     va = VisualizationArea()
 
-    va.setWidth(30)
-    va.setHeight(20)
+    va.width = 30
+    va.height = 20
 
     plumb = make_plumbing_engine()
 

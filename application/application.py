@@ -3,7 +3,7 @@ from PySide2.QtGui import QIcon, QKeySequence
 from PySide2.QtQml import QQmlEngine, qmlRegisterType
 from PySide2.QtWidgets import QApplication, QMainWindow, QSplitter, QMenu, QAction
 
-from .plumbing_vis.visualization_area import VisualizationArea
+from .plumbing_vis.visualization_area import QMLVisualizationArea
 from .procedures_bridge import ProceduresBridge
 from .plumbing_bridge import PlumbingBridge
 from .daq import DAQBridge, make_daq_widget
@@ -20,7 +20,7 @@ class Application:
         self.app = QApplication(argv)
 
         # ALL custom built QQuickItems have to be registered as QML objects in this way:
-        qmlRegisterType(VisualizationArea, 'VisualizationArea', 1, 0, 'VisualizationArea')
+        qmlRegisterType(QMLVisualizationArea, 'VisualizationArea', 1, 0, 'VisualizationArea')
 
         self.app.setWindowIcon(QIcon(find_resource('icon.ico')))
         self.app.setOrganizationName('Waterloo Rocketry')

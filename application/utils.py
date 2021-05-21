@@ -22,6 +22,8 @@ def make_qml_widget(engine, qml_file):
     widget.setResizeMode(QQuickWidget.SizeRootObjectToView)
 
     path = find_resource(qml_file)
-    widget.setSource(QUrl.fromLocalFile(path))
+    print(path)
+    url = QUrl.fromLocalFile(path)
+    widget.setSource(url)
 
     return widget

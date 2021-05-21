@@ -5,7 +5,6 @@ from PySide2.QtGui import QFont
 
 import topside as top
 from .editor_visualization_area import VisualizationArea
-from .utils import find_resource
 
 
 class PDLEditor(QWidget):

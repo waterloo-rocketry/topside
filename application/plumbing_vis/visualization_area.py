@@ -82,7 +82,7 @@ def get_positioning_params(coords, canvas_width, canvas_height, fill_percentage=
     return scale, x_offset, y_offset
 
 
-class VisualizationArea(QQuickPaintedItem):
+class VisualizationArea:
     """
     A QML-accessible item that will draw the state of the engine.
 
@@ -93,12 +93,6 @@ class VisualizationArea(QQuickPaintedItem):
     DEBUG_MODE = False  # Flipping this to True turns on print statements in parts of the code
 
     def __init__(self, parent=None):
-        QQuickPaintedItem.__init__(self, parent)
-
-        # Configures item for tracking the mouse and handling mouse events
-        self.setAcceptedMouseButtons(Qt.LeftButton)
-        self.setAcceptHoverEvents(True)
-
         # Configures local variables for drawing
         self.engine_instance = None
         self.terminal_graph = None
@@ -116,9 +110,6 @@ class VisualizationArea(QQuickPaintedItem):
         self.node_font = QFont('Arial', 8)
         self.component_font = QFont('Arial', 8, QFont.Bold)
 
-        self.heightChanged.connect(self.setRescaleNeeded)
-        self.widthChanged.connect(self.setRescaleNeeded)
-
         if self.DEBUG_MODE:
             print('VisualizationArea created!')
 
@@ -126,8 +117,8 @@ class VisualizationArea(QQuickPaintedItem):
         """
         Scale coordinates to fill and center in the visualization pane.
         """
-        scale, x_offset, y_offset = get_positioning_params(self.layout_pos.values(), self.width(),
-                                                           self.height(), self.scaling_factor)
+        scale, x_offset, y_offset = get_positioning_params(self.layout_pos.values(), self.width,
+                                                           self.height, self.scaling_factor)
 
         for node in self.terminal_graph.nodes:
             self.layout_pos[node][0] *= scale
@@ -353,3 +344,15 @@ class VisualizationArea(QQuickPaintedItem):
 
     # Registers color as a QML-accessible property, along with directions for its getter and setter
     color = Property(QColor, get_color, set_color)
+
+
+class QMLVisualizationArea(VisualizationArea, QQuickPaintedItem):
+    def __init__(self, parent):
+        super().__init__(parent=parent)
+
+        # Configures item for tracking the mouse and handling mouse events
+        self.setAcceptedMouseButtons(Qt.LeftButton)
+        self.setAcceptHoverEvents(True)
+
+        self.heightChanged.connect(self.setRescaleNeeded)
+        self.widthChanged.connect(self.setRescaleNeeded)
