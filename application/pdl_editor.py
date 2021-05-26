@@ -4,7 +4,7 @@ from PySide2.QtWidgets import QWidget, QMainWindow, QSplitter, QVBoxLayout, QGri
 from PySide2.QtGui import QFont
 
 import topside as top
-from .editor_visualization_area import VisualizationArea
+from .plumbing_vis.visualization_area import WidgetVisualizationArea
 
 
 class PDLEditor(QWidget):
@@ -15,7 +15,7 @@ class PDLEditor(QWidget):
         split = QSplitter(Qt.Horizontal)
         split.setChildrenCollapsible(False)
 
-        self.vis_area = VisualizationArea()
+        self.vis_area = WidgetVisualizationArea()
         split.addWidget(self.vis_area)
 
         edit_pane = QWidget()
@@ -68,7 +68,7 @@ class PDLEditor(QWidget):
         scrollbar = self.messages.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
 
-        self.vis_area.uploadEngineInstance(plumb)
+        self.vis_area.visualizer.uploadEngineInstance(plumb)
 
 
 def make_pdl_editor(parent):
