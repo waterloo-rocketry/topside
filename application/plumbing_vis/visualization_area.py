@@ -85,10 +85,12 @@ def get_positioning_params(coords, canvas_width, canvas_height, fill_percentage=
 
 class PlumbingVisualizer(QObject):
     """
-    A QML-accessible item that will draw the state of the engine.
+    A Qt-accessible object responsible for drawing the state of the engine.
 
-    It is a subclass of QQuickPaintedItem, which means it imperatively handles all of
-    its own events and graphics.
+    As a QObject, instances of this class can be embedded in other Qt
+    objects as properties and accessed by the rest of the Qt engine.
+    This class is meant to be used as a component by UI elements such
+    as widgets and QML items, which provide surfaces for painting.
     """
 
     DEBUG_MODE = False  # Flipping this to True turns on print statements in parts of the code
@@ -233,59 +235,6 @@ class PlumbingVisualizer(QObject):
             if node.get_type() == NodeType.PRESSURE_NODE:
                 node.paint_labels(painter)
 
-    def mouseMoveEvent(self, event):
-        """
-        Handle the mouse event for a mouse dragging action.
-
-        Is called automatically by the object whenever a mouse move (or drag) is registered on the
-        draw surface. Overloads the mouseMoveEvent method from `QQuickItem`.
-
-        Parameters
-        ----------
-
-        event: QMouseEvent
-            The event which contains all of the data about where the move occurred.
-        """
-
-        if self.DEBUG_MODE:
-            print(f'Drag Track: {event.x()}, {event.y()}')
-        event.accept()
-
-    def mousePressEvent(self, event):
-        """
-        Handle the mouse event for a mouse press action.
-
-        Is called automatically by the object whenever a mouse move (or drag) is registered on the
-        draw surface. Overloads the mouseMoveEvent method from `QQuickItem`.
-
-        Parameters
-        ----------
-
-        event: QMouseEvent
-            The event which contains all of the data about where the press occurred.
-        """
-        if self.DEBUG_MODE:
-            print(f'Press: {event.x()}, {event.y()}')
-        event.accept()
-
-    def hoverMoveEvent(self, event):
-        """
-        Handle the mouse event for a mouse hover move action.
-
-        Is called automatically by the object whenever the mouse is moved without anything being
-        pressed down (i.e. the mouse is being hovered). Overloads the hoverMoveEvent method from
-        `QQuickItem`.
-
-        Parameters
-        ----------
-
-        event: QHoverEvent
-            The event which contains all of the data about where the hover move occurred.
-        """
-        if self.DEBUG_MODE:
-            print(f'Hover track: {event.pos().x()}, {event.pos().y()}')
-        event.accept()
-
     @Slot(top.PlumbingEngine)
     def uploadEngineInstance(self, engine):
         """
@@ -316,6 +265,13 @@ class PlumbingVisualizer(QObject):
 
 
 class QMLVisualizationArea(QQuickPaintedItem):
+    """
+    A QML-accessible object responsible for displaying the engine state.
+
+    This class can be embedded in QML scenes. It internally uses a
+    PlumbingVisualizer to paint the plumbing engine.
+    """
+
     def __init__(self, parent=None):
         QQuickPaintedItem.__init__(self, parent)
 
@@ -330,12 +286,69 @@ class QMLVisualizationArea(QQuickPaintedItem):
 
         self.paint = self._visualizer.paint
 
+    def mouseMoveEvent(self, event):
+        """
+        Handle the mouse event for a mouse dragging action.
+
+        Is called automatically by the object whenever a mouse move (or drag) is registered on the
+        draw surface. Overloads the mouseMoveEvent method from `QQuickItem`.
+
+        Parameters
+        ----------
+
+        event: QMouseEvent
+            The event which contains all of the data about where the move occurred.
+        """
+
+        if PlumbingVisualizer.DEBUG_MODE:
+            print(f'Drag Track: {event.x()}, {event.y()}')
+        event.accept()
+
+    def mousePressEvent(self, event):
+        """
+        Handle the mouse event for a mouse press action.
+
+        Is called automatically by the object whenever a mouse move (or drag) is registered on the
+        draw surface. Overloads the mouseMoveEvent method from `QQuickItem`.
+
+        Parameters
+        ----------
+
+        event: QMouseEvent
+            The event which contains all of the data about where the press occurred.
+        """
+        if PlumbingVisualizer.DEBUG_MODE:
+            print(f'Press: {event.x()}, {event.y()}')
+        event.accept()
+
+    def hoverMoveEvent(self, event):
+        """
+        Handle the mouse event for a mouse hover move action.
+
+        Is called automatically by the object whenever the mouse is moved without anything being
+        pressed down (i.e. the mouse is being hovered). Overloads the hoverMoveEvent method from
+        `QQuickItem`.
+
+        Parameters
+        ----------
+
+        event: QHoverEvent
+            The event which contains all of the data about where the hover move occurred.
+        """
+        if PlumbingVisualizer.DEBUG_MODE:
+            print(f'Hover track: {event.pos().x()}, {event.pos().y()}')
+        event.accept()
+
     @Property(PlumbingVisualizer, constant=True)
     def visualizer(self):
         return self._visualizer
 
 
 class WidgetVisualizationArea(QWidget):
+    """
+    A QWidget responsible for displaying the plumbing engine state.
+    """
+
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
 
