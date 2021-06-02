@@ -1,4 +1,6 @@
 from enum import Enum
+import copy
+import queue
 
 import topside as top
 
@@ -35,6 +37,7 @@ class ProceduresEngine:
         self.current_procedure_id = None
         self.current_step = None
         self.step_position = None
+        self.state_stack = None #queue.LifoQueue() ##I know, I also can't believe that they're called lifoQueue's and not stacks
 
         if suite is not None:
             self.load_suite(suite)
@@ -103,6 +106,7 @@ class ProceduresEngine:
         if self.current_step is None or self.step_position == StepPosition.After:
             return
 
+        self.push_stack()
         self.execute(self.current_step.action)
         self.step_position = StepPosition.After
         self.reinitialize_conditions()
@@ -136,6 +140,7 @@ class ProceduresEngine:
 
         for condition, transition in self.current_step.conditions:
             if condition.satisfied():
+                self.push_stack()
                 new_proc = transition.procedure
                 self.current_procedure_id = new_proc
                 self.current_step = self._suite[new_proc].steps[transition.step]
@@ -177,3 +182,23 @@ class ProceduresEngine:
             return None
 
         return self._suite[self.current_procedure_id]
+
+    def push_stack(self):
+        curent_plumb = copy.deepcopy(self._plumb)
+        prod_id = self.current_procedure_id
+        step = copy.deepcopy(self.current_step)
+        step_pos = self.step_position
+
+        #self.state_stack.put((curent_plumb, prod_id, step, step_pos))
+        self.state_stack = ((curent_plumb, prod_id, step, step_pos), self.state_stack)
+
+    def pop_and_set_stack(self):
+        if(not self.state_stack == None): ##not self.state_stack.empty()
+            stack_element = self.state_stack[0]
+            
+            self._plumb = stack_element[0]
+            self.current_procedure_id = stack_element[1]
+            self.current_step = stack_element[2]
+            self.step_position = stack_element[3]
+
+            self.state_stack = self.state_stack[1]

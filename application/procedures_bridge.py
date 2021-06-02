@@ -85,7 +85,8 @@ class ProceduresBridge(QObject):
 
     @Slot()
     def procUndo(self):
-        pass
+        self._proc_eng.pop_and_set_stack()
+        self.refresh()
 
     @Slot()
     def procPlay(self):
