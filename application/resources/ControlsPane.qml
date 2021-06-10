@@ -47,7 +47,7 @@ ColumnLayout {
                     palette {
                         button: controlsBridge.isOpen[index] ? buttonGreen : buttonRed
                     }
-                    onClicked: controlsBridge.toggle_state(index)
+                    onClicked: controlsBridge.isOpen[index] ? controlsBridge.toggle_off(index) : controlsBridge.toggle_on(index)
                 }
 
                 Text {
