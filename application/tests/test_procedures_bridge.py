@@ -40,39 +40,3 @@ def test_proc_bridge_load_suite():
 
     assert proc_b._proc_eng._suite == suite
     assert proc_b.steps.procedure == procedure
-
-
-# TODO: Since I added controls bridge into procedures bridge and this test now requires getting an actual plumbing engine,
-# maybe this test is better suited to be in a separate file for procedures/plumbing/controls integration.
-
-# def test_proc_bridge_procedure_controls_advance_procedure():
-#     plumb_b = MockPlumbingBridge()
-#     control_b = ControlsBridge(plumb_b)
-#     proc_b = ProceduresBridge(plumb_b, control_b)
-
-#     procedure = top.Procedure('main', [
-#         top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
-#             (top.Immediate(), top.Transition('main', '2'))], 'PRIMARY'),
-#         top.ProcedureStep('2', top.StateChangeAction('vent_valve', 'closed'), [
-#             (top.WaitFor(100), top.Transition('main', '3'))], 'PRIMARY'),
-#         top.ProcedureStep('3', top.MiscAction('Approach the launch tower'), [], 'SECONDARY')
-#     ])
-
-#     proc_b.load_suite(top.ProcedureSuite([procedure]))
-
-#     proc_eng = proc_b._proc_eng
-
-#     assert proc_eng.current_step == procedure.step_list[0]
-#     assert proc_eng.step_position == top.StepPosition.Before
-#     proc_b.procStepForward()
-#     assert proc_eng.current_step == procedure.step_list[0]
-#     assert proc_eng.step_position == top.StepPosition.After
-#     proc_b.procStepForward()
-#     assert proc_eng.current_step == procedure.step_list[1]
-#     assert proc_eng.step_position == top.StepPosition.After
-#     proc_b.procStepForward()  # does nothing; condition is not satisfied
-#     assert proc_eng.current_step == procedure.step_list[1]
-#     assert proc_eng.step_position == top.StepPosition.After
-#     proc_b.procStop()
-#     assert proc_eng.current_step == procedure.step_list[0]
-#     assert proc_eng.step_position == top.StepPosition.Before
