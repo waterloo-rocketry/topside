@@ -95,7 +95,7 @@ class Application:
 
         tools_menu = QMenu('&Tools')
 
-        pdl_editor_action = QAction('Launch PDL Editor', window)
+        pdl_editor_action = QAction('PDL Editor', window)
         pdl_editor_action.setShortcut(QKeySequence('Ctrl+Shift+E'))
         pdl_editor_action.triggered.connect(self.launchPDLEditor)
         tools_menu.addAction(pdl_editor_action)
