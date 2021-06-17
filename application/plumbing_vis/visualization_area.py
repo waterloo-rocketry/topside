@@ -1,6 +1,7 @@
 from PySide2.QtQuick import QQuickPaintedItem
-from PySide2.QtGui import QColor, QPen, QFont
-from PySide2.QtCore import Qt, Property, Slot
+from PySide2.QtGui import QColor, QPen, QFont, QPalette, QPainter
+from PySide2.QtCore import Qt, Property, Slot, QObject
+from PySide2.QtWidgets import QWidget
 
 import topside as top
 from .graphics_node import GraphicsNode, NodeType
@@ -82,22 +83,20 @@ def get_positioning_params(coords, canvas_width, canvas_height, fill_percentage=
     return scale, x_offset, y_offset
 
 
-class VisualizationArea(QQuickPaintedItem):
+class PlumbingVisualizer(QObject):
     """
-    A QML-accessible item that will draw the state of the engine.
+    A Qt-accessible object responsible for drawing the state of the engine.
 
-    It is a subclass of QQuickPaintedItem, which means it imperatively handles all of
-    its own events and graphics.
+    As a QObject, instances of this class can be embedded in other Qt
+    objects as properties and accessed by the rest of the Qt engine.
+    This class is meant to be used as a component by UI elements such
+    as widgets and QML items, which provide surfaces for painting.
     """
 
     DEBUG_MODE = False  # Flipping this to True turns on print statements in parts of the code
 
     def __init__(self, parent=None):
-        QQuickPaintedItem.__init__(self, parent)
-
-        # Configures item for tracking the mouse and handling mouse events
-        self.setAcceptedMouseButtons(Qt.LeftButton)
-        self.setAcceptHoverEvents(True)
+        QObject.__init__(self, parent=parent)
 
         # Configures local variables for drawing
         self.engine_instance = None
@@ -116,18 +115,15 @@ class VisualizationArea(QQuickPaintedItem):
         self.node_font = QFont('Arial', 8)
         self.component_font = QFont('Arial', 8, QFont.Bold)
 
-        self.heightChanged.connect(self.setRescaleNeeded)
-        self.widthChanged.connect(self.setRescaleNeeded)
-
         if self.DEBUG_MODE:
-            print('VisualizationArea created!')
+            print('PlumbingVisualizer created!')
 
     def scale_and_center(self):
         """
         Scale coordinates to fill and center in the visualization pane.
         """
-        scale, x_offset, y_offset = get_positioning_params(self.layout_pos.values(), self.width(),
-                                                           self.height(), self.scaling_factor)
+        scale, x_offset, y_offset = get_positioning_params(self.layout_pos.values(), self.parent().width(),
+                                                           self.parent().height(), self.scaling_factor)
 
         for node in self.terminal_graph.nodes:
             self.layout_pos[node][0] *= scale
@@ -139,8 +135,6 @@ class VisualizationArea(QQuickPaintedItem):
         """
         Detail the instruction for how the item is to be rendered in the application.
 
-        Overloads the paint method from `QQuickItem`.
-
         Parameters
         ----------
 
@@ -148,7 +142,7 @@ class VisualizationArea(QQuickPaintedItem):
             The painter instance which will draw all of the primitives.
         """
         # Sets painter to use local color
-        pen = QPen(self.color_property)
+        pen = QPen(QColor(0, 0, 0))
         painter.setPen(pen)
 
         if self.DEBUG_MODE:
@@ -206,8 +200,8 @@ class VisualizationArea(QQuickPaintedItem):
             p2 = self.layout_pos[edge[1]]
 
             if self.DEBUG_MODE:
-                print('edge1: ' + str(p1[0]) + str(p1[1]))
-                print('edge2: ' + str(p2[0]) + str(p2[1]))
+                print(f'edge1: {p1[0]}, {p1[1]}')
+                print(f'edge2: {p2[0]}, {p2[1]}')
 
             painter.drawLine(p1[0], p1[1], p2[0], p2[1])
 
@@ -235,11 +229,62 @@ class VisualizationArea(QQuickPaintedItem):
         painter.setFont(self.node_font)
         for node in self.graphics_nodes.values():
             if self.DEBUG_MODE:
-                print('node: ' + node.cx + node.cy)
+                print(f'node: {node.cx}, {node.cy}')
 
             node.paint(painter)
             if node.get_type() == NodeType.PRESSURE_NODE:
                 node.paint_labels(painter)
+
+    @Slot(top.PlumbingEngine)
+    def uploadEngineInstance(self, engine):
+        """
+        Set the local engine to the input variable and initialize associated local objects.
+
+        Setter and initializer for uploading an engine to be displayed. After an engine is set,
+        the according layout and terminal graph is generated from the engine data.
+
+        Parameters
+        ----------
+
+        engine: topside.plumbing_engine
+            An instance of the topside engine to be displayed.
+        """
+        if self.DEBUG_MODE:
+            print('New plumbing engine instance received')
+        self.engine_instance = engine
+        self.terminal_graph = top.terminal_graph(self.engine_instance)
+        self.components = top.component_nodes(self.engine_instance)
+        self.layout_pos = top.layout_plumbing_engine(self.engine_instance)
+        self.create_graphics()
+        self.setRescaleNeeded()
+        self.parent().update()
+
+    @Slot()
+    def setRescaleNeeded(self):
+        self.scaled = False
+
+
+class QMLVisualizationArea(QQuickPaintedItem):
+    """
+    A QML-accessible object responsible for displaying the engine state.
+
+    This class can be embedded in QML scenes. It internally uses a
+    PlumbingVisualizer to paint the plumbing engine.
+    """
+
+    def __init__(self, parent=None):
+        QQuickPaintedItem.__init__(self, parent)
+
+        self._visualizer = PlumbingVisualizer(parent=self)
+
+        # Configures item for tracking the mouse and handling mouse events
+        self.setAcceptedMouseButtons(Qt.LeftButton)
+        self.setAcceptHoverEvents(True)
+
+        self.heightChanged.connect(self._visualizer.setRescaleNeeded)
+        self.widthChanged.connect(self._visualizer.setRescaleNeeded)
+
+        self.paint = self._visualizer.paint
 
     def mouseMoveEvent(self, event):
         """
@@ -255,8 +300,8 @@ class VisualizationArea(QQuickPaintedItem):
             The event which contains all of the data about where the move occurred.
         """
 
-        if self.DEBUG_MODE:
-            print('Drag Track:' + str(event.x()) + ' ' + str(event.y()))
+        if PlumbingVisualizer.DEBUG_MODE:
+            print(f'Drag Track: {event.x()}, {event.y()}')
         event.accept()
 
     def mousePressEvent(self, event):
@@ -272,8 +317,8 @@ class VisualizationArea(QQuickPaintedItem):
         event: QMouseEvent
             The event which contains all of the data about where the press occurred.
         """
-        if self.DEBUG_MODE:
-            print('Press: ' + str(event.x()) + ' ' + str(event.y()))
+        if PlumbingVisualizer.DEBUG_MODE:
+            print(f'Press: {event.x()}, {event.y()}')
         event.accept()
 
     def hoverMoveEvent(self, event):
@@ -290,66 +335,40 @@ class VisualizationArea(QQuickPaintedItem):
         event: QHoverEvent
             The event which contains all of the data about where the hover move occurred.
         """
-        if self.DEBUG_MODE:
-            print('Hover track: ' + str(event.pos().x()) + ' ' + str(event.pos().y()))
+        if PlumbingVisualizer.DEBUG_MODE:
+            print(f'Hover track: {event.pos().x()}, {event.pos().y()}')
         event.accept()
 
-    def get_color(self):
-        """
-        Return the local color.
+    @Property(PlumbingVisualizer, constant=True)
+    def visualizer(self):
+        return self._visualizer
 
-        Getter for the QML-accessible color property 'color', which is registered by
-        a 'Property' call at the end of the file.
 
-        Returns
-        -------
+class WidgetVisualizationArea(QWidget):
+    """
+    A QWidget responsible for displaying the plumbing engine state.
+    """
 
-        QColor:
-            The local graphics QColor.
-        """
-        return self.color_property
+    def __init__(self, parent=None):
+        QWidget.__init__(self, parent)
 
-    def set_color(self, input_color):
-        """
-        Set the local color to the given color.
+        self._visualizer = PlumbingVisualizer(parent=self)
 
-        Setter for the QML-accessible color property 'color', which is registered by
-        a 'Property' call at the end of the file.
+        pal = QPalette()
+        pal.setColor(QPalette.Background, 'white')
 
-        Parameters
-        ----------
+        self.setAutoFillBackground(True)
+        self.setPalette(pal)
 
-        input: QColor
-            The local graphics QColor.
-        """
-        self.color_property = input_color
+        self.paint = self._visualizer.paint
 
-    @Slot(top.PlumbingEngine)
-    def uploadEngineInstance(self, engine):
-        """
-        Set the local engine to the input variable and initialize associated local objects.
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        self.paint(painter)
 
-        Setter and initializer for uploading an engine to be displayed. After an engine is set,
-        the according layout and terminal graph is generated from the engine data.
+    def resizeEvent(self, event):
+        self._visualizer.setRescaleNeeded()
 
-        Parameters
-        ----------
-
-        engine: topside.plumbing_engine
-            An instance of the topside engine to be displayed.
-        """
-
-        self.engine_instance = engine
-        self.terminal_graph = top.terminal_graph(self.engine_instance)
-        self.components = top.component_nodes(self.engine_instance)
-        self.layout_pos = top.layout_plumbing_engine(self.engine_instance)
-        self.create_graphics()
-        self.setRescaleNeeded()
-        self.update()
-
-    @Slot()
-    def setRescaleNeeded(self):
-        self.scaled = False
-
-    # Registers color as a QML-accessible property, along with directions for its getter and setter
-    color = Property(QColor, get_color, set_color)
+    @Property(PlumbingVisualizer, constant=True)
+    def visualizer(self):
+        return self._visualizer

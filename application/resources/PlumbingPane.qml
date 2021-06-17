@@ -12,7 +12,7 @@ ColumnLayout {
     property string plumbHeaderTxt: "#ffffff"
 
     Component.onCompleted: {
-        plumbingBridge.engineLoaded.connect(plumbingVisualizationArea.uploadEngineInstance)
+        plumbingBridge.engineLoaded.connect(plumbingVisualizationArea.visualizer.uploadEngineInstance)
     }
 
     Rectangle {
@@ -36,7 +36,6 @@ ColumnLayout {
     VisualizationArea {
         id: plumbingVisualizationArea
 
-        color: "black"
         width: parent.width
         height: parent.height
         Layout.fillHeight: true

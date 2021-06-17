@@ -3,7 +3,7 @@ import textwrap
 import pytest
 
 import topside as top
-from ..visualization_area import get_positioning_params, VisualizationArea
+from ..visualization_area import get_positioning_params, PlumbingVisualizer, QMLVisualizationArea
 from ..graphics_node import GraphicsNode, NodeType
 from ..graphics_component import GraphicsComponent
 from .testing_utils import MockLine, MockPainter
@@ -125,25 +125,25 @@ def test_bad_fill_percentages():
 
 
 def test_vis_area_scale_and_center():
-    va = VisualizationArea()
+    va = QMLVisualizationArea()
 
     va.setWidth(30)
     va.setHeight(20)
 
-    va.terminal_graph = top.terminal_graph(make_plumbing_engine())
-    va.layout_pos = {'A': [0, 0], f'{COMPONENT_NAME}.A': [1, 1],
-                     'B': [3, 2], f'{COMPONENT_NAME}.B': [2, 1]}
+    va.visualizer.terminal_graph = top.terminal_graph(make_plumbing_engine())
+    va.visualizer.layout_pos = {'A': [0, 0], f'{COMPONENT_NAME}.A': [1, 1],
+                                'B': [3, 2], f'{COMPONENT_NAME}.B': [2, 1]}
 
-    va.scale_and_center()
+    va.visualizer.scale_and_center()
 
     # 80% box of the 30x20 rectangle gives [xmin, xmax] = [3, 27] and
     # [ymin, ymax] = [2, 18].
-    assert va.layout_pos == {'A': [3, 2], f'{COMPONENT_NAME}.A': [11, 10],
-                             'B': [27, 18], f'{COMPONENT_NAME}.B': [19, 10]}
+    assert va.visualizer.layout_pos == {'A': [3, 2], f'{COMPONENT_NAME}.A': [11, 10],
+                                        'B': [27, 18], f'{COMPONENT_NAME}.B': [19, 10]}
 
 
 def make_vis_area():
-    va = VisualizationArea()
+    va = QMLVisualizationArea()
 
     va.setWidth(30)
     va.setHeight(20)
@@ -152,11 +152,11 @@ def make_vis_area():
 
     # Assign these directly because we want to use a hardcoded layout,
     # not the automatic layout that uploadEngineInstance would trigger.
-    va.engine_instance = plumb
-    va.terminal_graph = top.terminal_graph(plumb)
-    va.components = top.component_nodes(plumb)
-    va.layout_pos = {'A': [0, 0], f'{COMPONENT_NAME}.A': [1, 1],
-                     'B': [3, 2], f'{COMPONENT_NAME}.B': [2, 1]}
+    va.visualizer.engine_instance = plumb
+    va.visualizer.terminal_graph = top.terminal_graph(plumb)
+    va.visualizer.components = top.component_nodes(plumb)
+    va.visualizer.layout_pos = {'A': [0, 0], f'{COMPONENT_NAME}.A': [1, 1],
+                                'B': [3, 2], f'{COMPONENT_NAME}.B': [2, 1]}
 
     return va
 
@@ -189,22 +189,22 @@ def test_vis_area_node_paint():
 
 def test_vis_area_component_paint():
     va = make_vis_area()
-    va.terminal_graph = top.terminal_graph(make_plumbing_engine())
-    va.layout_pos = {'A': [0, 0], f'{COMPONENT_NAME}.A': [1, 1],
-                     'B': [3, 2], f'{COMPONENT_NAME}.B': [2, 1]}
-    va.create_graphics()
+    va.visualizer.terminal_graph = top.terminal_graph(make_plumbing_engine())
+    va.visualizer.layout_pos = {'A': [0, 0], f'{COMPONENT_NAME}.A': [1, 1],
+                                'B': [3, 2], f'{COMPONENT_NAME}.B': [2, 1]}
+    va.visualizer.create_graphics()
 
     painter = MockPainter()
     r = 5
 
-    va.paint_component(painter, COMPONENT_NAME, name=False)
+    va.visualizer.paint_component(painter, COMPONENT_NAME, name=False)
     expected_ellipses = [(1, 1, r, r), (2, 1, r, r)]
     assert expected_ellipses == painter.ellipses
     painter.clear()
 
-    va.paint_component(painter, COMPONENT_NAME, state=True)
-    centroid = va.graphics_components[COMPONENT_NAME].centroid()
-    offset = va.graphics_components[COMPONENT_NAME].offset
+    va.visualizer.paint_component(painter, COMPONENT_NAME, state=True)
+    centroid = va.visualizer.graphics_components[COMPONENT_NAME].centroid()
+    offset = va.visualizer.graphics_components[COMPONENT_NAME].offset
     state = 'closed'
     expected_text = [
         (centroid[0] + offset, centroid[1] + offset, COMPONENT_NAME),
@@ -215,10 +215,10 @@ def test_vis_area_component_paint():
 
 def test_create_components():
     va = make_vis_area()
-    va.terminal_graph = top.terminal_graph(make_plumbing_engine())
-    va.layout_pos = {'A': [0, 0], f'{COMPONENT_NAME}.A': [1, 1],
-                     'B': [3, 2], f'{COMPONENT_NAME}.B': [2, 1]}
-    va.create_graphics()
+    va.visualizer.terminal_graph = top.terminal_graph(make_plumbing_engine())
+    va.visualizer.layout_pos = {'A': [0, 0], f'{COMPONENT_NAME}.A': [1, 1],
+                                'B': [3, 2], f'{COMPONENT_NAME}.B': [2, 1]}
+    va.visualizer.create_graphics()
 
     component_nodeA = GraphicsNode((1, 1), 5, 'injector_valve.A', NodeType.COMPONENT_NODE)
     component_nodeB = GraphicsNode((2, 1), 5, 'injector_valve.B', NodeType.COMPONENT_NODE)
@@ -233,5 +233,5 @@ def test_create_components():
         COMPONENT_NAME: GraphicsComponent(COMPONENT_NAME, [component_nodeA, component_nodeB])
     }
 
-    assert va.graphics_nodes == expected_nodes
-    assert va.graphics_components == expected_components
+    assert va.visualizer.graphics_nodes == expected_nodes
+    assert va.visualizer.graphics_components == expected_components
