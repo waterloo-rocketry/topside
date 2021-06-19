@@ -4,6 +4,8 @@ import queue
 
 import topside as top
 
+from .state_stack_element import StackElement
+
 
 class StepPosition(Enum):
     Before = 1
@@ -37,7 +39,7 @@ class ProceduresEngine:
         self.current_procedure_id = None
         self.current_step = None
         self.step_position = None
-        self.state_stack = None #queue.LifoQueue() ##I know, I also can't believe that they're called lifoQueue's and not stacks
+        self.state_stack = queue.LifoQueue() # I know, I also can't believe that they're called lifoQueue's and not stacks
 
         if suite is not None:
             self.load_suite(suite)
@@ -52,6 +54,7 @@ class ProceduresEngine:
             self.current_procedure_id = self._suite.starting_procedure_id
             self.current_step = self._suite[self.current_procedure_id].step_list[0]
             self.step_position = StepPosition.Before
+            self.state_stack = queue.LifoQueue()
 
     def load_suite(self, suite):
         """
@@ -70,6 +73,7 @@ class ProceduresEngine:
         """Execute an action on the managed PlumbingEngine if it is not a Miscellaneous Action"""
         if isinstance(action, top.StateChangeAction):
             if self._plumb is not None:
+                self.push_stack()
                 self._plumb.set_component_state(action.component, action.state)
 
     def reinitialize_conditions(self):
@@ -106,7 +110,6 @@ class ProceduresEngine:
         if self.current_step is None or self.step_position == StepPosition.After:
             return
 
-        self.push_stack()
         self.execute(self.current_step.action)
         self.step_position = StepPosition.After
         self.reinitialize_conditions()
@@ -189,18 +192,16 @@ class ProceduresEngine:
         step = copy.deepcopy(self.current_step)
         step_pos = self.step_position
 
-        #self.state_stack.put((curent_plumb, prod_id, step, step_pos))
-        self.state_stack = ((curent_plumb, prod_id, step, step_pos), self.state_stack)
+        self.state_stack.put(StackElement(curent_plumb, prod_id, step, step_pos))
 
     def pop_and_set_stack(self):
-        if(not self.state_stack == None): ##not self.state_stack.empty()
-            stack_element = self.state_stack[0]
-            
-            self._plumb = stack_element[0]
-            self.current_procedure_id = stack_element[1]
-            self.current_step = stack_element[2]
-            self.step_position = stack_element[3]
+        if(not self.state_stack.empty()):
+            stack_element = self.state_stack.get()
 
-            self.state_stack = self.state_stack[1]
+            if(stack_element.plumb != None):
+                self._plumb = stack_element.plumb
+                self.current_procedure_id = stack_element.prod_id
+                self.current_step = stack_element.curr_step
+                self.step_position = stack_element.step_pos
 
-            return stack_element[0]##debug
+                return stack_element.plumb
