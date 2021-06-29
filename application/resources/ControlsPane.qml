@@ -24,7 +24,7 @@ ColumnLayout {
     }
 
     RowLayout {
-        spacing: 30
+        spacing: 50
         Layout.alignment: Qt.AlignTop
         Layout.minimumHeight: 100
         Layout.preferredHeight: 150

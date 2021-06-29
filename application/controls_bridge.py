@@ -1,6 +1,7 @@
 from PySide2.QtCore import Qt, QObject, Signal, Slot, Property
 from PySide2.QtWidgets import QFileDialog
 
+
 class ControlsBridge(QObject):
     component_state_sig = Signal()
     number_of_component_sig = Signal()
@@ -13,7 +14,7 @@ class ControlsBridge(QObject):
         self.plumbing_eng = self.plumbing_bridge.engine
         self.toggleable_components = []
         self._isOpen = []
-    
+
     def set_component_states(self, index, state):
         if state == 'open':
             self._isOpen[index] = True
@@ -27,10 +28,10 @@ class ControlsBridge(QObject):
     def refresh(self):
         self.plumbing_eng = self.plumbing_bridge.engine
         self.toggleable_components = self.plumbing_eng.list_toggles()
-        self._isOpen = [False] * len(self.toggleable_components)
-        for i in range(len(self.toggleable_components)):
-            if self.plumbing_eng.current_state(self.toggleable_components[i]) == 'open' or self.plumbing_eng.current_state(self.toggleable_components[i]) == 'closed':
-                self.set_component_states(i, self.plumbing_eng.current_state(self.toggleable_components[i]))
+        self._isOpen = [False for _ in self.toggleable_components]
+        for index, component in enumerate(self.toggleable_components):
+            if self.plumbing_eng.current_state(component) == 'open' or self.plumbing_eng.current_state(component) == 'closed':
+                self.set_component_states(index, self.plumbing_eng.current_state(component))
             else:
                 print('invalid state')
         self.number_of_component_sig.emit()
@@ -51,8 +52,8 @@ class ControlsBridge(QObject):
 
     @Slot(int)
     def toggle_on(self, index):
-        self.set_component_states(index, 'open')    
+        self.set_component_states(index, 'open')
 
     @Slot(int)
     def toggle_off(self, index):
-        self.set_component_states(index, 'closed')    
+        self.set_component_states(index, 'closed')

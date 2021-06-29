@@ -42,7 +42,7 @@ class Application:
         self.daq_bridge = DAQBridge(self.plumbing_bridge)
         self.controls_bridge = ControlsBridge(self.plumbing_bridge)
         self.procedures_bridge = ProceduresBridge(self.plumbing_bridge, self.controls_bridge)
-       
+
         self.app = QApplication(argv)
 
         # ALL custom built QQuickItems have to be registered as QML objects in this way:
@@ -58,7 +58,7 @@ class Application:
         context.setContextProperty('plumbingBridge', self.plumbing_bridge)
         context.setContextProperty('controlsBridge', self.controls_bridge)
         context.setContextProperty('proceduresBridge', self.procedures_bridge)
-        
+
         self.main_window = self._make_main_window()
 
         # TODO(jacob): Currently we load these example files at startup
