@@ -5,49 +5,83 @@ import QtQuick.Layouts 1.0
 
 import VisualizationArea 1.0 
 
-ColumnLayout {
+// Column {
+//     property string buttonRed: "#FF0000"
+//     property string buttonGreen: "#00FF00"
 
+//     Rectangle {
+//         width: 150
+//         height: 60
+
+//         Text {
+//             text: "Control Panel"
+//             font.pointSize: 30
+//             font.weight: Font.Bold
+//         }
+//     }
+
+//     ScrollView {
+//         ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
+//         ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+    
+//         Row {
+//             padding: 20
+//             spacing: 70
+
+//             Repeater {
+//                 model: controlsBridge.numOfComponents
+//                 Rectangle {
+//                     height: 100
+//                     width: 70
+
+//                     RoundButton {
+//                         id: button1
+//                         width: 70
+//                         height: 70
+//                         palette {
+//                             button: controlsBridge.states[index] == "open" ? buttonGreen : buttonRed
+//                         }
+//                         onClicked: controlsBridge.states[index] == "open" ? controlsBridge.toggle_off(index) : controlsBridge.toggle_on(index)
+//                     }
+
+//                     Text {
+//                         padding: 10
+//                         id: text1
+//                         anchors.top: button1.bottom
+//                         anchors.horizontalCenter: parent.horizontalCenter
+//                         font.pointSize: 12
+//                         text: controlsBridge.components[index]
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
+
+ScrollView {
     property string buttonRed: "#FF0000"
     property string buttonGreen: "#00FF00"
+    ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
+    ScrollBar.vertical.policy: ScrollBar.AlwaysOff
 
-    Rectangle {
-        Layout.alignment: Qt.AlignTop
-        Layout.minimumHeight: 30
-        Layout.preferredHeight: 30
-        Layout.fillWidth: true
-
-        Text {
-            text: "Control Panel"
-            font.pointSize: 30
-            font.weight: Font.Bold
-        }
-    }
-
-    RowLayout {
-        spacing: 50
-        Layout.alignment: Qt.AlignTop
-        Layout.minimumHeight: 100
-        Layout.preferredHeight: 150
-
-        Rectangle {
-            Layout.preferredHeight: 100
-            Layout.preferredWidth: 10
-        }
+    Row {
+        padding: 20
+        spacing: 70
 
         Repeater {
             model: controlsBridge.numOfComponents
             Rectangle {
-                Layout.preferredHeight: 100
-                Layout.preferredWidth: 70
+                height: 100
+                width: 70
 
                 RoundButton {
                     id: button1
                     width: 70
                     height: 70
                     palette {
-                        button: controlsBridge.isOpen[index] ? buttonGreen : buttonRed
+                        button: controlsBridge.states[index] == "open" ? buttonGreen : buttonRed
                     }
-                    onClicked: controlsBridge.isOpen[index] ? controlsBridge.toggle_off(index) : controlsBridge.toggle_on(index)
+                    onClicked: controlsBridge.states[index] == "open" ? controlsBridge.toggle_off(index) : controlsBridge.toggle_on(index)
                 }
 
                 Text {

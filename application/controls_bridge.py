@@ -13,34 +13,29 @@ class ControlsBridge(QObject):
         self.plumbing_bridge = plumb
         self.plumbing_eng = self.plumbing_bridge.engine
         self.toggleable_components = []
-        self._isOpen = []
+        self._states = []
 
     def set_component_states(self, index, state):
         if state == 'open':
-            self._isOpen[index] = True
             self.plumbing_eng.set_component_state(self.toggleable_components[index], 'open')
         elif state == 'closed':
-            self._isOpen[index] = False
             self.plumbing_eng.set_component_state(self.toggleable_components[index], 'closed')
+        self._states = list(self.plumbing_eng.current_state(self.toggleable_components).values())
         self.component_state_sig.emit()
+
+    def get_component_states(self):
+        return self._states
 
     @Slot()
     def refresh(self):
         self.plumbing_eng = self.plumbing_bridge.engine
         self.toggleable_components = self.plumbing_eng.list_toggles()
-        self._isOpen = [False for _ in self.toggleable_components]
-        for index, component in enumerate(self.toggleable_components):
-            if self.plumbing_eng.current_state(component) == 'open' or self.plumbing_eng.current_state(component) == 'closed':
-                self.set_component_states(index, self.plumbing_eng.current_state(component))
-            else:
-                print('invalid state')
+        self._states = list(self.plumbing_eng.current_state(self.toggleable_components).values())
+        self.component_state_sig.emit()
         self.number_of_component_sig.emit()
         self.components_sig.emit()
 
-    def get_component_states(self):
-        return self._isOpen
-
-    isOpen = Property(list, get_component_states, set_component_states, notify=component_state_sig)
+    states = Property(list, get_component_states, set_component_states, notify=component_state_sig)
 
     @Property(int, notify=number_of_component_sig)
     def numOfComponents(self):
