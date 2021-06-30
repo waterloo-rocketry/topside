@@ -57,7 +57,7 @@ def test_control_panel_initialization():
     plumb_b.load_engine(plumb_eng)
     control_b.refresh()
     assert(control_b.toggleable_components == ['injector_valve'])
-    assert(control_b.isOpen[0] == False)
+    assert(control_b.states[0] == "closed")
 
 
 def test_procedure_step_affects_component_state():
@@ -83,17 +83,17 @@ def test_procedure_step_affects_component_state():
     assert proc_eng.step_position == top.StepPosition.Before
     proc_b.procStepForward()
 
-    assert(control_b.isOpen[0] == True)
+    assert(control_b.states[0] == "open")
     assert proc_eng.current_step == procedure.step_list[0]
     assert proc_eng.step_position == top.StepPosition.After
 
     proc_b.procStepForward()
-    assert(control_b.isOpen[0] == False)
+    assert(control_b.states[0] == "closed")
     assert proc_eng.current_step == procedure.step_list[1]
     assert proc_eng.step_position == top.StepPosition.After
 
     proc_b.procStepForward()
-    assert(control_b.isOpen[0] == False)
+    assert(control_b.states[0] == "closed")
 
     proc_b.procStop()
     assert proc_eng.current_step == procedure.step_list[0]

@@ -20,7 +20,11 @@ class ControlsBridge(QObject):
             self.plumbing_eng.set_component_state(self.toggleable_components[index], 'open')
         elif state == 'closed':
             self.plumbing_eng.set_component_state(self.toggleable_components[index], 'closed')
-        self._states = list(self.plumbing_eng.current_state(self.toggleable_components).values())
+        if len(self.toggleable_components) <= 1:
+            self._states = [self.plumbing_eng.current_state(self.toggleable_components)]
+        else:
+            self._states = list(self.plumbing_eng.current_state(
+                self.toggleable_components).values())
         self.component_state_sig.emit()
 
     def get_component_states(self):
@@ -30,7 +34,11 @@ class ControlsBridge(QObject):
     def refresh(self):
         self.plumbing_eng = self.plumbing_bridge.engine
         self.toggleable_components = self.plumbing_eng.list_toggles()
-        self._states = list(self.plumbing_eng.current_state(self.toggleable_components).values())
+        if len(self.toggleable_components) <= 1:
+            self._states = [self.plumbing_eng.current_state(self.toggleable_components)]
+        else:
+            self._states = list(self.plumbing_eng.current_state(
+                self.toggleable_components).values())
         self.component_state_sig.emit()
         self.number_of_component_sig.emit()
         self.components_sig.emit()
