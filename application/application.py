@@ -7,6 +7,7 @@ from .plumbing_vis.visualization_area import QMLVisualizationArea
 from .procedures_bridge import ProceduresBridge
 from .plumbing_bridge import PlumbingBridge
 from .daq import DAQBridge, make_daq_widget
+from .controls_bridge import ControlsBridge
 from .pdl_editor import make_pdl_editor
 from .utils import find_resource, make_qml_widget
 
@@ -14,8 +15,9 @@ from .utils import find_resource, make_qml_widget
 class Application:
     def __init__(self, argv):
         self.plumbing_bridge = PlumbingBridge()
-        self.procedures_bridge = ProceduresBridge(self.plumbing_bridge)
         self.daq_bridge = DAQBridge(self.plumbing_bridge)
+        self.controls_bridge = ControlsBridge(self.plumbing_bridge)
+        self.procedures_bridge = ProceduresBridge(self.plumbing_bridge, self.controls_bridge)
 
         self.app = QApplication(argv)
 
@@ -30,6 +32,7 @@ class Application:
         self.qml_engine = QQmlEngine()
         context = self.qml_engine.rootContext()
         context.setContextProperty('plumbingBridge', self.plumbing_bridge)
+        context.setContextProperty('controlsBridge', self.controls_bridge)
         context.setContextProperty('proceduresBridge', self.procedures_bridge)
 
         self.main_window = self._make_main_window()
@@ -40,6 +43,7 @@ class Application:
         # that instead.
         self.plumbing_bridge.load_from_files([find_resource('example.pdl')])
         self.procedures_bridge.load_from_file(find_resource('example.proc'))
+        self.controls_bridge.refresh()
 
     def _make_main_window(self):
         # TODO(jacob): Should we move this code somewhere else (maybe

@@ -13,12 +13,13 @@ class ProceduresBridge(QObject):
     steps_changed_sig = Signal(name='dataChanged')
     position_changed_sig = Signal(name='positionChanged')
 
-    def __init__(self, plumb):
+    def __init__(self, plumb, control):
         QObject.__init__(self)
 
         self._proc_eng = top.ProceduresEngine()
         plumb.engineLoaded.connect(self.updatePlumbingEngine)
         plumb.dataUpdated.connect(self.refresh)
+        self.control_bridge = control
 
         self._proc_steps = ProcedureStepsModel()
         self.refresh()
@@ -104,6 +105,7 @@ class ProceduresBridge(QObject):
     def procStepForward(self):
         self._proc_eng.next_step()
         self.refresh()
+        self.control_bridge.refresh()
 
     @Slot()
     def procAdvance(self):

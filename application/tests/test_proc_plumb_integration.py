@@ -3,6 +3,7 @@ import textwrap
 import topside as top
 from ..procedures_bridge import ProceduresBridge
 from ..plumbing_bridge import PlumbingBridge
+from ..controls_bridge import ControlsBridge
 
 
 def make_plumbing_engine():
@@ -40,7 +41,8 @@ def make_plumbing_engine():
 
 def test_proc_bridge_procedure_step_affects_plumbing():
     plumb_b = PlumbingBridge()
-    proc_b = ProceduresBridge(plumb_b)
+    control_b = ControlsBridge(plumb_b)
+    proc_b = ProceduresBridge(plumb_b, control_b)
 
     procedure = top.Procedure('main', [
         top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
@@ -64,7 +66,8 @@ def test_proc_bridge_procedure_step_affects_plumbing():
 def test_time_step_forward():
     plumb_b = PlumbingBridge()
     plumb_b.step_size = 0.1e6
-    proc_b = ProceduresBridge(plumb_b)
+    control_b = ControlsBridge(plumb_b)
+    proc_b = ProceduresBridge(plumb_b, control_b)
 
     procedure = top.Procedure('main', [
         top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
@@ -108,7 +111,8 @@ def test_time_step_forward():
 
 def test_time_advance():
     plumb_b = PlumbingBridge()
-    proc_b = ProceduresBridge(plumb_b)
+    control_b = ControlsBridge(plumb_b)
+    proc_b = ProceduresBridge(plumb_b, control_b)
 
     procedure = top.Procedure('main', [
         top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
@@ -139,7 +143,8 @@ def test_time_advance():
 def test_time_stop():
     plumb_b = PlumbingBridge()
     plumb_b.step_size = 0.1e6
-    proc_b = ProceduresBridge(plumb_b)
+    control_b = ControlsBridge(plumb_b)
+    proc_b = ProceduresBridge(plumb_b, control_b)
 
     procedure = top.Procedure('main', [
         top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
@@ -190,7 +195,8 @@ def test_time_stop():
 
 def test_jump_to_step_normal():
     plumb_b = PlumbingBridge()
-    proc_b = ProceduresBridge(plumb_b)
+    control_b = ControlsBridge(plumb_b)
+    proc_b = ProceduresBridge(plumb_b, control_b)
 
     procedure = top.Procedure('main', [
         top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
@@ -221,7 +227,8 @@ def test_jump_to_step_normal():
 
 def test_jump_to_step_current_and_past():
     plumb_b = PlumbingBridge()
-    proc_b = ProceduresBridge(plumb_b)
+    control_b = ControlsBridge(plumb_b)
+    proc_b = ProceduresBridge(plumb_b, control_b)
 
     procedure = top.Procedure('main', [
         top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
@@ -255,7 +262,8 @@ def test_jump_to_step_current_and_past():
 
 def test_jump_to_step_invalid():
     plumb_b = PlumbingBridge()
-    proc_b = ProceduresBridge(plumb_b)
+    control_b = ControlsBridge(plumb_b)
+    proc_b = ProceduresBridge(plumb_b, control_b)
 
     procedure = top.Procedure('main', [
         top.ProcedureStep('1', top.StateChangeAction('injector_valve', 'open'), [
