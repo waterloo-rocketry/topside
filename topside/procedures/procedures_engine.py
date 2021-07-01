@@ -39,7 +39,8 @@ class ProceduresEngine:
         self.current_procedure_id = None
         self.current_step = None
         self.step_position = None
-        self.state_stack = queue.LifoQueue() # I know, I also can't believe that they're called lifoQueue's and not stacks
+        # I know, I also can't believe that they're called lifoQueue's and not stacks
+        self.state_stack = queue.LifoQueue()
 
         if suite is not None:
             self.load_suite(suite)
@@ -73,7 +74,6 @@ class ProceduresEngine:
         """Execute an action on the managed PlumbingEngine if it is not a Miscellaneous Action"""
         if isinstance(action, top.StateChangeAction):
             if self._plumb is not None:
-                self.push_stack()
                 self._plumb.set_component_state(action.component, action.state)
 
     def reinitialize_conditions(self):
@@ -143,7 +143,6 @@ class ProceduresEngine:
 
         for condition, transition in self.current_step.conditions:
             if condition.satisfied():
-                self.push_stack()
                 new_proc = transition.procedure
                 self.current_procedure_id = new_proc
                 self.current_step = self._suite[new_proc].steps[transition.step]
@@ -158,6 +157,7 @@ class ProceduresEngine:
         or a pre-node. After calling this function, the engine will end
         in the post-node of the next step to be executed.
         """
+        self.push_stack()
         self.proceed()
         self.execute_current()
 
@@ -185,6 +185,12 @@ class ProceduresEngine:
             return None
 
         return self._suite[self.current_procedure_id]
+
+    # TODO(Kavin): Currently, these two methods store a copy of the entire plumbing engine
+    # and then simply sets self._plumb to one of these copies. It'd be better if this
+    # mutated the orignial plumbing engine to be identical to the copy. This way, a few changes made
+    # in this PR could be removed which involve setting the plumbing engine to the correct value in
+    # a few places.
 
     def push_stack(self):
         curent_plumb = copy.deepcopy(self._plumb)

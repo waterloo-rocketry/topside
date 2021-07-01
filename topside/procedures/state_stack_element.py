@@ -8,6 +8,7 @@ class StackElement:
         -current_step: the current_step and the time of pushing to the stack
         -step_position: the step_position at the time of pushing ot the stack
     """
+
     def __init__(self, plumbing_engine, procedure_id, current_step, step_position):
         self.plumb = plumbing_engine
         self.prod_id = procedure_id

@@ -88,7 +88,9 @@ class ProceduresBridge(QObject):
     @Slot()
     def procUndo(self):
         eng = self._proc_eng.pop_and_set_stack()
-        self.plumb.engine = eng
+        if(eng != None):
+            self.plumb.engine = eng
+            self.updatePlumbingEngine(eng)
 
     @Slot()
     def procPlay(self):

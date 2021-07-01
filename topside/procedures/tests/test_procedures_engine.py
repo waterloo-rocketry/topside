@@ -395,3 +395,55 @@ def test_reset_clears_conditions():
     proc_eng.execute_current()
 
     assert proc_eng.ready_to_proceed() is False
+
+
+def test_undo_1():
+    plumb_eng = one_component_engine()
+    proc_eng = top.ProceduresEngine(plumb_eng, branching_procedure_suite_one_option())
+
+    assert proc_eng.current_procedure_id == 'p1'
+    assert proc_eng.current_step.step_id == 's1'
+    assert proc_eng._plumb.current_state('c1') == 'open'
+    proc_eng.next_step()
+    assert proc_eng.current_procedure_id == 'p1'
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'closed'
+    proc_eng.next_step()
+    assert proc_eng.current_procedure_id == 'p2'
+    assert proc_eng.current_step.step_id == 's3'
+    assert proc_eng._plumb.current_state('c1') == 'open'
+    proc_eng.pop_and_set_stack()
+    assert proc_eng.current_procedure_id == 'p1'
+    assert proc_eng.current_step.step_id == 's1'
+    assert proc_eng._plumb.current_state('c1') == 'closed'
+    proc_eng.pop_and_set_stack()
+    assert proc_eng.current_procedure_id == 'p1'
+    assert proc_eng.current_step.step_id == 's1'
+    assert proc_eng._plumb.current_state('c1') == 'open'
+
+
+def test_undo_2():
+    plumb_eng = one_component_engine()
+    proc_eng = top.ProceduresEngine(plumb_eng, single_procedure_suite())
+
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'open'
+    proc_eng.next_step()
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'closed'
+    proc_eng.next_step()
+    assert proc_eng.current_step.step_id == 's2'
+    assert plumb_eng.current_state('c1') == 'open'
+    proc_eng.next_step()
+    assert proc_eng.current_step.step_id == 's2'
+    assert plumb_eng.current_state('c1') == 'open'
+    # the function actually sets the interal plumbing engine to a deepcopy of a previous one, and returns new plumbing engine
+    plumb_eng = proc_eng.pop_and_set_stack()
+    assert proc_eng.current_step.step_id == 's2'
+    assert plumb_eng.current_state('c1') == 'open'
+    plumb_eng = proc_eng.pop_and_set_stack()
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'closed'
+    plumb_eng = proc_eng.pop_and_set_stack()
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'open'
