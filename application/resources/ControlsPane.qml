@@ -6,6 +6,7 @@ import QtQuick.Layouts 1.0
 import VisualizationArea 1.0 
 
 Column {
+    id: col
     property string buttonRed: "#FF0000"
     property string buttonGreen: "#00FF00"
 
@@ -23,7 +24,7 @@ Column {
     ScrollView {
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
         ScrollBar.vertical.policy: ScrollBar.AlwaysOff
-        width: 1200
+        width: col.width
         height: 130
     
         Row {
