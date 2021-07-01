@@ -5,18 +5,19 @@ import QtQuick.Layouts 1.0
 
 import VisualizationArea 1.0 
 
-Column {
+Rectangle {
     id: col
     property string buttonRed: "#FF0000"
     property string buttonGreen: "#00FF00"
 
     Rectangle {
+        id: title
         width: 150
-        height: 40
+        height: 60
 
         Text {
             text: "Control Panel"
-            font.pointSize: 30
+            font.pixelSize: title.height
             font.weight: Font.Bold
         }
     }
@@ -25,7 +26,8 @@ Column {
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
         ScrollBar.vertical.policy: ScrollBar.AlwaysOff
         width: col.width
-        height: 130
+        anchors.top: title.bottom
+        height: col.height - title.height
     
         Row {
             padding: 20
