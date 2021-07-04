@@ -210,7 +210,6 @@ class ProceduresEngine:
                     self._plumb.time = stack_element.plumb.time
                     self._plumb.time_res = stack_element.plumb.time_res
 
-
                 self.current_procedure_id = stack_element.prod_id
                 self.current_step = stack_element.curr_step
                 self.step_position = stack_element.step_pos
