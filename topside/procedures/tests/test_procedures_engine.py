@@ -446,3 +446,13 @@ def test_undo_2():
     proc_eng.pop_and_set_stack()
     assert proc_eng.current_step.step_id == 's1'
     assert plumb_eng.current_state('c1') == 'open'
+
+def test_undo_3():
+    ##This test is here largly to ensure the engine dosen't crash or do something wierd
+    proc_eng = top.ProceduresEngine(None, single_procedure_suite())
+
+    assert proc_eng._plumb == None
+    proc_eng.next_step()
+
+    proc_eng.pop_and_set_stack()
+    assert proc_eng._plumb == None
