@@ -437,13 +437,12 @@ def test_undo_2():
     proc_eng.next_step()
     assert proc_eng.current_step.step_id == 's2'
     assert plumb_eng.current_state('c1') == 'open'
-    # the function actually sets the interal plumbing engine to a deepcopy of a previous one, and returns new plumbing engine
-    plumb_eng = proc_eng.pop_and_set_stack()
+    proc_eng.pop_and_set_stack()
     assert proc_eng.current_step.step_id == 's2'
     assert plumb_eng.current_state('c1') == 'open'
-    plumb_eng = proc_eng.pop_and_set_stack()
+    proc_eng.pop_and_set_stack()
     assert proc_eng.current_step.step_id == 's1'
     assert plumb_eng.current_state('c1') == 'closed'
-    plumb_eng = proc_eng.pop_and_set_stack()
+    proc_eng.pop_and_set_stack()
     assert proc_eng.current_step.step_id == 's1'
     assert plumb_eng.current_state('c1') == 'open'
