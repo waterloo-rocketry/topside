@@ -186,12 +186,6 @@ class ProceduresEngine:
 
         return self._suite[self.current_procedure_id]
 
-    # TODO(Kavin): Currently, these two methods store a copy of the entire plumbing engine
-    # and then simply sets self._plumb to one of these copies. It'd be better if this
-    # mutated the orignial plumbing engine to be identical to the copy. This way, a few changes made
-    # in this PR could be removed which involve setting the plumbing engine to the correct value in
-    # a few places.
-
     def push_stack(self):
         curent_plumb = copy.deepcopy(self._plumb)
         prod_id = self.current_procedure_id
@@ -205,9 +199,18 @@ class ProceduresEngine:
             stack_element = self.state_stack.get()
 
             if(stack_element.plumb != None):
-                self._plumb = stack_element.plumb
+                if(self._plumb == None):
+                    self._plumb = stack_element.plumb
+                else:
+                    self._plumb.component_dict = stack_element.plumb.component_dict
+                    self._plumb.error_set = stack_element.plumb.error_set
+                    self._plumb.fixed_pressures = stack_element.plumb.fixed_pressures
+                    self._plumb.mapping = stack_element.plumb.mapping
+                    self._plumb.plumbing_graph = stack_element.plumb.plumbing_graph
+                    self._plumb.time = stack_element.plumb.time
+                    self._plumb.time_res = stack_element.plumb.time_res
+
+
                 self.current_procedure_id = stack_element.prod_id
                 self.current_step = stack_element.curr_step
                 self.step_position = stack_element.step_pos
-
-                return stack_element.plumb
