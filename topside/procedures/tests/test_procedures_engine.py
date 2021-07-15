@@ -456,3 +456,6 @@ def test_undo_3():
 
     proc_eng.pop_and_set_stack()
     assert proc_eng._plumb == None
+
+    proc_eng.pop_and_set_stack()
+    assert proc_eng._plumb == None

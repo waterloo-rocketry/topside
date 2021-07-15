@@ -39,7 +39,7 @@ class ProceduresEngine:
         self.current_procedure_id = None
         self.current_step = None
         self.step_position = None
-        # I know, I also can't believe that they're called lifoQueue's and not stacks
+        # Stack
         self.state_stack = queue.LifoQueue()
 
         if suite is not None:
