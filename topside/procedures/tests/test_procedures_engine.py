@@ -459,3 +459,26 @@ def test_undo_3():
 
     proc_eng.pop_and_set_stack()
     assert proc_eng._plumb == None
+
+def test_undo_4():
+    plumb_eng = one_component_engine()
+    proc_eng = top.ProceduresEngine(plumb_eng, single_procedure_suite())
+
+    proc_eng.push_stack()
+
+    proc_eng._plumb = None
+
+    proc_eng.pop_and_set_stack()
+    # It is harder to test if the dicts are identical because of 
+    # the nature of the various structs that comprise the values. 
+    # They are pointers in C. Will need to find a way to test this
+    # more throughly.
+    assert proc_eng._plumb.component_dict.keys() == plumb_eng.component_dict.keys()
+    assert proc_eng._plumb.error_set == plumb_eng.error_set
+    assert proc_eng._plumb.fixed_pressures == plumb_eng.fixed_pressures
+    assert proc_eng._plumb.mapping == plumb_eng.mapping
+    # A similar story with the plumbing graph and the comments above.
+    assert proc_eng._plumb.time == plumb_eng.time
+    assert proc_eng._plumb.time_res == plumb_eng.time_res
+
+    ##TODO, find a way to test more comprehensively.
