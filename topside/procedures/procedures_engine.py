@@ -1,6 +1,10 @@
 from enum import Enum
+import copy
+import queue
 
 import topside as top
+
+from .state_stack_element import StackElement
 
 
 class StepPosition(Enum):
@@ -35,6 +39,8 @@ class ProceduresEngine:
         self.current_procedure_id = None
         self.current_step = None
         self.step_position = None
+        # Stack
+        self.state_stack = queue.LifoQueue()
 
         if suite is not None:
             self.load_suite(suite)
@@ -49,6 +55,7 @@ class ProceduresEngine:
             self.current_procedure_id = self._suite.starting_procedure_id
             self.current_step = self._suite[self.current_procedure_id].step_list[0]
             self.step_position = StepPosition.Before
+            self.state_stack = queue.LifoQueue()
 
     def load_suite(self, suite):
         """
@@ -150,6 +157,7 @@ class ProceduresEngine:
         or a pre-node. After calling this function, the engine will end
         in the post-node of the next step to be executed.
         """
+        self.push_stack()
         self.proceed()
         self.execute_current()
 
@@ -177,3 +185,31 @@ class ProceduresEngine:
             return None
 
         return self._suite[self.current_procedure_id]
+
+    def push_stack(self):
+        curent_plumb = copy.deepcopy(self._plumb)
+        prod_id = self.current_procedure_id
+        step = copy.deepcopy(self.current_step)
+        step_pos = self.step_position
+
+        self.state_stack.put(StackElement(curent_plumb, prod_id, step, step_pos))
+
+    def pop_and_set_stack(self):
+        if(not self.state_stack.empty()):
+            stack_element = self.state_stack.get()
+
+            if(stack_element.plumb != None):
+                if(self._plumb == None):
+                    self._plumb = stack_element.plumb
+                else:
+                    self._plumb.component_dict = stack_element.plumb.component_dict
+                    self._plumb.error_set = stack_element.plumb.error_set
+                    self._plumb.fixed_pressures = stack_element.plumb.fixed_pressures
+                    self._plumb.mapping = stack_element.plumb.mapping
+                    self._plumb.plumbing_graph = stack_element.plumb.plumbing_graph
+                    self._plumb.time = stack_element.plumb.time
+                    self._plumb.time_res = stack_element.plumb.time_res
+
+                self.current_procedure_id = stack_element.prod_id
+                self.current_step = stack_element.curr_step
+                self.step_position = stack_element.step_pos

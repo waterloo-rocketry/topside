@@ -395,3 +395,92 @@ def test_reset_clears_conditions():
     proc_eng.execute_current()
 
     assert proc_eng.ready_to_proceed() is False
+
+
+def test_undo_1():
+    plumb_eng = one_component_engine()
+    proc_eng = top.ProceduresEngine(plumb_eng, branching_procedure_suite_one_option())
+
+    assert proc_eng.current_procedure_id == 'p1'
+    assert proc_eng.current_step.step_id == 's1'
+    assert proc_eng._plumb.current_state('c1') == 'open'
+    proc_eng.next_step()
+    assert proc_eng.current_procedure_id == 'p1'
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'closed'
+    proc_eng.next_step()
+    assert proc_eng.current_procedure_id == 'p2'
+    assert proc_eng.current_step.step_id == 's3'
+    assert proc_eng._plumb.current_state('c1') == 'open'
+    proc_eng.pop_and_set_stack()
+    assert proc_eng.current_procedure_id == 'p1'
+    assert proc_eng.current_step.step_id == 's1'
+    assert proc_eng._plumb.current_state('c1') == 'closed'
+    proc_eng.pop_and_set_stack()
+    assert proc_eng.current_procedure_id == 'p1'
+    assert proc_eng.current_step.step_id == 's1'
+    assert proc_eng._plumb.current_state('c1') == 'open'
+
+
+def test_undo_2():
+    plumb_eng = one_component_engine()
+    proc_eng = top.ProceduresEngine(plumb_eng, single_procedure_suite())
+
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'open'
+    proc_eng.next_step()
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'closed'
+    proc_eng.next_step()
+    assert proc_eng.current_step.step_id == 's2'
+    assert plumb_eng.current_state('c1') == 'open'
+    proc_eng.next_step()
+    assert proc_eng.current_step.step_id == 's2'
+    assert plumb_eng.current_state('c1') == 'open'
+    proc_eng.pop_and_set_stack()
+    assert proc_eng.current_step.step_id == 's2'
+    assert plumb_eng.current_state('c1') == 'open'
+    proc_eng.pop_and_set_stack()
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'closed'
+    proc_eng.pop_and_set_stack()
+    assert proc_eng.current_step.step_id == 's1'
+    assert plumb_eng.current_state('c1') == 'open'
+
+
+def test_undo_3():
+    # This test is here largly to ensure the engine dosen't crash or do something wierd
+    proc_eng = top.ProceduresEngine(None, single_procedure_suite())
+
+    assert proc_eng._plumb == None
+    proc_eng.next_step()
+
+    proc_eng.pop_and_set_stack()
+    assert proc_eng._plumb == None
+
+    proc_eng.pop_and_set_stack()
+    assert proc_eng._plumb == None
+
+
+def test_undo_4():
+    plumb_eng = one_component_engine()
+    proc_eng = top.ProceduresEngine(plumb_eng, single_procedure_suite())
+
+    proc_eng.push_stack()
+
+    proc_eng._plumb = None
+
+    proc_eng.pop_and_set_stack()
+    # It is harder to test if the dicts are identical because of
+    # the nature of the various structs that comprise the values.
+    # They are pointers in C. Will need to find a way to test this
+    # more throughly.
+    assert proc_eng._plumb.component_dict.keys() == plumb_eng.component_dict.keys()
+    assert proc_eng._plumb.error_set == plumb_eng.error_set
+    assert proc_eng._plumb.fixed_pressures == plumb_eng.fixed_pressures
+    assert proc_eng._plumb.mapping == plumb_eng.mapping
+    # A similar story with the plumbing graph and the comments above.
+    assert proc_eng._plumb.time == plumb_eng.time
+    assert proc_eng._plumb.time_res == plumb_eng.time_res
+
+    # TODO, find a way to test more comprehensively.

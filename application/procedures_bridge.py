@@ -17,6 +17,7 @@ class ProceduresBridge(QObject):
         QObject.__init__(self)
 
         self._proc_eng = top.ProceduresEngine()
+        self.plumb = plumb
         plumb.engineLoaded.connect(self.updatePlumbingEngine)
         plumb.dataUpdated.connect(self.refresh)
         self.control_bridge = control
@@ -86,7 +87,7 @@ class ProceduresBridge(QObject):
 
     @Slot()
     def procUndo(self):
-        pass
+        self._proc_eng.pop_and_set_stack()
 
     @Slot()
     def procPlay(self):
