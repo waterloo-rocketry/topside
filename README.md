@@ -7,7 +7,7 @@ Waterloo Rocketry's operations simulator is a tool for modelling and simulating 
 
 #### Requirements
 
-Python 3.7 or newer is required.
+Python 3.7 is required. (Newer versions may not be compatible with the application)
 
 Required Python packages can be installed using `pip install -r requirements.txt`.
 
@@ -16,3 +16,4 @@ Required Python packages can be installed using `pip install -r requirements.txt
 The `tools/` directory contains two scripts for building a standalone application: `build_cxfreeze.sh` and `build_pyinstaller.sh`. However, currently only the PyInstaller build is functional due to upstream bugs in the interaction between SciPy, cx_Freeze, and Cython.
 
 Building a standalone application should be as simple as running `build_pyinstaller.sh`. The resulting application can be found at `dist/Topside/Topside.exe`.
+
