@@ -11,7 +11,8 @@ class ExportFormat(enum.Enum):
 # TODO(jacob): Investigate whether this would be better as a variant
 # rather than a base class.
 class Action:
-    pass
+    def get_action_type(self):
+        pass
 
 
 @dataclass
@@ -34,6 +35,9 @@ class StateChangeAction(Action):
     """
     component: str
     state: str
+
+    def get_action_type(self):
+        return self.component
 
     def export(self, fmt):
         if fmt == top.ExportFormat.Latex:
@@ -58,6 +62,9 @@ class MiscAction(Action):
         The string specifies which type of action it is.
     """
     action_type: str
+
+    def get_action_type(self):
+        return self.action_type
 
     def export(self, fmt):
         if fmt == top.ExportFormat.Latex:
@@ -164,8 +171,11 @@ class Procedure:
                     f'duplicate step ID {step.step_id} encountered in Procedure initialization')
             self.steps[step.step_id] = step
             self.step_id_to_idx[step.step_id] = i
-            if step.action:
+            if type(step.action) is tuple:
                 self.components.add(step.action[0])
+            elif step.action:
+                print (step.action)
+                self.components.add(step.action.get_action_type())
 
     def index_of(self, step_id):
         """
