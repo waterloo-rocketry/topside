@@ -11,8 +11,7 @@ class ExportFormat(enum.Enum):
 # TODO(jacob): Investigate whether this would be better as a variant
 # rather than a base class.
 class Action:
-    def get_action_type(self):
-        pass
+    pass
 
 
 @dataclass
