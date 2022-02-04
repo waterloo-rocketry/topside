@@ -109,6 +109,7 @@ class ProcedureStep:
 
     operator: str
         The person who performs the step
+
     """
     step_id: str
     action: Action
@@ -143,11 +144,19 @@ class Procedure:
         steps: iterable
             An iterable of ProcedureStep objects ordered from first step
             to last step.
+
+        Members 
+        -------
+
+        components: set
+            An unordered collection of components used from each of the 
+            steps from before. Added to set if the action contains a component
         """
         self.procedure_id = procedure_id
         self.steps = {}
         self.step_list = list(steps)
         self.step_id_to_idx = {}
+        self.components = set()
 
         for i, step in enumerate(steps):
             if step.step_id in self.steps:
@@ -155,6 +164,8 @@ class Procedure:
                     f'duplicate step ID {step.step_id} encountered in Procedure initialization')
             self.steps[step.step_id] = step
             self.step_id_to_idx[step.step_id] = i
+            if step.action:
+                self.components.add(step.action[0])
 
     def index_of(self, step_id):
         """
@@ -226,9 +237,18 @@ class ProcedureSuite:
             The procedure ID for the starting procedure used when this
             procedure suite is executed. Defaults to "main" if not
             specified.
+
+        Members 
+        -------
+
+        components: set
+            An unordered collection of components used from each of the 
+            Procedures passed into it. Components are received from the property 
+            within ProcedureStep
         """
         self.starting_procedure_id = starting_procedure_id
         self.procedures = {}
+        self.components = set()
 
         # TODO(jacob): Allow invalid procedure suites to be created, but
         # keep track of the invalid reasons (same way plumbing code
@@ -239,6 +259,7 @@ class ProcedureSuite:
                 raise ValueError(f'duplicate procedure ID {proc.procedure_id} encountered in '
                                  + 'ProcedureSuite initialization')
             self.procedures[proc.procedure_id] = proc
+            self.components.update(proc.components)
 
         if self.starting_procedure_id not in self.procedures:
             raise ValueError(f'starting procedure ID {self.starting_procedure_id} not found in '
