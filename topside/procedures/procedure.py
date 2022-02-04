@@ -174,7 +174,6 @@ class Procedure:
             if type(step.action) is tuple:
                 self.components.add(step.action[0])
             elif step.action:
-                print (step.action)
                 self.components.add(step.action.get_action_type())
 
     def index_of(self, step_id):
