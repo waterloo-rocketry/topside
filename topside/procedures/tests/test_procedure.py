@@ -244,3 +244,15 @@ def test_action_types():
 
     assert isinstance(a1, top.Action)
     assert isinstance(a2, top.Action)
+
+
+def test_components():
+    s1 = top.ProcedureStep('s1', ('p1', 'open'), [], 'PRIMARY')
+    s2 = top.ProcedureStep('s2', ('p2', 'open'), [], 'PRIMARY')
+    s3 = top.ProcedureStep('s3', ('p3', 'open'), [], 'PRIMARY')
+
+    proc_1 = top.Procedure('p1', [s1, s2, s3])
+
+    components_1 = proc_1.components
+
+    assert components_1 == {'p1', 'p2', 'p3'}
