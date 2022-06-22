@@ -4,7 +4,7 @@ datatest==0.9.6
 lark-parser==0.10.0
 matplotlib==3.3.0
 networkx==2.4
-numpy==1.19.2
+numpy==1.22.0
 pyinstaller==4.1
 pyqtgraph==0.11.0
 PySide2==5.15.1
