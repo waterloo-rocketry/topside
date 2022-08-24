@@ -46,6 +46,8 @@ class StateChangeAction(Action):
         else:
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
+    def __str__(self):
+        return f"myStateChangeAction: comp:{self.component}, state:{self.state}"
 
 @dataclass
 class MiscAction(Action):
@@ -65,6 +67,9 @@ class MiscAction(Action):
         else:
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
+    def __str__(self):
+        return f"myMiscAction: action_type:{self.action_type}"
+
 
 @dataclass
 class Transition:
@@ -83,6 +88,8 @@ class Transition:
     procedure: str
     step: str
 
+    def __str__(self):
+        return f"myTransition: procedure:{self.procedure}, step:{self.step}"
 
 @dataclass
 class ProcedureStep:
@@ -124,6 +131,9 @@ class ProcedureStep:
             return retval
         else:
             raise NotImplementedError(f'Format "{fmt}" not supported')
+
+    def __str__(self):
+        return f"myProcedureStep: step_id:{self.step_id}, operator:{self.operator}"
 
 
 class Procedure:
@@ -207,6 +217,9 @@ class Procedure:
         else:
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
+    def __str__(self):
+        return f"myProcedure: procedure_id:{self.procedure_id}"
+
 
 class ProcedureSuite:
     """A set of procedures and associated metadata."""
@@ -264,3 +277,6 @@ class ProcedureSuite:
             return '\n\n'.join(exported_procedures).replace('_', '\\_')
         else:
             raise NotImplementedError(f'Format "{fmt}" not supported')
+
+    def __str__(self):
+        return f"myProcedureSuite: starting_procedure:{self.starting_procedure}"
