@@ -279,4 +279,4 @@ class ProcedureSuite:
             raise NotImplementedError(f'Format "{fmt}" not supported')
 
     def __str__(self):
-        return f"myProcedureSuite: starting_procedure:{self.starting_procedure}"
+        return f"myProcedureSuite: starting_procedure_id:{self.starting_procedure_id}"
